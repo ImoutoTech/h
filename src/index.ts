@@ -1,11 +1,18 @@
 import app from "./app";
 import { ENV } from "./config";
-import { echo } from "./utils/logger";
+import { echo, info, error, success, space } from "./utils/logger";
+import db from "./db";
 
 try {
-  echo(`starting Homepod in ${ENV.MODE} mode`);
-  app.listen(4000, () => {
-    echo(`listening on port ${ENV.PORT}`);
+  space(2);
+  echo(`[homepod] starting Homepod in ${info(ENV.MODE || "")} mode`);
+  space();
+
+  db.authenticate().then(() => {
+    echo("[homepod] " + success("connected to db"));
+    app.listen(4000, () => {
+      echo(`[homepod] listening on port ${info(ENV.PORT || "unknown")}`);
+    });
   });
 } catch (e) {
   console.log(e);

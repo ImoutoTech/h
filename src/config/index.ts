@@ -7,7 +7,7 @@ export const ENV = {
     HOST: process.env.DB_HOST,
     PWD: process.env.DB_PWD,
     USER: process.env.DB_USER,
-    PORT: process.env.PORT,
+    PORT: Number(process.env.DB_PORT),
   },
   DEBUG: Boolean(process.env.DEBUG),
   PORT: process.env.PORT,
