@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "nodemon"
+    "dev": "dotenv -c development nodemon",
+    "start": "nodemon"
   },
   "devDependencies": {
     "@types/express": "^4.17.17",
