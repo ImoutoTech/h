@@ -14,6 +14,7 @@ try {
       echo(`[homepod] listening on port ${info(ENV.PORT || "unknown")}`);
     });
   });
-} catch (e) {
-  console.log(e);
+} catch (e: any) {
+  echo(`[homepod] ${error(`error: ${e.message}`)}`);
+  echo(e);
 }
