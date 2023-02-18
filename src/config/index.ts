@@ -13,3 +13,8 @@ export const ENV = {
   PORT: process.env.PORT,
   MODE: process.env.MODE,
 };
+
+export const CONFIG = {
+  TITLE: "Homepod",
+  VERSION: "0.1.0",
+};
