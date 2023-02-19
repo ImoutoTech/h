@@ -13,9 +13,11 @@ export const Register = async (body: RegisterParam) => {
   };
 
   try {
-    ret.data = await User.create({
+    const user = await User.create({
       ...body,
     });
+
+    ret.data = user.getData();
   } catch (e) {
     ret.status = false;
 

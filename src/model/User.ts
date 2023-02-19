@@ -1,8 +1,23 @@
-import { DataTypes } from "sequelize";
+import { DataTypes, Model } from "sequelize";
 import db from "../db";
 
-const User = db.define(
-  "User",
+class User extends Model {
+  public getData() {
+    return JSON.parse(
+      JSON.stringify(this, [
+        "id",
+        "nickname",
+        "email",
+        "created_at",
+        "avatar",
+        "updated_at",
+        "role",
+      ])
+    );
+  }
+}
+
+User.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -34,6 +49,7 @@ const User = db.define(
     },
   },
   {
+    sequelize: db,
     timestamps: true,
     createdAt: "created_at",
     updatedAt: "updated_at",
