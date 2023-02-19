@@ -56,10 +56,10 @@ export default async function logger(
   next: NextFunction
 ) {
   if (!ENV.DEBUG) {
-    next();
+    await next();
   } else {
     let start = performance.now();
-    next();
+    await next();
     let end = performance.now();
     echo(
       `${info(`[${req.method}]`)} ${req.path} - ${perfomanceColor(end - start)(
