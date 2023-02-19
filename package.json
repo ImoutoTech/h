@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "dotenv -c development nodemon",
-    "start": "nodemon"
+    "start": "nodemon",
+    "init:dev": "dotenv -c development ts-node script/init.ts",
+    "init": "ts-node script/init.ts"
   },
   "devDependencies": {
     "@types/express": "^4.17.17",
