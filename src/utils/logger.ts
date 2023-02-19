@@ -52,7 +52,7 @@ const perfomanceColor = (duration: number) => {
  */
 export default async function logger(
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ) {
   if (!ENV.DEBUG) {
