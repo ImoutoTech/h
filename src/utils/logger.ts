@@ -55,7 +55,7 @@ export default async function logger(
   _res: Response,
   next: NextFunction
 ) {
-  if (!ENV.DEBUG) {
+  if (ENV.MODE !== "dev") {
     await next();
   } else {
     let start = performance.now();

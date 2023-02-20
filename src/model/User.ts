@@ -1,7 +1,10 @@
 import { DataTypes, Model } from "sequelize";
+import bcrypt from "bcrypt";
 import db from "../db";
 
 class User extends Model {
+  declare password: string;
+
   public getData() {
     return JSON.parse(
       JSON.stringify(this, [
@@ -14,6 +17,10 @@ class User extends Model {
         "role",
       ])
     );
+  }
+
+  public checkPassword(pwd: string) {
+    return bcrypt.compareSync(pwd, this.password);
   }
 }
 
