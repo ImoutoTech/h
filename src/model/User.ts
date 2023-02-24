@@ -4,6 +4,11 @@ import db from "../db";
 
 class User extends Model {
   declare password: string;
+  declare id: number;
+  declare nickname: string;
+  declare email: string;
+  declare avatar: string;
+  declare role: number;
 
   public getData() {
     return JSON.parse(

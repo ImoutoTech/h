@@ -1,6 +1,8 @@
 import { RegisterParam, LoginParam } from "./types";
 import { ValidationError } from "sequelize";
+import jwt from "jsonwebtoken";
 import User from "../model/User";
+import { ENV } from "../config";
 
 /**
  * 用户注册
@@ -47,7 +49,23 @@ export const Login = async (body: LoginParam) => {
       throw new Error("User not exists");
     }
     if (user.checkPassword(body.password)) {
-      ret.data = user.getData();
+      const token =
+        "Bearer " +
+        jwt.sign(
+          {
+            email: user.email,
+            role: user.role,
+          },
+          ENV.TOKEN_SECRET,
+          {
+            expiresIn: 3600 * 24 * 24,
+          }
+        );
+
+      ret.data = {
+        token,
+        user: user.getData(),
+      };
     } else {
       throw new Error("wrong password");
     }

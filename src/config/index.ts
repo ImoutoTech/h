@@ -12,6 +12,7 @@ export const ENV = {
   SALTROUND: Number(process.env.SALTROUND),
   PORT: process.env.PORT,
   MODE: process.env.MODE,
+  TOKEN_SECRET: String(process.env.TOKEN_SECRET),
 };
 
 export const CONFIG = {
