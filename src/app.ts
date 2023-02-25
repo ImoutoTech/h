@@ -17,8 +17,11 @@ app.use(
   expressjwt({
     secret: ENV.TOKEN_SECRET,
     algorithms: ["HS256"],
-  }).unless({
-    path: ["/user/login", "/user/register"],
+    credentialsRequired: false,
+    requestProperty: "user",
+    onExpired: function (_req) {
+      throw new Error("token 已经过期");
+    },
   })
 );
 
