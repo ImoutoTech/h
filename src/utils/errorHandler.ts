@@ -11,3 +11,7 @@ export default function errorHandler(
   echo(error(`error: ${err.message}`));
   retError(res, {}, err.message);
 }
+
+export const handleTokenExpire = (_req: Request) => {
+  throw new Error("token 已经过期");
+};

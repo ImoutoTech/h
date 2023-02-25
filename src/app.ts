@@ -1,7 +1,7 @@
 import express from "express";
 import logger from "./utils/logger";
 import { expressjwt } from "express-jwt";
-import errorHandler from "./utils/errorHandler";
+import errorHandler, { handleTokenExpire } from "./utils/errorHandler";
 
 import indexRouter from "./routes/index";
 import userRouter from "./routes/user";
@@ -19,9 +19,7 @@ app.use(
     algorithms: ["HS256"],
     credentialsRequired: false,
     requestProperty: "user",
-    onExpired: function (_req) {
-      throw new Error("token 已经过期");
-    },
+    onExpired: handleTokenExpire,
   })
 );
 
