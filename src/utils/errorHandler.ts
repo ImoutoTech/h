@@ -9,7 +9,5 @@ export default function errorHandler(
   _next: NextFunction
 ) {
   echo(error(`error: ${err.message}`));
-  if (err.name === "UnauthorizedError") {
-    retError(res, {}, "认证失败");
-  }
+  retError(res, {}, err.message);
 }
