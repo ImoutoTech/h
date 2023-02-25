@@ -1,4 +1,4 @@
-import express from "express";
+import express, { NextFunction, Request, Response } from "express";
 import bcrypt from "bcrypt";
 import { retError, retSuccess } from "../utils/restful";
 import { LoginParam, RegisterParam } from "../service/types";
@@ -12,21 +12,25 @@ const router = express.Router();
  * 仅测试用
  * 密码生成
  */
-router.get("/pass-gen", function (req, res, next) {
-  if (ENV.MODE === "dev") {
-    const { plain = "" } = req.query;
+router.get(
+  "/pass-gen",
+  function (req: Request, res: Response, _next: NextFunction) {
+    if (ENV.MODE === "dev") {
+      const { plain = "" } = req.query;
 
-    if (plain === "") {
-      res.json({ password: "" });
+      if (plain === "") {
+        res.json({ password: "" });
+      } else {
+        console.log(req.user);
+        res.json({
+          password: bcrypt.hashSync(plain as string, ENV.SALTROUND),
+        });
+      }
     } else {
-      res.json({
-        password: bcrypt.hashSync(plain as string, ENV.SALTROUND),
-      });
+      res.json({ password: "" });
     }
-  } else {
-    res.json({ password: "" });
   }
-});
+);
 
 /**
  * 用户注册
