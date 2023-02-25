@@ -35,18 +35,17 @@ router.get(
 /**
  * 用户注册
  */
-router.post("/register", async function (req, res, _next) {
+router.post("/register", async function (req, res, next) {
   const { body } = req;
   const paramList = ["nickname", "email", "password"];
 
   if (!checkParams(body, paramList)) {
     retError(res, {}, "参数缺失");
   } else {
-    const { status, data } = await Register(body as RegisterParam);
-    if (status) {
-      retSuccess(res, data);
-    } else {
-      retError(res, data);
+    try {
+      retSuccess(res, await Register(body as RegisterParam));
+    } catch (e) {
+      next(e);
     }
   }
 });
@@ -54,18 +53,17 @@ router.post("/register", async function (req, res, _next) {
 /**
  * 用户登录
  */
-router.post("/login", async function (req, res, _next) {
+router.post("/login", async function (req, res, next) {
   const { body } = req;
   const paramList = ["email", "password"];
 
   if (!checkParams(body, paramList)) {
     retError(res, {}, "参数缺失");
   } else {
-    const { status, data } = await Login(body as LoginParam);
-    if (status) {
-      retSuccess(res, data);
-    } else {
-      retError(res, data);
+    try {
+      retSuccess(res, await Login(body as LoginParam));
+    } catch (e) {
+      next(e);
     }
   }
 });

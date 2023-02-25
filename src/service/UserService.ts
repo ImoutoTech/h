@@ -9,72 +9,41 @@ import { ENV } from "../config";
  * @param body 注册信息
  */
 export const Register = async (body: RegisterParam) => {
-  const ret = {
-    status: true,
-    data: {},
-  };
+  const user = await User.create({
+    ...body,
+  });
 
-  try {
-    const user = await User.create({
-      ...body,
-    });
-
-    ret.data = user.getData();
-  } catch (e) {
-    ret.status = false;
-
-    if (e instanceof ValidationError) {
-      ret.data = e.errors.map((error) => error.message).join(",");
-    } else {
-      ret.data = e as unknown as Object;
-    }
-  }
-
-  return ret;
+  return user.getData();
 };
 
 /**
  * 用户登录
  */
 export const Login = async (body: LoginParam) => {
-  const ret = {
-    status: true,
-    data: {},
-  };
+  const user = await User.findOne({ where: { email: body.email } });
 
-  try {
-    const user = await User.findOne({ where: { email: body.email } });
-
-    if (user === null) {
-      throw new Error("User not exists");
-    }
-    if (user.checkPassword(body.password)) {
-      const token =
-        "Bearer " +
-        jwt.sign(
-          {
-            email: user.email,
-            role: user.role,
-          },
-          ENV.TOKEN_SECRET,
-          {
-            expiresIn: 3600 * 24 * 24,
-          }
-        );
-
-      ret.data = {
-        token,
-        user: user.getData(),
-      };
-    } else {
-      throw new Error("wrong password");
-    }
-  } catch (e) {
-    ret.status = false;
-    if (e instanceof Error) {
-      ret.data = e.message;
-    }
+  if (user === null) {
+    throw new Error("User not exists");
   }
+  if (user.checkPassword(body.password)) {
+    const token =
+      "Bearer " +
+      jwt.sign(
+        {
+          email: user.email,
+          role: user.role,
+        },
+        ENV.TOKEN_SECRET,
+        {
+          expiresIn: 3600 * 24 * 24,
+        }
+      );
 
-  return ret;
+    return {
+      token,
+      user: user.getData(),
+    };
+  } else {
+    throw new Error("wrong password");
+  }
 };
