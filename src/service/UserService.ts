@@ -47,3 +47,18 @@ export const Login = async (body: LoginParam) => {
     throw new Error("wrong password");
   }
 };
+
+/**
+ * 获取用户信息
+ *
+ * @param body 消息体
+ * @returns 用户信息
+ */
+export const getUser = async (body: { id: number }) => {
+  const user = await User.findOne({ where: { id: body.id } });
+  if (user === null) {
+    throw new Error("User not exists");
+  }
+
+  return user.getData();
+};

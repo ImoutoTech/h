@@ -2,7 +2,7 @@ import express, { NextFunction, Request, Response } from "express";
 import bcrypt from "bcrypt";
 import { retError, retSuccess } from "../utils/restful";
 import { LoginParam, RegisterParam } from "../service/types";
-import { Login, Register } from "../service/UserService";
+import { Login, Register, getUser } from "../service/UserService";
 import { checkParams } from "../utils";
 import { ENV } from "../config";
 
@@ -65,6 +65,23 @@ router.post("/login", async function (req, res, next) {
     } catch (e) {
       next(e);
     }
+  }
+});
+
+/**
+ * 获取用户信息
+ */
+router.get("/:id", async function (req, res, next) {
+  try {
+    const { params } = req;
+
+    if (!params.id) {
+      throw new Error("参数缺失");
+    }
+
+    retSuccess(res, await getUser({ id: Number(params.id) }));
+  } catch (e) {
+    next(e);
   }
 });
 
