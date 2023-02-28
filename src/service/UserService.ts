@@ -32,6 +32,7 @@ export const Login = async (body: LoginParam) => {
         {
           email: user.email,
           role: user.role,
+          id: user.id,
         },
         ENV.TOKEN_SECRET,
         {
