@@ -69,6 +69,18 @@ router.post("/login", async function (req, res, next) {
 });
 
 /**
+ * 用户token校验
+ * 其实就是把token的payload返回
+ */
+router.get("/validate", async function (req, res, next) {
+  try {
+    retSuccess(res, req.user);
+  } catch (e) {
+    next(e);
+  }
+});
+
+/**
  * 获取用户信息
  */
 router.get("/:id", async function (req, res, next) {
