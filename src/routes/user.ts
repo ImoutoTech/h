@@ -2,7 +2,7 @@ import express, { NextFunction, Request, Response } from "express";
 import bcrypt from "bcrypt";
 import { retError, retSuccess } from "../utils/restful";
 import { LoginParam, RegisterParam } from "../service/types";
-import { Login, Register, getUser } from "../service/UserService";
+import { Login, Register, getUser, Refresh } from "../service/UserService";
 import { checkParams } from "../utils";
 import { ENV } from "../config";
 
@@ -75,6 +75,21 @@ router.post("/login", async function (req, res, next) {
 router.get("/validate", async function (req, res, next) {
   try {
     retSuccess(res, req.user);
+  } catch (e) {
+    next(e);
+  }
+});
+
+/**
+ * 刷新token
+ */
+router.get("/refresh", async function (req, res, next) {
+  try {
+    if (!req.user?.refresh) {
+      throw new Error("not refresh token");
+    }
+
+    retSuccess(res, Refresh(req.user));
   } catch (e) {
     next(e);
   }

@@ -3,6 +3,7 @@ import { ValidationError } from "sequelize";
 import jwt from "jsonwebtoken";
 import User from "../model/User";
 import { ENV } from "../config";
+import { UserInfo } from "../utils/types";
 
 /**
  * 用户注册
@@ -33,15 +34,32 @@ export const Login = async (body: LoginParam) => {
           email: user.email,
           role: user.role,
           id: user.id,
+          refresh: false,
         },
         ENV.TOKEN_SECRET,
         {
-          expiresIn: 3600 * 24 * 24,
+          expiresIn: "2h",
+        }
+      );
+
+    const refresh =
+      "Bearer " +
+      jwt.sign(
+        {
+          email: user.email,
+          role: user.role,
+          id: user.id,
+          refresh: true,
+        },
+        ENV.TOKEN_SECRET,
+        {
+          expiresIn: "7d",
         }
       );
 
     return {
       token,
+      refresh,
       user: user.getData(),
     };
   } else {
@@ -62,4 +80,29 @@ export const getUser = async (body: { id: number }) => {
   }
 
   return user.getData();
+};
+
+/**
+ * 刷新token
+ *
+ * @param user UserInfo
+ * @returns token
+ */
+export const Refresh = (user: UserInfo) => {
+  return {
+    token:
+      "Bearer " +
+      jwt.sign(
+        {
+          email: user.email,
+          role: user.role,
+          id: user.id,
+          refresh: false,
+        },
+        ENV.TOKEN_SECRET,
+        {
+          expiresIn: "2h",
+        }
+      ),
+  };
 };
