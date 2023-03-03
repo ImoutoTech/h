@@ -5,6 +5,7 @@ import errorHandler, { handleTokenExpire } from "./utils/errorHandler";
 
 import indexRouter from "./routes/index";
 import userRouter from "./routes/user";
+import skRouter from "./routes/sk";
 
 import { ENV } from "./config";
 
@@ -25,6 +26,7 @@ app.use(
 
 app.use("/", indexRouter);
 app.use("/user", userRouter);
+app.use("/sk", skRouter);
 
 app.use(errorHandler);
 
