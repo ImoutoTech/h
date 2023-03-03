@@ -52,14 +52,14 @@ const perfomanceColor = (duration: number) => {
  */
 export default async function logger(
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ) {
-  if (!ENV.DEBUG) {
-    next();
+  if (ENV.MODE !== "dev") {
+    await next();
   } else {
     let start = performance.now();
-    next();
+    await next();
     let end = performance.now();
     echo(
       `${info(`[${req.method}]`)} ${req.path} - ${perfomanceColor(end - start)(
