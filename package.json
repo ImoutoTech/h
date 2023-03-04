@@ -1,6 +1,6 @@
 {
   "name": "h",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "dotenv -c development nodemon",
