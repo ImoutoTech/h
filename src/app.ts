@@ -2,6 +2,7 @@ import express from "express";
 import logger from "./utils/logger";
 import { expressjwt } from "express-jwt";
 import errorHandler, { handleTokenExpire } from "./utils/errorHandler";
+import { useRedis } from "./db/redis";
 
 import indexRouter from "./routes/index";
 import userRouter from "./routes/user";
@@ -23,6 +24,7 @@ app.use(
     onExpired: handleTokenExpire,
   })
 );
+app.use(useRedis);
 
 app.use("/", indexRouter);
 app.use("/user", userRouter);

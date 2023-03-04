@@ -1,19 +1,23 @@
 import { RegisterParam, LoginParam } from "./types";
-import { ValidationError } from "sequelize";
 import jwt from "jsonwebtoken";
 import User from "../model/User";
 import { ENV } from "../config";
 import { UserInfo } from "../utils/types";
+import { HRedis } from "../db/redis";
 
 /**
- * 用户注册
- * @param body 注册信息
+ * 获取用户信息
+ *
+ * @param body 用户信息
+ * @param redis redis
+ * @returns 用户信息
  */
-export const Register = async (body: RegisterParam) => {
+export const Register = async (body: RegisterParam, redis: HRedis) => {
   const user = await User.create({
     ...body,
   });
 
+  await redis.set(`user-${user.id}`, user.getData());
   return user.getData();
 };
 
@@ -71,13 +75,22 @@ export const Login = async (body: LoginParam) => {
  * 获取用户信息
  *
  * @param body 消息体
+ * @param redis redis客户端
  * @returns 用户信息
  */
-export const getUser = async (body: { id: number }) => {
+export const getUser = async (body: { id: number }, redis: HRedis) => {
+  const value = await redis.get(`user-${body.id}`);
+
+  if (value) {
+    return value;
+  }
+
   const user = await User.findOne({ where: { id: body.id } });
   if (user === null) {
     throw new Error("User not exists");
   }
+
+  await redis.set(`user-${body.id}`, user.getData());
 
   return user.getData();
 };

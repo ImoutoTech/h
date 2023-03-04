@@ -43,7 +43,7 @@ router.post("/register", async function (req, res, next) {
     retError(res, {}, "参数缺失");
   } else {
     try {
-      retSuccess(res, await Register(body as RegisterParam));
+      retSuccess(res, await Register(body as RegisterParam, req.redis));
     } catch (e) {
       next(e);
     }
@@ -106,7 +106,7 @@ router.get("/:id", async function (req, res, next) {
       throw new Error("参数缺失");
     }
 
-    retSuccess(res, await getUser({ id: Number(params.id) }));
+    retSuccess(res, await getUser({ id: Number(params.id) }, req.redis));
   } catch (e) {
     next(e);
   }

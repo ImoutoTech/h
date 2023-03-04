@@ -13,9 +13,10 @@ export const ENV = {
   PORT: process.env.PORT,
   MODE: process.env.MODE,
   TOKEN_SECRET: String(process.env.TOKEN_SECRET),
+  REDIS_URL: process.env.REDIS_URL,
 };
 
 export const CONFIG = {
   TITLE: "Homepod",
-  VERSION: "0.1.0",
+  VERSION: "0.2.0",
 };

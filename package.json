@@ -1,6 +1,6 @@
 {
   "name": "h",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "dotenv -c development nodemon",
@@ -24,6 +24,7 @@
     "express-jwt": "^8.4.1",
     "jsonwebtoken": "^9.0.0",
     "mysql2": "^3.1.2",
+    "redis": "^4.6.5",
     "sequelize": "7.0.0-alpha2.2",
     "uuid": "^9.0.0"
   }
