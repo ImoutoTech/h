@@ -1,19 +1,30 @@
 import { RegisterParam, LoginParam } from "./types";
-import { ValidationError } from "sequelize";
 import jwt from "jsonwebtoken";
 import User from "../model/User";
 import { ENV } from "../config";
 import { UserInfo } from "../utils/types";
+import { RedisClientType } from "redis";
+import { echo } from "../utils/logger";
 
 /**
- * 用户注册
- * @param body 注册信息
+ * 获取用户信息
+ *
+ * @param body 用户信息
+ * @param redis redis
+ * @returns 用户信息
  */
-export const Register = async (body: RegisterParam) => {
+export const Register = async (
+  body: RegisterParam,
+  redis: RedisClientType<any, any, any>
+) => {
+  await redis.connect();
   const user = await User.create({
     ...body,
   });
 
+  await redis.set(`user-${user.id}`, JSON.stringify(user.getData()));
+
+  await redis.disconnect();
   return user.getData();
 };
 
@@ -71,13 +82,30 @@ export const Login = async (body: LoginParam) => {
  * 获取用户信息
  *
  * @param body 消息体
+ * @param redis redis客户端
  * @returns 用户信息
  */
-export const getUser = async (body: { id: number }) => {
+export const getUser = async (
+  body: { id: number },
+  redis: RedisClientType<any, any, any>
+) => {
+  await redis.connect();
+  const value = await redis.get(`user-${body.id}`);
+
+  if (value) {
+    ENV.MODE === "dev" && echo("命中redis缓存");
+    await redis.disconnect();
+    return JSON.parse(value);
+  }
+
   const user = await User.findOne({ where: { id: body.id } });
   if (user === null) {
     throw new Error("User not exists");
   }
+
+  ENV.MODE === "dev" && echo("更新redis缓存");
+  await redis.set(`user-${body.id}`, JSON.stringify(user.getData()));
+  await redis.disconnect();
 
   return user.getData();
 };

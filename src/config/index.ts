@@ -13,6 +13,7 @@ export const ENV = {
   PORT: process.env.PORT,
   MODE: process.env.MODE,
   TOKEN_SECRET: String(process.env.TOKEN_SECRET),
+  REDIS_URL: process.env.REDIS_URL,
 };
 
 export const CONFIG = {
