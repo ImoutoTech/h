@@ -1,5 +1,5 @@
 import { UserInfo } from "../../utils/types";
-import { RedisClientType } from "redis";
+import { HRedis } from "../../db/redis";
 
 declare global {
   namespace Express {
@@ -7,7 +7,7 @@ declare global {
       user?: UserInfo;
       query: any;
       params: any;
-      redis: RedisClientType<any, any, any>;
+      redis: HRedis;
     }
   }
 }
