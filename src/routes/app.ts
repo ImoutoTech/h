@@ -21,7 +21,16 @@ router.post('/reg', async (req, res, next) => {
       throw new Error('missing params')
     }
 
-    retSuccess(res, await RegisterApp(body, req.redis))
+    retSuccess(
+      res,
+      await RegisterApp(
+        {
+          ...body,
+          owner: req.user.id,
+        },
+        req.redis
+      )
+    )
   } catch (e) {
     next(e)
   }

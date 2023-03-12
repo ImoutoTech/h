@@ -10,4 +10,5 @@ export interface RegisterParam extends LoginParam {
 export interface AppRegParam {
   name: string
   callback: string
+  owner: number
 }
