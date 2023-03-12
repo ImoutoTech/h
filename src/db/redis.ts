@@ -1,37 +1,37 @@
-import { Response, Request, NextFunction } from "express";
-import { createClient } from "redis";
-import { ENV, CONFIG } from "../config";
-import { echo, error, success } from "../utils/logger";
+import { Response, Request, NextFunction } from 'express'
+import { createClient } from 'redis'
+import { ENV, CONFIG } from '../config'
+import { echo, error, success } from '../utils/logger'
 
 const redis = createClient({
   url: ENV.REDIS_URL,
-});
+})
 
-redis.on("error", (err) => {
-  echo(error("Redis Error"), err);
-});
+redis.on('error', (err) => {
+  echo(error('Redis Error'), err)
+})
 
 export class HRedis {
   /**
    * Redis客户端
    */
-  public client;
+  public client
 
   /**
    * 是否快速使用
    */
-  public isManual: boolean = false;
+  public isManual: boolean = false
 
   /**
    * 是否已经连接
    */
-  private isConnected: boolean = false;
+  private isConnected: boolean = false
 
   /**
    * 构造函数
    */
   constructor() {
-    this.client = redis;
+    this.client = redis
   }
 
   /**
@@ -40,9 +40,9 @@ export class HRedis {
    * 会开启手动模式
    */
   public async connect() {
-    await this.client.connect();
-    this.isManual = true;
-    this.isConnected = true;
+    await this.client.connect()
+    this.isManual = true
+    this.isConnected = true
   }
 
   /**
@@ -51,9 +51,9 @@ export class HRedis {
    * 会关闭手动模式
    */
   public async disconnect() {
-    await this.client.disconnect();
-    this.isManual = false;
-    this.isConnected = false;
+    await this.client.disconnect()
+    this.isManual = false
+    this.isConnected = false
   }
 
   /**
@@ -64,18 +64,18 @@ export class HRedis {
    * @returns value
    */
   public async get(key: string, isObj = true) {
-    !this.isManual && (await this.client.connect());
-    const result = await this.client.get(key);
+    !this.isManual && (await this.client.connect())
+    const result = await this.client.get(key)
 
     if (result) {
-      !this.isManual && (await this.client.disconnect());
-      ENV.MODE === "dev" && echo(`命中redis缓存: ${key}`);
-      return isObj ? JSON.parse(result) : result;
+      !this.isManual && (await this.client.disconnect())
+      ENV.MODE === 'dev' && echo(`命中redis缓存: ${key}`)
+      return isObj ? JSON.parse(result) : result
     }
 
-    !this.isManual && (await this.client.disconnect());
-    ENV.MODE === "dev" && echo(`没有命中redis缓存: ${key}`);
-    return undefined;
+    !this.isManual && (await this.client.disconnect())
+    ENV.MODE === 'dev' && echo(`没有命中redis缓存: ${key}`)
+    return undefined
   }
 
   /**
@@ -85,12 +85,26 @@ export class HRedis {
    * @param value value
    */
   public async set(key: string, value: string | object) {
-    !this.isManual && (await this.client.connect());
-    const trueValue = typeof value === "string" ? value : JSON.stringify(value);
-    await this.client.set(key, trueValue);
+    !this.isManual && (await this.client.connect())
+    const trueValue = typeof value === 'string' ? value : JSON.stringify(value)
+    await this.client.set(key, trueValue)
 
-    !this.isManual && (await this.client.disconnect());
-    ENV.MODE === "dev" && echo(`刷新redis缓存: ${key}`);
+    !this.isManual && (await this.client.disconnect())
+    ENV.MODE === 'dev' && echo(`刷新redis缓存: ${key}`)
+  }
+
+  /**
+   * 删除值
+   *
+   * @param key key
+   */
+  public async del(key: string) {
+    !this.isManual && (await this.client.connect())
+
+    await this.client.del(key)
+
+    !this.isManual && (await this.client.disconnect())
+    ENV.MODE === 'dev' && echo(`删除redis缓存: ${key}`)
   }
 
   /**
@@ -99,19 +113,19 @@ export class HRedis {
    * @returns boolean
    */
   public connected() {
-    return this.isConnected;
+    return this.isConnected
   }
 }
 
 export const testRedis = async () => {
-  await redis.connect();
-  echo(`[${CONFIG.TITLE}] ` + success("connected to redis"));
-  await redis.disconnect();
-};
+  await redis.connect()
+  echo(`[${CONFIG.TITLE}] ` + success('connected to redis'))
+  await redis.disconnect()
+}
 
 export const useRedis = (req: Request, _res: Response, next: NextFunction) => {
-  req.redis = new HRedis();
-  next();
-};
+  req.redis = new HRedis()
+  next()
+}
 
-export default redis;
+export default redis
