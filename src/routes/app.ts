@@ -1,5 +1,7 @@
 import express from 'express'
+import { checkParams } from '../utils'
 import { retSuccess } from '../utils/restful'
+import { RegisterApp } from '../service/SubAppService'
 
 const router = express.Router()
 
@@ -12,7 +14,14 @@ router.post('/reg', async (req, res, next) => {
       throw new Error('give me the token')
     }
 
-    retSuccess(res, {})
+    const { body } = req
+    const paramList = ['name', 'callback']
+
+    if (!checkParams(body, paramList)) {
+      throw new Error('missing params')
+    }
+
+    retSuccess(res, await RegisterApp(body, req.redis))
   } catch (e) {
     next(e)
   }

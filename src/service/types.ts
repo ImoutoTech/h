@@ -1,8 +1,13 @@
 export interface LoginParam {
-  email: string;
-  password: string;
+  email: string
+  password: string
 }
 
 export interface RegisterParam extends LoginParam {
-  nickname: string;
+  nickname: string
+}
+
+export interface AppRegParam {
+  name: string
+  callback: string
 }
