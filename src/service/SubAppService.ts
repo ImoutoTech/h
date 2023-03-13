@@ -40,3 +40,27 @@ export const getSubAppData = async (id: string, redis: HRedis) => {
   await redis.set(`app-${app.id}`, app.getData())
   return app.getData()
 }
+
+/**
+ * 删除子应用
+ *
+ * @param id 子应用id
+ * @param user 请求用户id
+ * @param redis HRedis
+ * @returns 是否删除成功
+ */
+export const delSubApp = async (id: string, user: number, redis: HRedis) => {
+  const app = await SubApp.findOne({ where: { id } })
+  if (app === null) {
+    throw new Error('app not exists')
+  }
+
+  if (user === app.owner) {
+    await redis.del(`app-${id}`)
+    await app.destroy()
+  } else {
+    throw new Error('not your app')
+  }
+
+  return true
+}

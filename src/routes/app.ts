@@ -1,7 +1,7 @@
 import express from 'express'
 import { checkParams } from '../utils'
 import { retSuccess } from '../utils/restful'
-import { RegisterApp, getSubAppData } from '../service/SubAppService'
+import { RegisterApp, getSubAppData, delSubApp } from '../service/SubAppService'
 
 const router = express.Router()
 
@@ -56,7 +56,9 @@ router.delete('/:id', async (req, res, next) => {
       throw new Error('give me the token')
     }
 
-    retSuccess(res, {})
+    retSuccess(res, {
+      result: await delSubApp(req.params.id, req.user.id, req.redis),
+    })
   } catch (e) {
     next(e)
   }
