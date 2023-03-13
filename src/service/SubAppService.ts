@@ -1,5 +1,5 @@
 import { HRedis } from '../db/redis'
-import SubApp from '../model/SubApp'
+import SubApp, { SubAppBaseInfo } from '../model/SubApp'
 import { AppRegParam } from './types'
 
 /**
@@ -13,6 +13,29 @@ export const RegisterApp = async (body: AppRegParam, redis: HRedis) => {
   const app = await SubApp.create({
     ...body,
   })
+
+  await redis.set(`app-${app.id}`, app.getData())
+  return app.getData()
+}
+
+/**
+ * 获取子应用信息
+ *
+ * @param id appId
+ * @param redis HRedis
+ * @returns App信息
+ */
+export const getSubAppData = async (id: string, redis: HRedis) => {
+  const appCache = await redis.get(`app-${id}`)
+
+  if (appCache) {
+    return appCache as SubAppBaseInfo
+  }
+
+  const app = await SubApp.findOne({ where: { id } })
+  if (app === null) {
+    throw new Error('app not exists')
+  }
 
   await redis.set(`app-${app.id}`, app.getData())
   return app.getData()

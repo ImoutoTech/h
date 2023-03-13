@@ -2,12 +2,21 @@ import { DataTypes, Model } from 'sequelize'
 import db from '../db'
 import User from './User'
 
+export interface SubAppBaseInfo {
+  name: string
+  id: string
+  callback: string
+  owner: number
+  created_at: string
+  updated_at: string
+}
+
 class SubApp extends Model {
   // 子应用id
   declare id: string
 
   // 子应用回调地址
-  declare callback: number
+  declare callback: string
 
   // 子应用名称
   declare name: string
@@ -18,7 +27,7 @@ class SubApp extends Model {
   declare created_at: string
   declare updated_at: string
 
-  public getData() {
+  public getData(): SubAppBaseInfo {
     return {
       name: this.name,
       id: this.id,

@@ -1,7 +1,7 @@
 import express from 'express'
 import { checkParams } from '../utils'
 import { retSuccess } from '../utils/restful'
-import { RegisterApp } from '../service/SubAppService'
+import { RegisterApp, getSubAppData } from '../service/SubAppService'
 
 const router = express.Router()
 
@@ -41,11 +41,7 @@ router.post('/reg', async (req, res, next) => {
  */
 router.post('/:id', async (req, res, next) => {
   try {
-    if (!req.user) {
-      throw new Error('give me the token')
-    }
-
-    retSuccess(res, {})
+    retSuccess(res, await getSubAppData(req.params.id, req.redis))
   } catch (e) {
     next(e)
   }
