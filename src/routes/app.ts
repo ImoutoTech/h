@@ -10,7 +10,7 @@ const router = express.Router()
  */
 router.post('/reg', async (req, res, next) => {
   try {
-    if (!req.user) {
+    if (!req.user || req.user.refresh) {
       throw new Error('give me the token')
     }
 
@@ -52,7 +52,7 @@ router.post('/:id', async (req, res, next) => {
  */
 router.delete('/:id', async (req, res, next) => {
   try {
-    if (!req.user) {
+    if (!req.user || req.user.refresh) {
       throw new Error('give me the token')
     }
 
