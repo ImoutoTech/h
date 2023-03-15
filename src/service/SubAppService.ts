@@ -104,3 +104,15 @@ export const ModifySubApp = async (
   redis.set(`app-${user.id}`, app.getData())
   return app.getData()
 }
+
+/**
+ * 获取用户子应用列表
+ *
+ * @param userId 用户id
+ * @returns 用户app列表
+ */
+export const getUserApp = async (userId: number): Promise<SubAppBaseInfo[]> => {
+  const apps = await SubApp.findAll({ where: { owner: userId } })
+
+  return apps.map((app) => app.getData())
+}
