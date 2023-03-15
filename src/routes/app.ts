@@ -6,6 +6,7 @@ import {
   getSubAppData,
   delSubApp,
   ModifySubApp,
+  getUserApp,
 } from '../service/SubAppService'
 
 const router = express.Router()
@@ -36,6 +37,21 @@ router.post('/reg', async (req, res, next) => {
         req.redis
       )
     )
+  } catch (e) {
+    next(e)
+  }
+})
+
+/**
+ * 获取用户子应用列表
+ */
+router.get('/my', async (req, res, next) => {
+  try {
+    if (!req.user || req.user.refresh) {
+      throw new Error('give me the token')
+    }
+
+    retSuccess(res, await getUserApp(req.user.id))
   } catch (e) {
     next(e)
   }
