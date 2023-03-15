@@ -1,6 +1,7 @@
 import { HRedis } from '../db/redis'
 import SubApp, { SubAppBaseInfo } from '../model/SubApp'
-import { AppRegParam } from './types'
+import type { AppRegParam } from './types'
+import type { UserTokenInfo } from '../utils/types'
 
 /**
  * 注册子应用
@@ -63,4 +64,43 @@ export const delSubApp = async (id: string, user: number, redis: HRedis) => {
   }
 
   return true
+}
+
+/**
+ * 修改应用数据
+ *
+ * @param body 请求体
+ * @param id 应用id
+ * @param user 用户信息
+ * @param redis HRedis
+ * @returns 更新后的应用数据
+ */
+export const ModifySubApp = async (
+  body: Partial<SubAppBaseInfo>,
+  id: string,
+  user: UserTokenInfo,
+  redis: HRedis
+) => {
+  const editableData = ['name', 'callback']
+  const app = await SubApp.findOne({ where: { id } })
+  const data2Modify: Partial<SubAppBaseInfo> = {}
+
+  if (app === null) {
+    throw new Error('app not exists')
+  }
+
+  editableData.forEach((key: string) => {
+    if (body[key]) {
+      if (app.owner !== user.id && user.role !== 1) {
+        throw new Error('permission denied')
+      }
+
+      data2Modify[key] = body[key]
+    }
+  })
+
+  await app.update(data2Modify)
+
+  redis.set(`app-${user.id}`, app.getData())
+  return app.getData()
 }

@@ -1,7 +1,12 @@
 import express from 'express'
 import { checkParams } from '../utils'
 import { retSuccess } from '../utils/restful'
-import { RegisterApp, getSubAppData, delSubApp } from '../service/SubAppService'
+import {
+  RegisterApp,
+  getSubAppData,
+  delSubApp,
+  ModifySubApp,
+} from '../service/SubAppService'
 
 const router = express.Router()
 
@@ -59,6 +64,27 @@ router.delete('/:id', async (req, res, next) => {
     retSuccess(res, {
       result: await delSubApp(req.params.id, req.user.id, req.redis),
     })
+  } catch (e) {
+    next(e)
+  }
+})
+
+/**
+ * 更新应用信息
+ */
+router.put('/:id', async (req, res, next) => {
+  try {
+    const { params, redis, body, user } = req
+
+    if (!params.id || !Object.keys(body).length) {
+      throw new Error('参数缺失')
+    }
+
+    if (!user.id || user?.refresh) {
+      throw new Error('token invalid')
+    }
+
+    retSuccess(res, await ModifySubApp(body, params.id, user, redis))
   } catch (e) {
     next(e)
   }
