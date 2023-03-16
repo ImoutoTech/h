@@ -18,5 +18,5 @@ export const ENV = {
 
 export const CONFIG = {
   TITLE: 'Homepod',
-  VERSION: '0.4.0',
+  VERSION: '1.0.0',
 }
