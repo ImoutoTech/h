@@ -1,5 +1,5 @@
-import * as dotenv from "dotenv";
-dotenv.config();
+import * as dotenv from 'dotenv'
+dotenv.config()
 
 export const ENV = {
   DB: {
@@ -14,9 +14,9 @@ export const ENV = {
   MODE: process.env.MODE,
   TOKEN_SECRET: String(process.env.TOKEN_SECRET),
   REDIS_URL: process.env.REDIS_URL,
-};
+}
 
 export const CONFIG = {
-  TITLE: "Homepod",
-  VERSION: "0.2.0",
-};
+  TITLE: 'Homepod',
+  VERSION: '0.4.0',
+}
