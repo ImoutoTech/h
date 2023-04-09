@@ -1,4 +1,4 @@
-import { Response } from "express";
+import { Response } from 'express'
 
 /**
  * 错误码：
@@ -7,9 +7,9 @@ import { Response } from "express";
  */
 
 export interface Restful {
-  code: number;
-  msg?: string;
-  data: any;
+  code: number
+  msg?: string
+  data: any
 }
 
 export const Restful = (code: number, data: any, message?: string): Restful => {
@@ -17,8 +17,8 @@ export const Restful = (code: number, data: any, message?: string): Restful => {
     code,
     msg: message,
     data,
-  };
-};
+  }
+}
 
 /**
  * 返回成功
@@ -26,8 +26,8 @@ export const Restful = (code: number, data: any, message?: string): Restful => {
  * @param data 响应数据
  */
 export const retSuccess = (res: Response, data: any, msg?: string) => {
-  res.json(Restful(0, data, msg || "OK"));
-};
+  res.json(Restful(0, data, msg || 'OK'))
+}
 
 /**
  * 返回成功
@@ -35,5 +35,9 @@ export const retSuccess = (res: Response, data: any, msg?: string) => {
  * @param data 响应数据
  */
 export const retError = (res: Response, data: any, msg?: string) => {
-  res.json(Restful(100, data, msg || "Error"));
-};
+  if (msg === 'token 已经过期') {
+    res.status(401).json(Restful(100, data, msg || 'Error'))
+  }
+
+  res.json(Restful(100, data, msg || 'Error'))
+}
