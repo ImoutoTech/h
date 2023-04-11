@@ -4,6 +4,7 @@ import User from '../model/User'
 import { ENV } from '../config'
 import { UserTokenInfo, UserData } from '../utils/types'
 import { HRedis } from '../db/redis'
+import bcrypt from 'bcrypt'
 
 /**
  * 获取用户信息
@@ -15,6 +16,7 @@ import { HRedis } from '../db/redis'
 export const Register = async (body: RegisterParam, redis: HRedis) => {
   const user = await User.create({
     ...body,
+    password: bcrypt.hashSync(body.password, ENV.SALTROUND),
   })
 
   await redis.set(`user-${user.id}`, user.getData())
