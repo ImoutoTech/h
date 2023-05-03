@@ -1,4 +1,5 @@
 import { Response } from 'express'
+import { ERROR_CODE_MAP, AUTH_ERROR_TEXT } from '../config'
 
 /**
  * 错误码：
@@ -35,9 +36,9 @@ export const retSuccess = (res: Response, data: any, msg?: string) => {
  * @param data 响应数据
  */
 export const retError = (res: Response, data: any, msg?: string) => {
-  if (msg === 'token 已经过期') {
-    res.status(401).json(Restful(100, data, msg || 'Error'))
+  if (msg === AUTH_ERROR_TEXT) {
+    res.status(ERROR_CODE_MAP[101]).json(Restful(100, data, msg || 'Error'))
   }
 
-  res.json(Restful(100, data, msg || 'Error'))
+  res.status(ERROR_CODE_MAP[100]).json(Restful(100, data, msg || 'Error'))
 }

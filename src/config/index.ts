@@ -20,3 +20,5 @@ export const CONFIG = {
   TITLE: 'Homepod',
   VERSION: '1.0.0',
 }
+
+export * from './error'
