@@ -1,5 +1,6 @@
 import express, { NextFunction, Request, Response } from 'express'
 import bcrypt from 'bcrypt'
+import { Md5 } from 'ts-md5'
 import { retError, retSuccess } from '../utils/restful'
 import { LoginParam, RegisterParam } from '../service/types'
 import {
@@ -11,7 +12,6 @@ import {
 } from '../service/UserService'
 import { checkParams } from '../utils'
 import { ENV } from '../config'
-import { HRedis } from '../db/redis'
 
 const router = express.Router()
 
@@ -43,14 +43,22 @@ router.get(
  * 用户注册
  */
 router.post('/register', async function (req, res, next) {
-  const { body } = req
+  const { body, query } = req
   const paramList = ['nickname', 'email', 'password']
+
+  const regParam = {
+    ...body,
+  }
+
+  if (!query.md5) {
+    regParam.password = Md5.hashStr(regParam.password)
+  }
 
   if (!checkParams(body, paramList)) {
     retError(res, {}, '参数缺失')
   } else {
     try {
-      retSuccess(res, await Register(body as RegisterParam, req.redis))
+      retSuccess(res, await Register(regParam as RegisterParam, req.redis))
     } catch (e) {
       next(e)
     }
@@ -61,14 +69,22 @@ router.post('/register', async function (req, res, next) {
  * 用户登录
  */
 router.post('/login', async function (req, res, next) {
-  const { body } = req
+  const { body, query } = req
   const paramList = ['email', 'password']
+
+  const loginParam = {
+    ...body,
+  }
+
+  if (!query.md5) {
+    loginParam.password = Md5.hashStr(loginParam.password)
+  }
 
   if (!checkParams(body, paramList)) {
     retError(res, {}, '参数缺失')
   } else {
     try {
-      retSuccess(res, await Login(body as LoginParam))
+      retSuccess(res, await Login(loginParam as LoginParam))
     } catch (e) {
       next(e)
     }
