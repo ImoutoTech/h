@@ -135,7 +135,7 @@ export const ModifyData = async (
   userId: number,
   redis: HRedis
 ) => {
-  const editableData = ['nickname', 'avatar', 'email', 'role', 'password']
+  const editableData = ['nickname', 'avatar', 'email', 'role']
   const user = await User.findOne({ where: { id: userId } })
   const data2Modify: Partial<UserData> = {}
 
