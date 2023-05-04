@@ -159,6 +159,13 @@ export const ModifyData = async (
   return user.getData()
 }
 
+/**
+ * 修改用户密码
+ * @param body 请求信息
+ * @param userId 用户id
+ * @param redis HRedis
+ * @returns 修改后的用户数据
+ */
 export const ModifyPass = async (
   body: {
     oldVal: string

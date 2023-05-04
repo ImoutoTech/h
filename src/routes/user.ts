@@ -182,7 +182,7 @@ router.put('/:id/password', async function (req, res, next) {
       passData.newVal = Md5.hashStr(passData.newVal)
     }
 
-    retSuccess(res, await ModifyPass(body, user.id, redis))
+    retSuccess(res, await ModifyPass(passData, user.id, redis))
   } catch (e) {
     next(e)
   }
