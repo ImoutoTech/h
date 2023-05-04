@@ -9,6 +9,7 @@ import {
   getUser,
   Refresh,
   ModifyData,
+  ModifyPass,
 } from '../service/UserService'
 import { checkParams } from '../utils'
 import { ENV } from '../config'
@@ -78,6 +79,7 @@ router.post('/login', async function (req, res, next) {
 
   if (!query.md5) {
     loginParam.password = Md5.hashStr(loginParam.password)
+    console.log('🤔 loginParam 是 ', loginParam)
   }
 
   if (!checkParams(body, paramList)) {
@@ -151,6 +153,36 @@ router.put('/:id', async function (req, res, next) {
     }
 
     retSuccess(res, await ModifyData(body, user.id, redis))
+  } catch (e) {
+    next(e)
+  }
+})
+
+/**
+ * 更新用户密码
+ */
+router.put('/:id/password', async function (req, res, next) {
+  try {
+    const { params, redis, body, user, query } = req
+
+    if (!params.id || !Object.keys(body).length) {
+      throw new Error('参数缺失')
+    }
+
+    if (!user.id || user?.refresh) {
+      throw new Error('token invalid')
+    }
+
+    const passData = {
+      ...body,
+    }
+
+    if (!query.md5) {
+      passData.oldVal = Md5.hashStr(passData.oldVal)
+      passData.newVal = Md5.hashStr(passData.newVal)
+    }
+
+    retSuccess(res, await ModifyPass(body, user.id, redis))
   } catch (e) {
     next(e)
   }

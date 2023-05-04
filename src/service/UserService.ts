@@ -158,3 +158,29 @@ export const ModifyData = async (
   redis.set(`user-${user.id}`, user.getData())
   return user.getData()
 }
+
+export const ModifyPass = async (
+  body: {
+    oldVal: string
+    newVal: string
+  },
+  userId: number,
+  redis: HRedis
+) => {
+  const user = await User.findOne({ where: { id: userId } })
+
+  if (user === null) {
+    throw new Error('user not exists')
+  }
+
+  if (!user.checkPassword(body.oldVal)) {
+    throw new Error('wrong password')
+  }
+
+  user.password = bcrypt.hashSync(body.newVal, ENV.SALTROUND)
+
+  await user.save()
+
+  redis.set(`user-${user.id}`, user.getData())
+  return user.getData()
+}
