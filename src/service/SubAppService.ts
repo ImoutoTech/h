@@ -2,6 +2,9 @@ import { HRedis } from '../db/redis'
 import SubApp, { SubAppBaseInfo } from '../model/SubApp'
 import type { AppRegParam } from './types'
 import type { UserTokenInfo } from '../utils/types'
+import { ENV } from '../config'
+import jwt from 'jsonwebtoken'
+import { getUser } from './UserService'
 
 /**
  * 注册子应用
@@ -81,7 +84,7 @@ export const ModifySubApp = async (
   user: UserTokenInfo,
   redis: HRedis
 ) => {
-  const editableData = ['name', 'callback']
+  const editableData = ['name', 'callback', 'description']
   const app = await SubApp.findOne({ where: { id } })
   const data2Modify: Partial<SubAppBaseInfo> = {}
 
@@ -115,4 +118,44 @@ export const getUserApp = async (userId: number): Promise<SubAppBaseInfo[]> => {
   const apps = await SubApp.findAll({ where: { owner: userId } })
 
   return apps.map((app) => app.getData())
+}
+
+/**
+ * 用户回调子应用
+ * @param id 应用id
+ * @param userId 用户id
+ * @param redis HRedis
+ * @returns ticket
+ */
+export const callbackSubApp = async (
+  id: string,
+  userId: number,
+  redis: HRedis
+) => {
+  const app = await SubApp.findOne({ where: { id } })
+  const user = await getUser({ id: userId }, redis)
+
+  if (app === null) {
+    throw new Error('app not exists')
+  }
+
+  app.visitNum += 1
+  await app.save()
+
+  const ticket = jwt.sign(
+    {
+      email: user.email,
+      role: user.role,
+      id: user.id,
+      refresh: false,
+    },
+    ENV.TOKEN_SECRET,
+    {
+      expiresIn: '1d',
+    }
+  )
+
+  return {
+    ticket,
+  }
 }

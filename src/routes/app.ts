@@ -7,6 +7,7 @@ import {
   delSubApp,
   ModifySubApp,
   getUserApp,
+  callbackSubApp,
 } from '../service/SubAppService'
 
 const router = express.Router()
@@ -61,6 +62,21 @@ router.get('/my', async (req, res, next) => {
  * 子应用回调
  */
 router.post('/:id', async (req, res, next) => {
+  try {
+    if (!req.user || req.user.refresh) {
+      throw new Error('give me the token')
+    }
+    retSuccess(res, await callbackSubApp(req.params.id, req.user.id, req.redis))
+  } catch (e) {
+    console.log(e)
+    next(e)
+  }
+})
+
+/**
+ * 获取子应用信息
+ */
+router.get('/:id', async (req, res, next) => {
   try {
     retSuccess(res, await getSubAppData(req.params.id, req.redis))
   } catch (e) {

@@ -9,6 +9,8 @@ export interface SubAppBaseInfo {
   owner: number
   created_at: string
   updated_at: string
+  visitNum: number
+  description: string
   [key: string]: string | number
 }
 
@@ -25,6 +27,12 @@ class SubApp extends Model {
   // 子应用所有人
   declare owner: number
 
+  // 子应用访问数量
+  declare visitNum: number
+
+  // 子应用描述
+  declare description: string
+
   declare created_at: string
   declare updated_at: string
 
@@ -36,6 +44,8 @@ class SubApp extends Model {
       owner: this.owner,
       created_at: this.created_at,
       updated_at: this.updated_at,
+      visitNum: this.visitNum,
+      description: this.description,
     }
   }
 }
@@ -61,6 +71,16 @@ SubApp.init(
     },
     name: {
       type: DataTypes.STRING,
+      allowNull: false,
+    },
+    description: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: '暂无描述',
+    },
+    visitNum: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
       allowNull: false,
     },
   },

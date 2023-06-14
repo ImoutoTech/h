@@ -2,7 +2,6 @@ import { echo, success, error } from '../src/utils/logger'
 import User from '../src/model/User'
 import SK from '../src/model/SK'
 import SubApp from '../src/model/SubApp'
-
 ;(async function () {
   try {
     const ModelList = [User, SK, SubApp]
