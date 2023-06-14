@@ -101,7 +101,7 @@ export const ModifySubApp = async (
 
   await app.update(data2Modify)
 
-  redis.set(`app-${user.id}`, app.getData())
+  redis.set(`app-${app.id}`, app.getData())
   return app.getData()
 }
 
