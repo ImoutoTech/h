@@ -1,15 +1,7 @@
 import { Response, Request, NextFunction } from 'express'
-import { createClient } from 'redis'
+import { Redis } from 'ioredis'
 import { ENV, CONFIG } from '../config'
-import { echo, error, success } from '../utils/logger'
-
-const redis = createClient({
-  url: ENV.REDIS_URL,
-})
-
-redis.on('error', (err) => {
-  echo(error('Redis Error'), err)
-})
+import { echo, success } from '../utils/logger'
 
 export class HRedis {
   /**
@@ -18,42 +10,10 @@ export class HRedis {
   public client
 
   /**
-   * 是否快速使用
-   */
-  public isManual: boolean = false
-
-  /**
-   * 是否已经连接
-   */
-  private isConnected: boolean = false
-
-  /**
    * 构造函数
    */
   constructor() {
-    this.client = redis
-  }
-
-  /**
-   * 手动连接
-   *
-   * 会开启手动模式
-   */
-  public async connect() {
-    await this.client.quit()
-    this.isManual = true
-    this.isConnected = true
-  }
-
-  /**
-   * 手动取消连接
-   *
-   * 会关闭手动模式
-   */
-  public async disconnect() {
-    await this.client.quit()
-    this.isManual = false
-    this.isConnected = false
+    this.client = new Redis(ENV.REDIS_URL || '')
   }
 
   /**
@@ -64,16 +24,13 @@ export class HRedis {
    * @returns value
    */
   public async get(key: string, isObj = true) {
-    !this.isManual && (await this.client.connect())
     const result = await this.client.get(key)
 
     if (result) {
-      !this.isManual && (await this.client.quit())
       ENV.MODE === 'dev' && echo(`命中redis缓存: ${key}`)
       return isObj ? JSON.parse(result) : result
     }
 
-    !this.isManual && (await this.client.quit())
     ENV.MODE === 'dev' && echo(`没有命中redis缓存: ${key}`)
     return undefined
   }
@@ -85,11 +42,9 @@ export class HRedis {
    * @param value value
    */
   public async set(key: string, value: string | object) {
-    !this.isManual && (await this.client.connect())
     const trueValue = typeof value === 'string' ? value : JSON.stringify(value)
     await this.client.set(key, trueValue)
 
-    !this.isManual && (await this.client.quit())
     ENV.MODE === 'dev' && echo(`刷新redis缓存: ${key}`)
   }
 
@@ -99,33 +54,19 @@ export class HRedis {
    * @param key key
    */
   public async del(key: string) {
-    !this.isManual && (await this.client.connect())
-
     await this.client.del(key)
 
-    !this.isManual && (await this.client.quit())
     ENV.MODE === 'dev' && echo(`删除redis缓存: ${key}`)
-  }
-
-  /**
-   * 是否已经连接
-   *
-   * @returns boolean
-   */
-  public connected() {
-    return this.isConnected
   }
 }
 
 export const testRedis = async () => {
-  await redis.connect()
+  const redis = new Redis(ENV.REDIS_URL || '')
   echo(`[${CONFIG.TITLE}] ` + success('connected to redis'))
-  await redis.quit()
+  redis.quit()
 }
 
 export const useRedis = (req: Request, _res: Response, next: NextFunction) => {
   req.redis = new HRedis()
   next()
 }
-
-export default redis

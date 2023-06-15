@@ -1,13 +1,13 @@
-import { Request, Response, NextFunction } from "express";
-import { ENV } from "../config";
-import chalk from "chalk";
+import { Request, Response, NextFunction } from 'express'
+import { ENV } from '../config'
+import chalk from 'chalk'
 
 /**
  * log
  * @param args 输出内容
  */
 export function echo(...args: any[]) {
-  console.log(...args);
+  console.log(...args)
 }
 
 /**
@@ -16,16 +16,16 @@ export function echo(...args: any[]) {
  */
 export function space(t: number = 1) {
   for (let i = 0; i < t; i++) {
-    echo();
+    echo()
   }
 }
 
-type log = string | number;
+type log = string | number
 
-export const info = (c: log) => chalk.hex("#07f")(c);
-export const success = (c: log) => chalk.greenBright(c);
-export const warn = (c: log) => chalk.yellowBright(c);
-export const error = (c: log) => chalk.redBright(c);
+export const info = (c: log) => chalk.hex('#07f')(c)
+export const success = (c: log) => chalk.greenBright(c)
+export const warn = (c: log) => chalk.yellowBright(c)
+export const error = (c: log) => chalk.redBright(c)
 
 /**
  * 获得耗时对应颜色chalk
@@ -34,15 +34,15 @@ export const error = (c: log) => chalk.redBright(c);
  */
 const perfomanceColor = (duration: number) => {
   if (duration <= 50) {
-    return success;
+    return success
   } else if (duration <= 100) {
-    return warn;
+    return warn
   } else if (duration <= 500) {
-    return error;
+    return error
   }
 
-  return info;
-};
+  return info
+}
 
 /**
  * 日志中间件
@@ -55,16 +55,16 @@ export default async function logger(
   _res: Response,
   next: NextFunction
 ) {
-  if (ENV.MODE !== "dev") {
-    await next();
+  if (ENV.MODE !== 'dev') {
+    await next()
   } else {
-    let start = performance.now();
-    await next();
-    let end = performance.now();
+    let start = performance.now()
+    await next()
+    let end = performance.now()
     echo(
       `${info(`[${req.method}]`)} ${req.path} - ${perfomanceColor(end - start)(
-        (end - start).toFixed(2) + "ms"
+        (end - start).toFixed(2) + 'ms'
       )}`
-    );
+    )
   }
 }

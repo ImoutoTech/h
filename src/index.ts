@@ -1,31 +1,29 @@
-import app from "./app";
-import { ENV, CONFIG } from "./config";
-import { echo, info, error, success, space } from "./utils/logger";
-import db from "./db";
-import { testRedis } from "./db/redis";
+import app from './app'
+import { ENV, CONFIG } from './config'
+import { echo, info, error, success, space } from './utils/logger'
+import db from './db'
+import { testRedis } from './db/redis'
 
-(async function () {
+;(async function () {
   try {
-    space(2);
+    space(2)
     echo(
       `[${CONFIG.TITLE}] starting ${CONFIG.TITLE} in ${info(
-        ENV.MODE || ""
+        ENV.MODE || ''
       )} mode`
-    );
-    space();
+    )
+    space()
 
-    await db.authenticate();
-    echo(`[${CONFIG.TITLE}] ` + success("connected to db"));
+    await db.authenticate()
+    echo(`[${CONFIG.TITLE}] ` + success('connected to db'))
 
-    await testRedis();
+    await testRedis()
 
     app.listen(4000, () => {
-      echo(
-        `[${CONFIG.TITLE}] listening on port ${info(ENV.PORT || "unknown")}`
-      );
-    });
+      echo(`[${CONFIG.TITLE}] listening on port ${info(ENV.PORT || 'unknown')}`)
+    })
   } catch (e: any) {
-    echo(`[${CONFIG.TITLE}] ${error(`error: ${e.message}`)}`);
-    echo(e);
+    echo(`[${CONFIG.TITLE}] ${error(`error: ${e.message}`)}`)
+    echo(e)
   }
-})();
+})()

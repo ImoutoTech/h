@@ -79,7 +79,6 @@ router.post('/login', async function (req, res, next) {
 
   if (!query.md5) {
     loginParam.password = Md5.hashStr(loginParam.password)
-    console.log('🤔 loginParam 是 ', loginParam)
   }
 
   if (!checkParams(body, paramList)) {

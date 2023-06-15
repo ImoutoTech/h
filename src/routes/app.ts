@@ -68,7 +68,6 @@ router.post('/:id', async (req, res, next) => {
     }
     retSuccess(res, await callbackSubApp(req.params.id, req.user.id, req.redis))
   } catch (e) {
-    console.log(e)
     next(e)
   }
 })
