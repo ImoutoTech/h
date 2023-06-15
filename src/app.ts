@@ -1,5 +1,6 @@
 import express from 'express'
 import logger from './utils/logger'
+import { corsConfig } from './utils'
 import { expressjwt } from 'express-jwt'
 import errorHandler, { handleTokenExpire } from './utils/errorHandler'
 import { useRedis } from './db/redis'
@@ -14,7 +15,7 @@ import { ENV } from './config'
 const app = express()
 
 app.use(logger)
-app.use(express.json())
+app.use(corsConfig), app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(
   expressjwt({
