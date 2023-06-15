@@ -142,6 +142,8 @@ export const callbackSubApp = async (
   app.visitNum += 1
   await app.save()
 
+  redis.set(`app-${app.id}`, app.getData())
+
   const ticket = jwt.sign(
     {
       email: user.email,
