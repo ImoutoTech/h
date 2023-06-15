@@ -40,7 +40,7 @@ export class HRedis {
    * 会开启手动模式
    */
   public async connect() {
-    await this.client.connect()
+    await this.client.quit()
     this.isManual = true
     this.isConnected = true
   }
@@ -51,7 +51,7 @@ export class HRedis {
    * 会关闭手动模式
    */
   public async disconnect() {
-    await this.client.disconnect()
+    await this.client.quit()
     this.isManual = false
     this.isConnected = false
   }
@@ -68,12 +68,12 @@ export class HRedis {
     const result = await this.client.get(key)
 
     if (result) {
-      !this.isManual && (await this.client.disconnect())
+      !this.isManual && (await this.client.quit())
       ENV.MODE === 'dev' && echo(`命中redis缓存: ${key}`)
       return isObj ? JSON.parse(result) : result
     }
 
-    !this.isManual && (await this.client.disconnect())
+    !this.isManual && (await this.client.quit())
     ENV.MODE === 'dev' && echo(`没有命中redis缓存: ${key}`)
     return undefined
   }
@@ -89,7 +89,7 @@ export class HRedis {
     const trueValue = typeof value === 'string' ? value : JSON.stringify(value)
     await this.client.set(key, trueValue)
 
-    !this.isManual && (await this.client.disconnect())
+    !this.isManual && (await this.client.quit())
     ENV.MODE === 'dev' && echo(`刷新redis缓存: ${key}`)
   }
 
@@ -103,7 +103,7 @@ export class HRedis {
 
     await this.client.del(key)
 
-    !this.isManual && (await this.client.disconnect())
+    !this.isManual && (await this.client.quit())
     ENV.MODE === 'dev' && echo(`删除redis缓存: ${key}`)
   }
 
@@ -120,7 +120,7 @@ export class HRedis {
 export const testRedis = async () => {
   await redis.connect()
   echo(`[${CONFIG.TITLE}] ` + success('connected to redis'))
-  await redis.disconnect()
+  await redis.quit()
 }
 
 export const useRedis = (req: Request, _res: Response, next: NextFunction) => {
