@@ -24,3 +24,23 @@ export const corsConfig = (req: Request, res: Response, next: NextFunction) => {
   if (req.method.toLowerCase() === 'options') res.sendStatus(200)
   else next()
 }
+
+/**
+ * 处理jwt格式
+ *
+ * @param req 请求体
+ * @param res 返回体
+ * @param next Next
+ */
+export const jwtFormatter = (
+  req: Request,
+  _res: Response,
+  next: NextFunction
+) => {
+  if (req.user) {
+    req.user.id = Number(req.user.id)
+    req.user.role = Number(req.user.role)
+  }
+
+  next()
+}

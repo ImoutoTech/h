@@ -1,6 +1,6 @@
 import express from 'express'
 import logger from './utils/logger'
-import { corsConfig } from './utils'
+import { corsConfig, jwtFormatter } from './utils'
 import { expressjwt } from 'express-jwt'
 import errorHandler, { handleTokenExpire } from './utils/errorHandler'
 import { useRedis } from './db/redis'
@@ -26,6 +26,7 @@ app.use(
     onExpired: handleTokenExpire,
   })
 )
+app.use(jwtFormatter)
 app.use(useRedis)
 
 app.use('/', indexRouter)
