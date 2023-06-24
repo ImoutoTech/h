@@ -191,3 +191,16 @@ export const ModifyPass = async (
   redis.set(`user-${user.id}`, user.getData())
   return user.getData()
 }
+
+/**
+ * 获取全部用户
+ *
+ * @param page 页数
+ * @param size 每页条数
+ * @returns User[]
+ */
+export const getAllUser = async (page = 1, size = 500) => {
+  const users = await User.findAll({ limit: size, offset: (page - 1) * size })
+
+  return users.map((u) => u.getData())
+}

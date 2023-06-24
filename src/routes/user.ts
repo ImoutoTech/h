@@ -10,9 +10,10 @@ import {
   Refresh,
   ModifyData,
   ModifyPass,
+  getAllUser,
 } from '../service/UserService'
 import { checkParams } from '../utils'
-import { ENV } from '../config'
+import { ENV, ROLE } from '../config'
 
 const router = express.Router()
 
@@ -120,6 +121,27 @@ router.get('/refresh', async function (req, res, next) {
 })
 
 /**
+ * 获取所有用户列表
+ */
+router.get('/all', async (req, res, next) => {
+  try {
+    if (!req.user || req.user.refresh) {
+      throw new Error('give me the token')
+    }
+
+    if (req.user.role !== ROLE.ADMIN) {
+      throw new Error('not admin')
+    }
+
+    const { page, size } = req.query
+
+    retSuccess(res, await getAllUser(Number(page), Number(size)))
+  } catch (e) {
+    next(e)
+  }
+})
+
+/**
  * 获取用户信息
  */
 router.get('/:id', async function (req, res, next) {
@@ -147,7 +169,7 @@ router.put('/:id', async function (req, res, next) {
       throw new Error('参数缺失')
     }
 
-    if (!user.id || user?.refresh) {
+    if (!user?.id || user?.refresh) {
       throw new Error('token invalid')
     }
 
@@ -168,7 +190,7 @@ router.put('/:id/password', async function (req, res, next) {
       throw new Error('参数缺失')
     }
 
-    if (!user.id || user?.refresh) {
+    if (!user?.id || user?.refresh) {
       throw new Error('token invalid')
     }
 

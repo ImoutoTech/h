@@ -61,7 +61,7 @@ router.get('/my', async (req, res, next) => {
 })
 
 /**
- * 获取用户子应用列表
+ * 获取所有子应用列表
  */
 router.get('/all', async (req, res, next) => {
   try {
