@@ -21,4 +21,9 @@ export const CONFIG = {
   VERSION: '1.0.0',
 }
 
+export enum ROLE {
+  ADMIN,
+  USER,
+}
+
 export * from './error'

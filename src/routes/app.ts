@@ -1,6 +1,7 @@
 import express from 'express'
 import { checkParams } from '../utils'
 import { retSuccess } from '../utils/restful'
+import { ROLE } from '../config'
 import {
   RegisterApp,
   getSubAppData,
@@ -8,6 +9,7 @@ import {
   ModifySubApp,
   getUserApp,
   callbackSubApp,
+  getAllApp,
 } from '../service/SubAppService'
 
 const router = express.Router()
@@ -53,6 +55,27 @@ router.get('/my', async (req, res, next) => {
     }
 
     retSuccess(res, await getUserApp(req.user.id))
+  } catch (e) {
+    next(e)
+  }
+})
+
+/**
+ * 获取用户子应用列表
+ */
+router.get('/all', async (req, res, next) => {
+  try {
+    if (!req.user || req.user.refresh) {
+      throw new Error('give me the token')
+    }
+
+    if (req.user.role !== ROLE.ADMIN) {
+      throw new Error('not admin')
+    }
+
+    const { page, size } = req.query
+
+    retSuccess(res, await getAllApp(Number(page), Number(size)))
   } catch (e) {
     next(e)
   }
@@ -111,7 +134,7 @@ router.put('/:id', async (req, res, next) => {
       throw new Error('参数缺失')
     }
 
-    if (!user.id || user?.refresh) {
+    if (!user?.id || user?.refresh) {
       throw new Error('token invalid')
     }
 

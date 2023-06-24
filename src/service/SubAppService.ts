@@ -161,3 +161,17 @@ export const callbackSubApp = async (
     ticket,
   }
 }
+
+/**
+ * 获取全部应用
+ *
+ * @param page 页数
+ * @param size 每页条数
+ * @returns SubApp[]
+ */
+export const getAllApp = async (page = 1, size = 500) => {
+  console.log(page, size)
+  const apps = await SubApp.findAll({ limit: size, offset: (page - 1) * size })
+
+  return apps.map((app) => app.getData())
+}
