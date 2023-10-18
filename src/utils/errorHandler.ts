@@ -14,6 +14,7 @@ export default function errorHandler(
 
   if (err instanceof ValidationError) {
     retError(res, {}, err.errors.map((error) => error.message).join(','))
+    return
   }
 
   retError(res, {}, err.message)

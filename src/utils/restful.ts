@@ -38,6 +38,7 @@ export const retSuccess = (res: Response, data: any, msg?: string) => {
 export const retError = (res: Response, data: any, msg?: string) => {
   if (msg === AUTH_ERROR_TEXT) {
     res.status(ERROR_CODE_MAP[101]).json(Restful(100, data, msg || 'Error'))
+    return
   }
 
   res.status(ERROR_CODE_MAP[100]).json(Restful(100, data, msg || 'Error'))
