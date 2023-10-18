@@ -44,7 +44,7 @@ router.get(
 /**
  * 用户注册
  */
-router.post('/register', async function (req, res, next) {
+router.post('/register', async function (req, res) {
   const { body, query } = req
   const paramList = ['nickname', 'email', 'password']
 
@@ -59,18 +59,14 @@ router.post('/register', async function (req, res, next) {
   if (!checkParams(body, paramList)) {
     retError(res, {}, '参数缺失')
   } else {
-    try {
-      retSuccess(res, await Register(regParam as RegisterParam, req.redis))
-    } catch (e) {
-      next(e)
-    }
+    retSuccess(res, await Register(regParam as RegisterParam, req.redis))
   }
 })
 
 /**
  * 用户登录
  */
-router.post('/login', async function (req, res, next) {
+router.post('/login', async function (req, res) {
   const { body, query } = req
   const paramList = ['email', 'password']
 
@@ -85,11 +81,7 @@ router.post('/login', async function (req, res, next) {
   if (!checkParams(body, paramList)) {
     retError(res, {}, '参数缺失')
   } else {
-    try {
-      retSuccess(res, await Login(loginParam as LoginParam))
-    } catch (e) {
-      next(e)
-    }
+    retSuccess(res, await Login(loginParam as LoginParam))
   }
 })
 
@@ -97,116 +89,92 @@ router.post('/login', async function (req, res, next) {
  * 用户token校验
  * 其实就是把token的payload返回
  */
-router.get('/validate', async function (req, res, next) {
-  try {
-    retSuccess(res, req.user)
-  } catch (e) {
-    next(e)
-  }
+router.get('/validate', async function (req, res) {
+  retSuccess(res, req.user)
 })
 
 /**
  * 刷新token
  */
-router.get('/refresh', async function (req, res, next) {
-  try {
-    if (!req.user?.refresh) {
-      throw new Error('not refresh token')
-    }
-
-    retSuccess(res, Refresh(req.user))
-  } catch (e) {
-    next(e)
+router.get('/refresh', async function (req, res) {
+  if (!req.user?.refresh) {
+    throw new Error('not refresh token')
   }
+
+  retSuccess(res, Refresh(req.user))
 })
 
 /**
  * 获取所有用户列表
  */
-router.get('/all', async (req, res, next) => {
-  try {
-    if (!req.user || req.user.refresh) {
-      throw new Error('give me the token')
-    }
-
-    if (req.user.role !== ROLE.ADMIN) {
-      throw new Error('not admin')
-    }
-
-    const { page, size } = req.query
-
-    retSuccess(res, await getAllUser(Number(page), Number(size)))
-  } catch (e) {
-    next(e)
+router.get('/all', async (req, res) => {
+  if (!req.user || req.user.refresh) {
+    throw new Error('give me the token')
   }
+
+  if (req.user.role !== ROLE.ADMIN) {
+    throw new Error('not admin')
+  }
+
+  const { page, size } = req.query
+
+  retSuccess(res, await getAllUser(Number(page), Number(size)))
 })
 
 /**
  * 获取用户信息
  */
-router.get('/:id', async function (req, res, next) {
-  try {
-    const { params } = req
+router.get('/:id', async function (req, res) {
+  const { params } = req
 
-    if (!params.id) {
-      throw new Error('参数缺失')
-    }
-
-    retSuccess(res, await getUser({ id: Number(params.id) }, req.redis))
-  } catch (e) {
-    next(e)
+  if (!params.id) {
+    throw new Error('参数缺失')
   }
+
+  retSuccess(res, await getUser({ id: Number(params.id) }, req.redis))
 })
 
 /**
  * 更新用户信息
  */
-router.put('/:id', async function (req, res, next) {
-  try {
-    const { params, redis, body, user } = req
+router.put('/:id', async function (req, res) {
+  const { params, redis, body, user } = req
 
-    if (!params.id || !Object.keys(body).length) {
-      throw new Error('参数缺失')
-    }
-
-    if (!user?.id || user?.refresh) {
-      throw new Error('token invalid')
-    }
-
-    retSuccess(res, await ModifyData(body, user.id, redis))
-  } catch (e) {
-    next(e)
+  if (!params.id || !Object.keys(body).length) {
+    throw new Error('参数缺失')
   }
+
+  if (!user?.id || user?.refresh) {
+    throw new Error('token invalid')
+  }
+
+  retSuccess(res, await ModifyData(body, user.id, redis))
 })
 
 /**
  * 更新用户密码
  */
-router.put('/:id/password', async function (req, res, next) {
-  try {
-    const { params, redis, body, user, query } = req
+router.put('/:id/password', async function (req, res) {
+  const { params, redis, body, user, query } = req
 
-    if (!params.id || !Object.keys(body).length) {
-      throw new Error('参数缺失')
-    }
-
-    if (!user?.id || user?.refresh) {
-      throw new Error('token invalid')
-    }
-
-    const passData = {
-      ...body,
-    }
-
-    if (!query.md5) {
-      passData.oldVal = Md5.hashStr(passData.oldVal)
-      passData.newVal = Md5.hashStr(passData.newVal)
-    }
-
-    retSuccess(res, await ModifyPass(passData, user.id, redis))
-  } catch (e) {
-    next(e)
+  if (!params.id || !Object.keys(body).length) {
+    throw new Error('参数缺失')
   }
+
+  if (!user?.id || user?.refresh) {
+    throw new Error('token invalid')
+  }
+
+  const passData = {
+    ...body,
+  }
+
+  if (!query.md5) {
+    passData.oldVal = Md5.hashStr(passData.oldVal)
+    passData.newVal = Md5.hashStr(passData.newVal)
+  }
+
+  retSuccess(res, await ModifyPass(passData, user.id, redis))
 })
 
 export default router
