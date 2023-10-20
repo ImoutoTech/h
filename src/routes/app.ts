@@ -49,7 +49,12 @@ router.get('/my', async (req, res) => {
     throw new Error('give me the token')
   }
 
-  retSuccess(res, await getUserApp(req.user.id))
+  const { page, size, search } = req.query
+
+  retSuccess(
+    res,
+    await getUserApp(req.user.id, Number(page), Number(size), search as string)
+  )
 })
 
 /**
@@ -64,9 +69,9 @@ router.get('/all', async (req, res) => {
     throw new Error('not admin')
   }
 
-  const { page, size } = req.query
+  const { page, size, search } = req.query
 
-  retSuccess(res, await getAllApp(Number(page), Number(size)))
+  retSuccess(res, await getAllApp(Number(page), Number(size), search as string))
 })
 
 /**

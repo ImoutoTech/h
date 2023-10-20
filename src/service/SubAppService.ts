@@ -2,9 +2,11 @@ import { HRedis } from '../db/redis'
 import SubApp, { SubAppBaseInfo } from '../model/SubApp'
 import type { AppRegParam } from './types'
 import type { UserTokenInfo } from '../utils/types'
+import { page2limit } from '../utils'
 import { ENV } from '../config'
 import jwt from 'jsonwebtoken'
 import { getUser } from './UserService'
+import { type FindAndCountOptions, Op } from 'sequelize'
 
 /**
  * 注册子应用
@@ -112,12 +114,32 @@ export const ModifySubApp = async (
  * 获取用户子应用列表
  *
  * @param userId 用户id
+ * @param page 页数
+ * @param size 每页条数
+ * @param search 过滤关键词
  * @returns 用户app列表
  */
-export const getUserApp = async (userId: number): Promise<SubAppBaseInfo[]> => {
-  const apps = await SubApp.findAll({ where: { owner: userId } })
+export const getUserApp = async (
+  userId: number,
+  page = 1,
+  size = 500,
+  search = ''
+) => {
+  const query = page2limit(page, size)
+  query.where = { owner: userId }
 
-  return apps.map((app) => app.getData())
+  if (search) {
+    query.where.name = {
+      [Op.like]: `%${search}%`,
+    }
+  }
+
+  const { rows, count } = await SubApp.findAndCountAll(query)
+
+  return {
+    items: rows.map((app) => app.getData()),
+    count,
+  }
 }
 
 /**
@@ -167,11 +189,24 @@ export const callbackSubApp = async (
  *
  * @param page 页数
  * @param size 每页条数
+ * @param search 过滤关键词
  * @returns SubApp[]
  */
-export const getAllApp = async (page = 1, size = 500) => {
-  console.log(page, size)
-  const apps = await SubApp.findAll({ limit: size, offset: (page - 1) * size })
+export const getAllApp = async (page = 1, size = 500, search = '') => {
+  const query = page2limit(page, size)
 
-  return apps.map((app) => app.getData())
+  if (search) {
+    query.where = {
+      name: {
+        [Op.like]: `%${search}%`,
+      },
+    }
+  }
+
+  const { rows, count } = await SubApp.findAndCountAll(query)
+
+  return {
+    items: rows.map((app) => app.getData()),
+    count,
+  }
 }

@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
+import type { FindAndCountOptions } from 'sequelize'
 
 export const checkParams = (
   body: object | undefined,
@@ -44,3 +45,8 @@ export const jwtFormatter = (
 
   next()
 }
+
+export const page2limit = (page = 1, size = 500): FindAndCountOptions => ({
+  limit: size,
+  offset: (page - 1) * size,
+})
