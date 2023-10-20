@@ -6,7 +6,7 @@ import { page2limit } from '../utils'
 import { ENV } from '../config'
 import jwt from 'jsonwebtoken'
 import { getUser } from './UserService'
-import { type FindAndCountOptions, Op } from 'sequelize'
+import { Op } from 'sequelize'
 
 /**
  * 注册子应用

@@ -116,9 +116,12 @@ router.get('/all', async (req, res) => {
     throw new Error('not admin')
   }
 
-  const { page, size } = req.query
+  const { page, size, search } = req.query
 
-  retSuccess(res, await getAllUser(Number(page), Number(size)))
+  retSuccess(
+    res,
+    await getAllUser(Number(page), Number(size), search as string)
+  )
 })
 
 /**

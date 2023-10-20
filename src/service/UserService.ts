@@ -5,6 +5,8 @@ import { ENV } from '../config'
 import { UserTokenInfo, UserData } from '../utils/types'
 import { HRedis } from '../db/redis'
 import bcrypt from 'bcrypt'
+import { page2limit } from '../utils'
+import { Op } from 'sequelize'
 
 /**
  * 获取用户信息
@@ -197,10 +199,24 @@ export const ModifyPass = async (
  *
  * @param page 页数
  * @param size 每页条数
+ * @param search 过滤关键词
  * @returns User[]
  */
-export const getAllUser = async (page = 1, size = 500) => {
-  const users = await User.findAll({ limit: size, offset: (page - 1) * size })
+export const getAllUser = async (page = 1, size = 500, search = '') => {
+  const query = page2limit(page, size)
 
-  return users.map((u) => u.getData())
+  if (search) {
+    query.where = {
+      nickname: {
+        [Op.like]: `%${search}%`,
+      },
+    }
+  }
+
+  const { rows, count } = await User.findAndCountAll(query)
+
+  return {
+    items: rows.map((u) => u.getData()),
+    count,
+  }
 }
