@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "dotenv -c development nodemon",
-    "start": "pnpm i && pnpm run dev",
+    "start": "nodemon",
     "init:dev": "dotenv -c development ts-node script/init.ts",
     "init": "ts-node script/init.ts"
   },
@@ -32,6 +32,7 @@
     "redis": "^4.6.5",
     "sequelize": "7.0.0-alpha2.2",
     "ts-md5": "^1.3.1",
+    "ts-node": "^10.9.2",
     "uuid": "^9.0.0"
   }
 }
