@@ -6,6 +6,9 @@ import {
 import { VersioningType, VERSION_NEUTRAL } from '@nestjs/common';
 import { AppModule } from './app.module';
 
+import { TransformInterceptor } from './common/interceptors';
+import { AllExceptionsFilter, HttpExceptionFilter } from './common/exceptions';
+
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
@@ -17,6 +20,9 @@ async function bootstrap() {
     type: VersioningType.URI,
   });
 
-  await app.listen(3000);
+  app.useGlobalInterceptors(new TransformInterceptor());
+  app.useGlobalFilters(new AllExceptionsFilter(), new HttpExceptionFilter());
+
+  await app.listen(4000);
 }
 bootstrap();
