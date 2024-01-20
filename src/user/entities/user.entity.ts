@@ -6,6 +6,8 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+import * as bcrypt from 'bcrypt';
+
 export enum UserRole {
   ADMIN = 0,
   USER = 1,
@@ -61,5 +63,9 @@ export class User {
       created_at: this.created_at,
       updated_at: this.updated_at,
     };
+  }
+
+  public checkPassword(pwd: string): boolean {
+    return bcrypt.compareSync(pwd, this.password);
   }
 }
