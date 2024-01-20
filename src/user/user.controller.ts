@@ -6,10 +6,11 @@ import {
   Param,
   VERSION_NEUTRAL,
   Put,
+  Query,
 } from '@nestjs/common';
+import { Md5 } from 'ts-md5';
 import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserDto, UpdateUserDto, LoginUserDto } from './dto';
 
 @Controller({
   path: 'user',
@@ -21,6 +22,17 @@ export class UserController {
   @Post('/register')
   create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
+  }
+
+  @Post('/login')
+  login(@Body() loginUserDto: LoginUserDto, @Query('md5') md5: boolean) {
+    const loginData = { ...loginUserDto };
+
+    if (!md5) {
+      loginData.password = Md5.hashStr(loginData.password);
+    }
+
+    return this.userService.login(loginData);
   }
 
   @Get()

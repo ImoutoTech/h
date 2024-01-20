@@ -6,7 +6,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ENV_LIST } from './utils/constants';
 import { UserModule } from './user/user.module';
-import { User } from './user/entities/user.entity';
 
 @Module({
   imports: [
@@ -25,8 +24,7 @@ import { User } from './user/entities/user.entity';
         password: configService.get('MYSQL_PASSWORD', 'root'),
         database: configService.get('MYSQL_DATABASE', 'h'),
         synchronize: false,
-        entities: [User],
-        // autoLoadEntities: true,
+        autoLoadEntities: true,
       }),
     }),
     UserModule,

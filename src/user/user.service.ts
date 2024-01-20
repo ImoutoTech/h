@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import * as jwt from 'jsonwebtoken';
 import { ConfigService } from '@nestjs/config';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserDto, UpdateUserDto, LoginUserDto } from './dto';
 import { User } from './entities/user.entity';
 
 import { isNil } from 'lodash';
@@ -57,6 +57,51 @@ export class UserService {
     }
 
     return user.getData();
+  }
+
+  async login(param: LoginUserDto) {
+    const user = await this.userRepo.findOneBy({ email: param.email });
+    if (isNil(user)) {
+      throw new BusinessException('用户不存在');
+    }
+
+    if (!user.checkPassword(param.password)) {
+      throw new BusinessException('密码错误');
+    }
+
+    const tokenBaseData = {
+      email: user.email,
+      role: user.role,
+      id: user.id,
+    };
+
+    const token = jwt.sign(
+      {
+        ...tokenBaseData,
+        refresh: false,
+      },
+      this.configService.get<string>('TOKEN_SECRET', ''),
+      {
+        expiresIn: '2h',
+      },
+    );
+
+    const refresh = jwt.sign(
+      {
+        ...tokenBaseData,
+        refresh: true,
+      },
+      this.configService.get<string>('TOKEN_SECRET', ''),
+      {
+        expiresIn: '7d',
+      },
+    );
+
+    return {
+      token,
+      refresh,
+      user: user.getData(),
+    };
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
