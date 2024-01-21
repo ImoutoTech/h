@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ENV_LIST } from './utils/constants';
 import { UserModule } from './user/user.module';
+import { BusinessException } from './common/exceptions';
 
 @Module({
   imports: [
@@ -36,7 +37,15 @@ import { UserModule } from './user/user.module';
     {
       provide: APP_PIPE,
       useFactory() {
-        return new ValidationPipe({ transform: true });
+        return new ValidationPipe({
+          transform: true,
+          exceptionFactory: (errors) => {
+            const errorProperties = errors.map((e) => e.property).join(',');
+            return new BusinessException(
+              `参数校验失败，请检查${errorProperties}`,
+            );
+          },
+        });
       },
     },
   ],
