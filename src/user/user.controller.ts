@@ -8,11 +8,13 @@ import {
   Put,
   Query,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import { Md5 } from 'ts-md5';
 import { UserService } from './user.service';
 import { CreateUserDto, UpdateUserDto, LoginUserDto } from './dto';
-import { LoginGuard } from '@/common/guard';
+import { LoginGuard, RefreshGuard } from '@/common/guard';
+import type { UserJwtPayload } from '@/utils/types';
 
 @Controller({
   path: 'user',
@@ -35,6 +37,12 @@ export class UserController {
     }
 
     return this.userService.login(loginData);
+  }
+
+  @Get('/refresh')
+  @UseGuards(RefreshGuard)
+  refresh(@Request() req: { user: UserJwtPayload }) {
+    return req.user;
   }
 
   @Get('/all')
