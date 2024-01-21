@@ -7,10 +7,12 @@ import {
   VERSION_NEUTRAL,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { Md5 } from 'ts-md5';
 import { UserService } from './user.service';
 import { CreateUserDto, UpdateUserDto, LoginUserDto } from './dto';
+import { LoginGuard } from '@/common/guard';
 
 @Controller({
   path: 'user',
@@ -35,7 +37,8 @@ export class UserController {
     return this.userService.login(loginData);
   }
 
-  @Get()
+  @Get('/all')
+  @UseGuards(LoginGuard)
   findAll() {
     return this.userService.findAll();
   }

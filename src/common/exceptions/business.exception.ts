@@ -23,4 +23,18 @@ export class BusinessException extends HttpException {
       message: '抱歉哦，您无此权限！',
     });
   }
+
+  static emptyToken() {
+    throw new BusinessException({
+      code: BUSINESS_ERROR_CODE.EMPTY_TOKEN,
+      message: 'token缺失',
+    });
+  }
+
+  static throw(code: BUSINESS_ERROR_CODE, message: string) {
+    throw new BusinessException({
+      code,
+      message,
+    });
+  }
 }

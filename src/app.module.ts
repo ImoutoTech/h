@@ -42,7 +42,7 @@ import { BusinessException } from './common/exceptions';
           exceptionFactory: (errors) => {
             const errorProperties = errors.map((e) => e.property).join(',');
             return new BusinessException(
-              `参数校验失败，请检查${errorProperties}`,
+              `参数校验失败，请检查 ${errorProperties}`,
             );
           },
         });
