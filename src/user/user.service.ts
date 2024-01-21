@@ -9,6 +9,7 @@ import { isNil } from 'lodash';
 import { InjectRepository } from '@nestjs/typeorm';
 import type { Repository } from 'typeorm';
 import { BusinessException } from '@/common/exceptions';
+import { UserJwtPayload } from '@/utils/types';
 
 @Injectable()
 export class UserService {
@@ -98,9 +99,28 @@ export class UserService {
     );
 
     return {
-      token,
-      refresh,
+      token: `Bearer ${token}`,
+      refresh: `Bearer ${refresh}`,
       user: user.getData(),
+    };
+  }
+
+  refresh(user: UserJwtPayload) {
+    const token = jwt.sign(
+      {
+        email: user.email,
+        role: user.role,
+        id: user.id,
+        refresh: false,
+      },
+      this.configService.get<string>('TOKEN_SECRET', ''),
+      {
+        expiresIn: '2h',
+      },
+    );
+
+    return {
+      token: `Bearer ${token}`,
     };
   }
 

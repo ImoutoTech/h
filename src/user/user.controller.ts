@@ -42,7 +42,7 @@ export class UserController {
   @Get('/refresh')
   @UseGuards(RefreshGuard)
   refresh(@Request() req: { user: UserJwtPayload }) {
-    return req.user;
+    return this.userService.refresh(req.user);
   }
 
   @Get('/all')
