@@ -135,7 +135,7 @@ export class AdminGuard implements CanActivate {
     }
 
     if ((info.role as number) !== 0) {
-      BusinessException.throwForbidden;
+      BusinessException.throwForbidden();
     }
 
     request.user = info;

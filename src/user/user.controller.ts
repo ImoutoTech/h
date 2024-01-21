@@ -13,7 +13,7 @@ import {
 import { Md5 } from 'ts-md5';
 import { UserService } from './user.service';
 import { CreateUserDto, UpdateUserDto, LoginUserDto } from './dto';
-import { LoginGuard, RefreshGuard } from '@/common/guard';
+import { AdminGuard, RefreshGuard } from '@/common/guard';
 import type { UserJwtPayload } from '@/utils/types';
 
 @Controller({
@@ -46,7 +46,7 @@ export class UserController {
   }
 
   @Get('/all')
-  @UseGuards(LoginGuard)
+  @UseGuards(AdminGuard)
   findAll() {
     return this.userService.findAll();
   }
