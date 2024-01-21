@@ -64,7 +64,11 @@ export class UserController {
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
+  @UseGuards(LoginGuard)
+  update(
+    @Request() req: { user: UserJwtPayload },
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    return this.userService.update(req.user.id, updateUserDto);
   }
 }

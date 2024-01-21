@@ -129,8 +129,9 @@ export class UserService {
     };
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto) {
-    const editableProperties = ['avatar', 'nickname', 'email'];
+  async update(id: number, userNewData: UpdateUserDto) {
+    const editableProperties = ['avatar', 'nickname', 'email'] as const;
+    const editedProperties: string[] = [];
     const user = await this.userRepo.findOneBy({ id });
 
     if (isNil(user)) {
@@ -138,9 +139,16 @@ export class UserService {
       throw new BusinessException('用户不存在');
     }
 
-    return {
-      id,
-      updateUserDto,
-    };
+    editableProperties.forEach((key) => {
+      if (!isNil(userNewData[key])) {
+        user[key] = userNewData[key];
+        editedProperties.push(key);
+      }
+    });
+
+    await this.userRepo.save(user);
+    this.logger.log(`用户#${user.id}修改了${editedProperties.join(',')}`);
+
+    return user.getData();
   }
 }
