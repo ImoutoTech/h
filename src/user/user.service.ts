@@ -44,8 +44,8 @@ export class UserService {
     return user.getData();
   }
 
-  findAll() {
-    return this.userRepo.find();
+  async findAll() {
+    return (await this.userRepo.find()).map((user) => user.getData());
   }
 
   async findOne(id: number) {

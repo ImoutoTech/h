@@ -34,7 +34,7 @@ export class LoginGuard implements CanActivate {
         token,
         this.config.get<string>('TOKEN_SECRET', ''),
       );
-      console.log(info);
+      request.user = info;
       return true;
     } catch (e) {
       if (e instanceof jwt.TokenExpiredError) {
