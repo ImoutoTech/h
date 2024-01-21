@@ -2,7 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 import { ConfigService } from '@nestjs/config';
-import { CreateUserDto, UpdateUserDto, LoginUserDto } from './dto';
+import {
+  CreateUserDto,
+  UpdateUserDto,
+  LoginUserDto,
+  UpdatePasswordDto,
+} from './dto';
 import { User } from './entities/user.entity';
 
 import { isNil } from 'lodash';
@@ -148,6 +153,29 @@ export class UserService {
 
     await this.userRepo.save(user);
     this.logger.log(`用户#${user.id}修改了${editedProperties.join(',')}`);
+
+    return user.getData();
+  }
+
+  async updatePassword(id: number, newData: UpdatePasswordDto) {
+    const user = await this.userRepo.findOneBy({ id });
+
+    if (isNil(user)) {
+      this.logger.warn(`不存在的用户#${id}尝试修改密码`);
+      throw new BusinessException('用户不存在');
+    }
+
+    if (!user.checkPassword(newData.oldVal)) {
+      this.logger.warn(`用户#${id}尝试使用错误的老密码修改密码`);
+      throw new BusinessException('原密码错误');
+    }
+
+    user.password = bcrypt.hashSync(
+      newData.newVal,
+      +this.configService.get('PWD_SALT_ROUND', 10),
+    );
+    await this.userRepo.save(user);
+    this.logger.log(`用户#${id}修改密码成功`);
 
     return user.getData();
   }

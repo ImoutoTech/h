@@ -12,7 +12,12 @@ import {
 } from '@nestjs/common';
 import { Md5 } from 'ts-md5';
 import { UserService } from './user.service';
-import { CreateUserDto, UpdateUserDto, LoginUserDto } from './dto';
+import {
+  CreateUserDto,
+  UpdateUserDto,
+  LoginUserDto,
+  UpdatePasswordDto,
+} from './dto';
 import { AdminGuard, LoginGuard, RefreshGuard } from '@/common/guard';
 import type { UserJwtPayload } from '@/utils/types';
 
@@ -70,5 +75,22 @@ export class UserController {
     @Body() updateUserDto: UpdateUserDto,
   ) {
     return this.userService.update(req.user.id, updateUserDto);
+  }
+
+  @Put(':id/password')
+  @UseGuards(LoginGuard)
+  updatePassword(
+    @Request() req: { user: UserJwtPayload },
+    @Body() updateData: UpdatePasswordDto,
+    @Query('md5') md5: boolean,
+  ) {
+    const newData = { ...updateData };
+
+    if (!md5) {
+      newData.newVal = Md5.hashStr(updateData.newVal);
+      newData.oldVal = Md5.hashStr(updateData.oldVal);
+    }
+
+    return this.userService.updatePassword(req.user.id, updateData);
   }
 }
