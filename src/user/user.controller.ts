@@ -13,7 +13,7 @@ import {
 import { Md5 } from 'ts-md5';
 import { UserService } from './user.service';
 import { CreateUserDto, UpdateUserDto, LoginUserDto } from './dto';
-import { AdminGuard, RefreshGuard } from '@/common/guard';
+import { AdminGuard, LoginGuard, RefreshGuard } from '@/common/guard';
 import type { UserJwtPayload } from '@/utils/types';
 
 @Controller({
@@ -45,6 +45,12 @@ export class UserController {
     return this.userService.refresh(req.user);
   }
 
+  @Get('/validate')
+  @UseGuards(LoginGuard)
+  validate(@Request() req: { user: UserJwtPayload }) {
+    return req.user;
+  }
+
   @Get('/all')
   @UseGuards(AdminGuard)
   findAll() {
@@ -52,6 +58,7 @@ export class UserController {
   }
 
   @Get(':id')
+  @UseGuards(LoginGuard)
   findOne(@Param('id') id: string) {
     return this.userService.findOne(+id);
   }
