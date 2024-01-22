@@ -28,6 +28,7 @@
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
     "mysql2": "^3.7.1",
+    "nestjs-typeorm-paginate": "^4.0.4",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
     "ts-md5": "^1.3.1",

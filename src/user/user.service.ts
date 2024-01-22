@@ -12,7 +12,8 @@ import { User } from './entities/user.entity';
 
 import { isNil } from 'lodash';
 import { InjectRepository } from '@nestjs/typeorm';
-import type { Repository } from 'typeorm';
+import { type Repository, Like } from 'typeorm';
+import { paginate } from 'nestjs-typeorm-paginate';
 import { BusinessException } from '@/common/exceptions';
 import { UserJwtPayload } from '@/utils/types';
 
@@ -49,9 +50,19 @@ export class UserService {
     return user.getData();
   }
 
-  async findAll() {
+  async findAll(page = 1, limit = 500, search = '') {
     this.logger.log(`获取所有用户信息`);
-    return (await this.userRepo.find()).map((user) => user.getData());
+    const { items, meta } = await paginate<User>(
+      this.userRepo,
+      { page, limit },
+      { where: { nickname: Like(`%${search}%`) } },
+    );
+
+    return {
+      items: items.map((user) => user.getData()),
+      count: meta.totalItems,
+      total: meta.totalItems,
+    };
   }
 
   async findOne(id: number) {

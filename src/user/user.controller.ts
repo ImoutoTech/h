@@ -9,6 +9,8 @@ import {
   Query,
   UseGuards,
   Request,
+  ParseIntPipe,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import { Md5 } from 'ts-md5';
 import { UserService } from './user.service';
@@ -58,8 +60,12 @@ export class UserController {
 
   @Get('/all')
   @UseGuards(AdminGuard)
-  findAll() {
-    return this.userService.findAll();
+  findAll(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,
+    @Query('size', new DefaultValuePipe(500), ParseIntPipe) size = 500,
+    @Query('search') search = '',
+  ) {
+    return this.userService.findAll(page, size, search);
   }
 
   @Get(':id')
