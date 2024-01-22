@@ -44,7 +44,9 @@ export class User {
   })
   password: string;
 
-  @Column()
+  @Column({
+    default: null,
+  })
   avatar: string;
 
   @CreateDateColumn()
