@@ -51,11 +51,14 @@ export class UserService {
   }
 
   async findAll(page = 1, limit = 500, search = '') {
-    this.logger.log(`获取所有用户信息`);
     const { items, meta } = await paginate<User>(
       this.userRepo,
       { page, limit },
       { where: { nickname: Like(`%${search}%`) } },
+    );
+
+    this.logger.log(
+      `获取所有用户信息(page=${page}, size=${limit}, search=${search})，共查询到${meta.totalItems}条结果`,
     );
 
     return {
