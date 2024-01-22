@@ -4,9 +4,11 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 
 import * as bcrypt from 'bcrypt';
+import { SubApp } from '@/subapp/entities/SubApp';
 
 export enum UserRole {
   ADMIN = 0,
@@ -48,6 +50,9 @@ export class User {
     default: null,
   })
   avatar: string;
+
+  @OneToMany(() => SubApp, (app) => app.owner)
+  subApps: SubApp[];
 
   @CreateDateColumn()
   created_at: Date;

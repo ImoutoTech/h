@@ -8,6 +8,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ENV_LIST } from './utils/constants';
 import { UserModule } from './user/user.module';
 import { BusinessException } from './common/exceptions';
+import { SubappModule } from './subapp/subapp.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { BusinessException } from './common/exceptions';
       }),
     }),
     UserModule,
+    SubappModule,
   ],
   controllers: [AppController],
   providers: [
