@@ -41,7 +41,7 @@ export class SubAppController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.subappService.findOne(+id);
+    return this.subappService.findOne(id);
   }
 
   @Patch(':id')

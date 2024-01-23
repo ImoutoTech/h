@@ -6,6 +6,8 @@ import { CreateSubappDto } from './dto/create-subapp.dto';
 import { UpdateSubappDto } from './dto/update-subapp.dto';
 import { ConfigService } from '@nestjs/config';
 import { paginate } from 'nestjs-typeorm-paginate';
+import { BusinessException } from '@/common/exceptions';
+import { isNil } from 'lodash';
 
 @Injectable()
 export class SubAppService {
@@ -38,8 +40,15 @@ export class SubAppService {
     };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} subapp`;
+  async findOne(id: string) {
+    const app = await this.repo.findOneBy({ id });
+
+    if (isNil(app)) {
+      this.logger.warn(`子应用#${id}不存在`);
+      throw new BusinessException('子应用不存在');
+    }
+
+    return app.getData();
   }
 
   update(id: number, updateSubappDto: UpdateSubappDto) {
