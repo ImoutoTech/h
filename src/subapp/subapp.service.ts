@@ -2,29 +2,43 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Like, type Repository } from 'typeorm';
 import { SubApp } from './entities/SubApp';
-import { CreateSubappDto } from './dto/create-subapp.dto';
-import { UpdateSubappDto } from './dto/update-subapp.dto';
+import { CreateSubAppDto } from './dto/create-subapp.dto';
+import { UpdateSubAppDto } from './dto/update-subapp.dto';
 import { ConfigService } from '@nestjs/config';
 import { paginate } from 'nestjs-typeorm-paginate';
 import { BusinessException } from '@/common/exceptions';
 import { isNil } from 'lodash';
+import { User } from '@/user/entities/user.entity';
 
 @Injectable()
 export class SubAppService {
   private logger = new Logger();
 
   @InjectRepository(SubApp)
-  private repo: Repository<SubApp>;
+  private appRepo: Repository<SubApp>;
+
+  @InjectRepository(User)
+  private userRepo: Repository<User>;
 
   constructor(private configService: ConfigService) {}
 
-  create(createSubappDto: CreateSubappDto) {
-    return 'This action adds a new subapp';
+  async create(regData: CreateSubAppDto, owner: number) {
+    const app = new SubApp();
+    const attrs = ['name', 'callback', 'description'] as const;
+
+    attrs.forEach((key) => {
+      app[key] = regData[key];
+    });
+    app.owner = await this.userRepo.findOneBy({ id: owner });
+
+    await this.appRepo.save(app);
+
+    return app.getData();
   }
 
   async findAll(page = 1, limit = 500, search = '') {
     const { items, meta } = await paginate<SubApp>(
-      this.repo,
+      this.appRepo,
       { page, limit },
       { where: { name: Like(`%${search}%`) }, relations: { owner: true } },
     );
@@ -41,7 +55,7 @@ export class SubAppService {
   }
 
   async findOne(id: string) {
-    const app = await this.repo.findOneBy({ id });
+    const app = await this.appRepo.findOneBy({ id });
 
     if (isNil(app)) {
       this.logger.warn(`子应用#${id}不存在`);
@@ -51,7 +65,7 @@ export class SubAppService {
     return app.getData();
   }
 
-  update(id: number, updateSubappDto: UpdateSubappDto) {
+  update(id: number, updateSubappDto: UpdateSubAppDto) {
     return `This action updates a #${id} subapp`;
   }
 

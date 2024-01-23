@@ -9,13 +9,14 @@ import {
   VERSION_NEUTRAL,
   UseGuards,
   Query,
+  Request,
   DefaultValuePipe,
   ParseIntPipe,
 } from '@nestjs/common';
 import { SubAppService } from './subapp.service';
-import { CreateSubappDto } from './dto/create-subapp.dto';
-import { UpdateSubappDto } from './dto/update-subapp.dto';
-import { AdminGuard } from '@/common/guard';
+import { CreateSubAppDto, UpdateSubAppDto } from './dto';
+import { AdminGuard, LoginGuard } from '@/common/guard';
+import { UserJwtPayload } from '@/utils/types';
 
 @Controller({
   path: 'app',
@@ -24,9 +25,13 @@ import { AdminGuard } from '@/common/guard';
 export class SubAppController {
   constructor(private readonly subappService: SubAppService) {}
 
-  @Post()
-  create(@Body() createSubappDto: CreateSubappDto) {
-    return this.subappService.create(createSubappDto);
+  @Post('/reg')
+  @UseGuards(LoginGuard)
+  create(
+    @Body() createSubAppDto: CreateSubAppDto,
+    @Request() req: { user: UserJwtPayload },
+  ) {
+    return this.subappService.create(createSubAppDto, req.user.id);
   }
 
   @Get('/all')
@@ -45,7 +50,7 @@ export class SubAppController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSubappDto: UpdateSubappDto) {
+  update(@Param('id') id: string, @Body() updateSubappDto: UpdateSubAppDto) {
     return this.subappService.update(+id, updateSubappDto);
   }
 
