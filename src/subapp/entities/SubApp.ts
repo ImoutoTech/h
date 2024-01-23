@@ -53,4 +53,17 @@ export class SubApp {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  public getData() {
+    return {
+      name: this.name,
+      id: this.id,
+      callback: this.callback,
+      owner: this.owner?.id,
+      created_at: this.created_at,
+      updated_at: this.updated_at,
+      visitNum: this.visitNum,
+      description: this.description,
+    };
+  }
 }

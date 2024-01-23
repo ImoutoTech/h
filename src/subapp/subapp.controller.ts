@@ -7,10 +7,15 @@ import {
   Param,
   Delete,
   VERSION_NEUTRAL,
+  UseGuards,
+  Query,
+  DefaultValuePipe,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { SubAppService } from './subapp.service';
 import { CreateSubappDto } from './dto/create-subapp.dto';
 import { UpdateSubappDto } from './dto/update-subapp.dto';
+import { AdminGuard } from '@/common/guard';
 
 @Controller({
   path: 'app',
@@ -25,8 +30,13 @@ export class SubAppController {
   }
 
   @Get('/all')
-  findAll() {
-    return this.subappService.findAll();
+  @UseGuards(AdminGuard)
+  findAll(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,
+    @Query('size', new DefaultValuePipe(500), ParseIntPipe) size = 500,
+    @Query('search') search = '',
+  ) {
+    return this.subappService.findAll(page, size, search);
   }
 
   @Get(':id')
