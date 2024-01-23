@@ -31,8 +31,13 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post('/register')
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
+  create(@Body() createUserDto: CreateUserDto, @Query('md5') md5: boolean) {
+    const regData = { ...createUserDto };
+
+    if (!md5) {
+      regData.password = Md5.hashStr(regData.password);
+    }
+    return this.userService.create(regData);
   }
 
   @Post('/login')

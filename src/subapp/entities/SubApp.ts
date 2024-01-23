@@ -21,7 +21,7 @@ export class SubApp {
   id: string;
 
   @JoinColumn({
-    name: 'id',
+    name: 'owner',
   })
   @ManyToOne(() => User, {
     cascade: true,
