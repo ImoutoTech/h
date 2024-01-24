@@ -123,8 +123,29 @@ export class SubAppService {
     };
   }
 
-  update(id: number, updateSubappDto: UpdateSubAppDto) {
-    return `This action updates a #${id} subapp`;
+  async update(id: string, updateData: UpdateSubAppDto, owner: number) {
+    const user = await this.userRepo.findOne({
+      where: { id: owner },
+      relations: { subApps: true },
+    });
+    const app = user.subApps.find((sub) => sub.id === id);
+
+    if (isNil(app)) {
+      this.logger.warn(`用户#${owner}请求修改不属于他的子应用#${id}`);
+      BusinessException.throwForbidden();
+    }
+
+    const attrs = ['name', 'callback', 'description'] as const;
+
+    attrs.forEach((key) => {
+      if (updateData[key]) {
+        app[key] = updateData[key];
+      }
+    });
+
+    await this.appRepo.save(app);
+
+    return { ...app.getData(), owner };
   }
 
   remove(id: number) {

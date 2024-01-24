@@ -3,7 +3,6 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   VERSION_NEUTRAL,
@@ -12,6 +11,7 @@ import {
   Request,
   DefaultValuePipe,
   ParseIntPipe,
+  Put,
 } from '@nestjs/common';
 import { SubAppService } from './subapp.service';
 import { CreateSubAppDto, UpdateSubAppDto } from './dto';
@@ -66,9 +66,14 @@ export class SubAppController {
     return this.subappService.callback(id, req.user.id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSubappDto: UpdateSubAppDto) {
-    return this.subappService.update(+id, updateSubappDto);
+  @Put(':id')
+  @UseGuards(LoginGuard)
+  update(
+    @Param('id') id: string,
+    @Body() updateSubappDto: UpdateSubAppDto,
+    @Request() req: { user: UserJwtPayload },
+  ) {
+    return this.subappService.update(id, updateSubappDto, req.user.id);
   }
 
   @Delete(':id')
