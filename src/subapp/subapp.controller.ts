@@ -77,7 +77,8 @@ export class SubAppController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.subappService.remove(+id);
+  @UseGuards(LoginGuard)
+  remove(@Param('id') id: string, @Request() req: { user: UserJwtPayload }) {
+    return this.subappService.remove(id, req.user.id);
   }
 }

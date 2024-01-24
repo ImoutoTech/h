@@ -145,10 +145,27 @@ export class SubAppService {
 
     await this.appRepo.save(app);
 
+    this.logger.log(`用户#${owner}修改子应用#${id}信息`);
+
     return { ...app.getData(), owner };
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} subapp`;
+  async remove(id: string, owner: number) {
+    const user = await this.userRepo.findOne({
+      where: { id: owner },
+      relations: { subApps: true },
+    });
+    const app = user.subApps.find((sub) => sub.id === id);
+
+    if (isNil(app)) {
+      this.logger.warn(`用户#${owner}请求删除不属于他的子应用#${id}`);
+      BusinessException.throwForbidden();
+    }
+
+    await this.appRepo.remove(app);
+
+    this.logger.log(`用户#${owner}删除了子应用#${id}`);
+
+    return true;
   }
 }
