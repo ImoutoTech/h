@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Like, type Repository } from 'typeorm';
+import * as jwt from 'jsonwebtoken';
 import { SubApp } from './entities/SubApp';
 import { CreateSubAppDto } from './dto/create-subapp.dto';
 import { UpdateSubAppDto } from './dto/update-subapp.dto';
@@ -68,7 +69,7 @@ export class SubAppService {
     );
 
     return {
-      items: result.map((app) => app.getData()),
+      items: result.map((app) => ({ ...app.getData(), owner: ownerId })),
       count: apps.length,
       total: apps.length,
     };
@@ -83,6 +84,43 @@ export class SubAppService {
     }
 
     return app.getData();
+  }
+
+  async callback(appId: string, userId: number) {
+    const user = await this.userRepo.findOneBy({ id: userId });
+    const app = await this.appRepo.findOneBy({ id: appId });
+
+    if (isNil(user)) {
+      this.logger.warn(`不存在的用户#${userId}请求访问子应用#${appId}`);
+      throw new BusinessException('用户不存在');
+    }
+
+    if (isNil(app)) {
+      this.logger.warn(`用户#${userId}请求访问不存在的子应用#${appId}`);
+      throw new BusinessException('子应用不存在');
+    }
+
+    app.visitNum += 1;
+    await this.appRepo.save(app);
+
+    const ticket = jwt.sign(
+      {
+        email: user.email,
+        role: user.role,
+        id: user.id,
+        refresh: false,
+      },
+      this.configService.get<string>('TOKEN_SECRET', ''),
+      {
+        expiresIn: '1d',
+      },
+    );
+
+    this.logger.log(`用户#${userId}访问子应用#${appId}成功`);
+
+    return {
+      ticket,
+    };
   }
 
   update(id: number, updateSubappDto: UpdateSubAppDto) {

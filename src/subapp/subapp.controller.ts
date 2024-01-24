@@ -60,6 +60,12 @@ export class SubAppController {
     return this.subappService.findOne(id);
   }
 
+  @Post(':id')
+  @UseGuards(LoginGuard)
+  callback(@Param('id') id: string, @Request() req: { user: UserJwtPayload }) {
+    return this.subappService.callback(id, req.user.id);
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateSubappDto: UpdateSubAppDto) {
     return this.subappService.update(+id, updateSubappDto);
