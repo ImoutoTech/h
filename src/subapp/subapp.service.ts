@@ -138,7 +138,7 @@ export class SubAppService {
     const attrs = ['name', 'callback', 'description'] as const;
 
     attrs.forEach((key) => {
-      if (updateData[key]) {
+      if (!isNil(updateData[key])) {
         app[key] = updateData[key];
       }
     });
