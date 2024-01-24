@@ -48,9 +48,29 @@ export class SubAppService {
     );
 
     return {
-      items: items.map((user) => user.getData()),
+      items: items.map((app) => app.getData()),
       count: meta.totalItems,
       total: meta.totalItems,
+    };
+  }
+
+  async findUserApp(ownerId: number, page = 1, limit = 500, search = '') {
+    const owner = await this.userRepo.findOne({
+      where: { id: ownerId },
+      relations: { subApps: true },
+    });
+
+    const apps = owner.subApps.filter((app) => app.name.includes(search));
+    const result = apps.slice((page - 1) * limit, page * limit);
+
+    this.logger.log(
+      `获取用户#${ownerId}子应用信息(page=${page}, size=${limit}, search=${search})，共查询到${apps.length}条结果`,
+    );
+
+    return {
+      items: result.map((app) => app.getData()),
+      count: apps.length,
+      total: apps.length,
     };
   }
 

@@ -44,6 +44,17 @@ export class SubAppController {
     return this.subappService.findAll(page, size, search);
   }
 
+  @Get('/my')
+  @UseGuards(LoginGuard)
+  findMy(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,
+    @Query('size', new DefaultValuePipe(500), ParseIntPipe) size = 500,
+    @Query('search') search = '',
+    @Request() req: { user: UserJwtPayload },
+  ) {
+    return this.subappService.findUserApp(req.user.id, page, size, search);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.subappService.findOne(id);
