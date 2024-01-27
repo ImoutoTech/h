@@ -6,10 +6,12 @@ import {
   Generated,
   PrimaryColumn,
   ManyToOne,
+  OneToOne,
   JoinColumn,
 } from 'typeorm';
 
 import { User } from '@/user/entities/user.entity';
+import { SubAppMeta } from './SubAppMeta';
 
 @Entity({
   name: 'subapps',
@@ -43,10 +45,13 @@ export class SubApp {
   })
   description: string;
 
-  @Column({
-    default: 0,
-  })
-  visitNum: number;
+  // @Column({
+  //   default: 0,
+  // })
+  // visitNum: number;
+
+  @OneToOne(() => SubAppMeta, (m) => m.app)
+  meta: SubAppMeta;
 
   @CreateDateColumn()
   created_at: Date;
@@ -62,8 +67,9 @@ export class SubApp {
       owner: this.owner?.id,
       created_at: this.created_at,
       updated_at: this.updated_at,
-      visitNum: this.visitNum,
+      visitNum: this.meta?.visitNum,
       description: this.description,
+      meta: this.meta?.getData(),
     };
   }
 }

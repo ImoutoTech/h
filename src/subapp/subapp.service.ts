@@ -10,6 +10,7 @@ import { paginate } from 'nestjs-typeorm-paginate';
 import { BusinessException } from '@/common/exceptions';
 import { isNil } from 'lodash';
 import { User } from '@/user/entities/user.entity';
+import { SubAppMeta } from './entities/SubAppMeta';
 
 @Injectable()
 export class SubAppService {
@@ -17,6 +18,9 @@ export class SubAppService {
 
   @InjectRepository(SubApp)
   private appRepo: Repository<SubApp>;
+
+  @InjectRepository(SubAppMeta)
+  private metaRepo: Repository<SubAppMeta>;
 
   @InjectRepository(User)
   private userRepo: Repository<User>;
@@ -26,7 +30,7 @@ export class SubAppService {
   private async getOneUserApp(owner: number, id: string) {
     const app = await this.appRepo.findOne({
       where: { id },
-      relations: { owner: true },
+      relations: { owner: true, meta: true },
     });
 
     if (isNil(app)) {
@@ -42,13 +46,16 @@ export class SubAppService {
 
   async create(regData: CreateSubAppDto, owner: number) {
     const app = new SubApp();
+    const meta = new SubAppMeta();
     const attrs = ['name', 'callback', 'description'] as const;
 
     attrs.forEach((key) => {
       app[key] = regData[key];
     });
     app.owner = await this.userRepo.findOneBy({ id: owner });
+    app.meta = meta;
 
+    await this.metaRepo.save(meta);
     await this.appRepo.save(app);
 
     return app.getData();
@@ -58,7 +65,10 @@ export class SubAppService {
     const { items, meta } = await paginate<SubApp>(
       this.appRepo,
       { page, limit },
-      { where: { name: Like(`%${search}%`) }, relations: { owner: true } },
+      {
+        where: { name: Like(`%${search}%`) },
+        relations: { owner: true, meta: true },
+      },
     );
 
     this.logger.log(
@@ -78,7 +88,7 @@ export class SubAppService {
       { page, limit },
       {
         where: { owner: { id: ownerId }, name: Like(`%${search}%`) },
-        relations: { owner: true },
+        relations: { owner: true, meta: true },
       },
     );
 
@@ -94,7 +104,10 @@ export class SubAppService {
   }
 
   async findOne(id: string) {
-    const app = await this.appRepo.findOneBy({ id });
+    const app = await this.appRepo.findOne({
+      where: { id },
+      relations: { owner: true, meta: true },
+    });
 
     if (isNil(app)) {
       this.logger.warn(`子应用#${id}不存在`);
@@ -106,7 +119,10 @@ export class SubAppService {
 
   async callback(appId: string, userId: number) {
     const user = await this.userRepo.findOneBy({ id: userId });
-    const app = await this.appRepo.findOneBy({ id: appId });
+    const app = await this.appRepo.findOne({
+      where: { id: appId },
+      relations: { owner: true, meta: true },
+    });
 
     if (isNil(user)) {
       this.logger.warn(`不存在的用户#${userId}请求访问子应用#${appId}`);
@@ -118,8 +134,8 @@ export class SubAppService {
       throw new BusinessException('子应用不存在');
     }
 
-    app.visitNum += 1;
-    await this.appRepo.save(app);
+    app.meta.visitNum += 1;
+    await this.metaRepo.save(app.meta);
 
     const ticket = jwt.sign(
       {
