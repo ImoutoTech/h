@@ -23,7 +23,7 @@ export class SubApp {
   @JoinColumn({
     name: 'owner',
   })
-  @ManyToOne(() => User, {
+  @ManyToOne(() => User, (user) => user.subApps, {
     cascade: true,
   })
   owner: User;

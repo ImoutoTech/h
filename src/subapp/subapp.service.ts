@@ -23,6 +23,23 @@ export class SubAppService {
 
   constructor(private configService: ConfigService) {}
 
+  private async getOneUserApp(owner: number, id: string) {
+    const app = await this.appRepo.findOne({
+      where: { id },
+      relations: { owner: true },
+    });
+
+    if (isNil(app)) {
+      this.logger.warn(`用户#${owner}请求修改不存在的子应用#${id}`);
+      BusinessException.throwForbidden();
+    } else if (app.owner.id !== owner) {
+      this.logger.warn(`用户#${owner}请求操作不属于他的子应用#${id}`);
+      BusinessException.throwForbidden();
+    }
+
+    return app;
+  }
+
   async create(regData: CreateSubAppDto, owner: number) {
     const app = new SubApp();
     const attrs = ['name', 'callback', 'description'] as const;
@@ -56,22 +73,23 @@ export class SubAppService {
   }
 
   async findUserApp(ownerId: number, page = 1, limit = 500, search = '') {
-    const owner = await this.userRepo.findOne({
-      where: { id: ownerId },
-      relations: { subApps: true },
-    });
-
-    const apps = owner.subApps.filter((app) => app.name.includes(search));
-    const result = apps.slice((page - 1) * limit, page * limit);
+    const { items, meta } = await paginate<SubApp>(
+      this.appRepo,
+      { page, limit },
+      {
+        where: { owner: { id: ownerId }, name: Like(`%${search}%`) },
+        relations: { owner: true },
+      },
+    );
 
     this.logger.log(
-      `获取用户#${ownerId}子应用信息(page=${page}, size=${limit}, search=${search})，共查询到${apps.length}条结果`,
+      `获取用户#${ownerId}子应用信息(page=${page}, size=${limit}, search=${search})，共查询到${meta.totalItems}条结果`,
     );
 
     return {
-      items: result.map((app) => ({ ...app.getData(), owner: ownerId })),
-      count: apps.length,
-      total: apps.length,
+      items: items.map((app) => ({ ...app.getData() })),
+      count: meta.totalItems,
+      total: meta.totalItems,
     };
   }
 
@@ -124,16 +142,7 @@ export class SubAppService {
   }
 
   async update(id: string, updateData: UpdateSubAppDto, owner: number) {
-    const user = await this.userRepo.findOne({
-      where: { id: owner },
-      relations: { subApps: true },
-    });
-    const app = user.subApps.find((sub) => sub.id === id);
-
-    if (isNil(app)) {
-      this.logger.warn(`用户#${owner}请求修改不属于他的子应用#${id}`);
-      BusinessException.throwForbidden();
-    }
+    const app = await this.getOneUserApp(owner, id);
 
     const attrs = ['name', 'callback', 'description'] as const;
 
@@ -147,20 +156,11 @@ export class SubAppService {
 
     this.logger.log(`用户#${owner}修改子应用#${id}信息`);
 
-    return { ...app.getData(), owner };
+    return app.getData();
   }
 
   async remove(id: string, owner: number) {
-    const user = await this.userRepo.findOne({
-      where: { id: owner },
-      relations: { subApps: true },
-    });
-    const app = user.subApps.find((sub) => sub.id === id);
-
-    if (isNil(app)) {
-      this.logger.warn(`用户#${owner}请求删除不属于他的子应用#${id}`);
-      BusinessException.throwForbidden();
-    }
+    const app = await this.getOneUserApp(owner, id);
 
     await this.appRepo.remove(app);
 
