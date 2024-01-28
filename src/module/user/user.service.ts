@@ -7,8 +7,8 @@ import {
   UpdateUserDto,
   LoginUserDto,
   UpdatePasswordDto,
-} from './dto';
-import { User } from './entities/user.entity';
+} from '@/dto';
+import { User } from '@/entity';
 
 import { isNil } from 'lodash';
 import { InjectRepository } from '@nestjs/typeorm';

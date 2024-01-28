@@ -2,9 +2,7 @@ import { Module } from '@nestjs/common';
 import { SubAppService } from './subapp.service';
 import { SubAppController } from './subapp.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { SubApp } from './entities/SubApp';
-import { SubAppMeta } from './entities/SubAppMeta';
-import { User } from '@/user/entities/user.entity';
+import { SubApp, SubAppMeta, User } from '@/entity';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({

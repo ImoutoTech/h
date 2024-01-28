@@ -14,7 +14,7 @@ import {
   Put,
 } from '@nestjs/common';
 import { SubAppService } from './subapp.service';
-import { CreateSubAppDto, UpdateSubAppDto } from './dto';
+import { CreateSubAppDto, UpdateSubAppDto } from '@/dto';
 import { AdminGuard, LoginGuard } from '@/common/guard';
 import { UserJwtPayload } from '@/utils/types';
 

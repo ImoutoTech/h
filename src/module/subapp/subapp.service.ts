@@ -2,15 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Like, type Repository } from 'typeorm';
 import * as jwt from 'jsonwebtoken';
-import { SubApp } from './entities/SubApp';
-import { CreateSubAppDto } from './dto/create-subapp.dto';
-import { UpdateSubAppDto } from './dto/update-subapp.dto';
+import { CreateSubAppDto, UpdateSubAppDto } from '@/dto';
+import { User, SubAppMeta, SubApp } from '@/entity';
 import { ConfigService } from '@nestjs/config';
 import { paginate } from 'nestjs-typeorm-paginate';
 import { BusinessException } from '@/common/exceptions';
 import { isNil } from 'lodash';
-import { User } from '@/user/entities/user.entity';
-import { SubAppMeta } from './entities/SubAppMeta';
 
 @Injectable()
 export class SubAppService {

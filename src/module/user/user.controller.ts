@@ -19,7 +19,7 @@ import {
   UpdateUserDto,
   LoginUserDto,
   UpdatePasswordDto,
-} from './dto';
+} from '@/dto';
 import { AdminGuard, LoginGuard, RefreshGuard } from '@/common/guard';
 import type { UserJwtPayload } from '@/utils/types';
 

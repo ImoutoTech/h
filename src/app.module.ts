@@ -6,9 +6,9 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ENV_LIST } from './utils/constants';
-import { UserModule } from './user/user.module';
+import { UserModule } from './module/user/user.module';
 import { BusinessException } from './common/exceptions';
-import { SubappModule } from './subapp/subapp.module';
+import { SubappModule } from './module/subapp/subapp.module';
 
 @Module({
   imports: [

@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 
 import * as bcrypt from 'bcrypt';
-import { SubApp } from '@/subapp/entities/SubApp';
+import { SubApp } from '@/entity/SubApp';
 
 export enum UserRole {
   ADMIN = 0,
