@@ -18,8 +18,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     if (exception instanceof BusinessException) {
       const error = exception.getResponse();
-      response.status(HttpStatus.OK).send({
-        code: HttpStatus.INTERNAL_SERVER_ERROR,
+      response.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        code: error['code'],
         msg: error['message'],
         data: null,
       });
