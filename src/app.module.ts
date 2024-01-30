@@ -9,6 +9,7 @@ import { ENV_LIST } from './utils/constants';
 import { UserModule } from './module/user/user.module';
 import { BusinessException } from './common/exceptions';
 import { SubappModule } from './module/subapp/subapp.module';
+import { RedisModule } from './module/redis/redis.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { SubappModule } from './module/subapp/subapp.module';
     }),
     UserModule,
     SubappModule,
+    RedisModule,
   ],
   controllers: [AppController],
   providers: [

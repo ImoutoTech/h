@@ -5,3 +5,5 @@ export const ENV_LIST = [
   '.env.development',
   '.env',
 ];
+
+export const REDIS_CLIENT = 'h-redis-client';
