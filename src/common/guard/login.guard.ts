@@ -26,7 +26,10 @@ const parseHeaderToken = (request: any, logger: Logger): string => {
 const handleAuthError = (e: Error, logger: Logger, request: any) => {
   if (e instanceof jwt.TokenExpiredError) {
     logger.warn(`过期token请求${request.url}`);
-    BusinessException.throw(BUSINESS_ERROR_CODE.EXPIRED_TOKEN, e.message);
+    BusinessException.throw(
+      BUSINESS_ERROR_CODE.EXPIRED_TOKEN,
+      'token 已经过期',
+    );
   }
 
   logger.warn(`错误token请求${request.url}`);
