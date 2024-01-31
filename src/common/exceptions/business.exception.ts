@@ -4,6 +4,7 @@ import { BUSINESS_ERROR_CODE } from './constants';
 type BusinessError = {
   code: number;
   message: string;
+  httpCode?: HttpStatus;
 };
 
 export class BusinessException extends HttpException {
@@ -31,10 +32,15 @@ export class BusinessException extends HttpException {
     });
   }
 
-  static throw(code: BUSINESS_ERROR_CODE, message: string) {
+  static throw(
+    code: BUSINESS_ERROR_CODE,
+    message: string,
+    httpCode = HttpStatus.INTERNAL_SERVER_ERROR,
+  ) {
     throw new BusinessException({
       code,
       message,
+      httpCode,
     });
   }
 }

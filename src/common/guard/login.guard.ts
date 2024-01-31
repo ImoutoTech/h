@@ -1,6 +1,7 @@
 import {
   CanActivate,
   ExecutionContext,
+  HttpStatus,
   Inject,
   Injectable,
   Logger,
@@ -29,6 +30,7 @@ const handleAuthError = (e: Error, logger: Logger, request: any) => {
     BusinessException.throw(
       BUSINESS_ERROR_CODE.EXPIRED_TOKEN,
       'token 已经过期',
+      HttpStatus.UNAUTHORIZED,
     );
   }
 
