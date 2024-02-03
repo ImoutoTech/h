@@ -15,6 +15,16 @@ export enum UserRole {
   USER = 1,
 }
 
+export interface UserExportData {
+  id: number;
+  nickname: string;
+  role: UserRole;
+  email: string;
+  avatar?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
 @Entity({
   name: 'users',
 })
@@ -60,7 +70,7 @@ export class User {
   @UpdateDateColumn()
   updated_at: Date;
 
-  public getData() {
+  public getData(): UserExportData {
     return {
       id: this.id,
       nickname: this.nickname,

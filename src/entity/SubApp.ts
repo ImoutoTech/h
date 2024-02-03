@@ -11,7 +11,19 @@ import {
 } from 'typeorm';
 
 import { User } from '@/entity/User';
-import { SubAppMeta } from './SubAppMeta';
+import { SubAppMeta, SubAppMetaExportData } from './SubAppMeta';
+
+export interface SubAppExportData {
+  name: string;
+  id: string;
+  callback: string;
+  owner: number;
+  created_at: Date;
+  updated_at: Date;
+  visitNum: number;
+  description: string;
+  meta: SubAppMetaExportData;
+}
 
 @Entity({
   name: 'subapps',
@@ -59,7 +71,7 @@ export class SubApp {
   @UpdateDateColumn()
   updated_at: Date;
 
-  public getData() {
+  public getData(): SubAppExportData {
     return {
       name: this.name,
       id: this.id,

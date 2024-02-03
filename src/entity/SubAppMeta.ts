@@ -14,6 +14,11 @@ export enum AppStatus {
   BANNED = 2,
 }
 
+export interface SubAppMetaExportData {
+  visitNum: number;
+  status: AppStatus;
+}
+
 @Entity({
   name: 'subapp_meta',
 })
@@ -42,7 +47,7 @@ export class SubAppMeta {
   })
   status: number;
 
-  public getData() {
+  public getData(): SubAppMetaExportData {
     return {
       visitNum: this.visitNum,
       status: this.status,
