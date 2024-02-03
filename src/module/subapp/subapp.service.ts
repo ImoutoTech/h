@@ -1,13 +1,14 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Like, type Repository } from 'typeorm';
 import * as jwt from 'jsonwebtoken';
 import { CreateSubAppDto, UpdateSubAppDto } from '@/dto';
-import { User, SubAppMeta, SubApp } from '@/entity';
+import { User, SubAppMeta, SubApp, type SubAppExportData } from '@/entity';
 import { ConfigService } from '@nestjs/config';
 import { paginate } from 'nestjs-typeorm-paginate';
 import { BusinessException } from '@/common/exceptions';
 import { isNil } from 'lodash';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class SubAppService {
@@ -21,6 +22,9 @@ export class SubAppService {
 
   @InjectRepository(User)
   private userRepo: Repository<User>;
+
+  @Inject(RedisService)
+  private cache: RedisService;
 
   constructor(private configService: ConfigService) {}
 
@@ -54,6 +58,8 @@ export class SubAppService {
 
     await this.metaRepo.save(meta);
     await this.appRepo.save(app);
+
+    await this.cache.jsonSet(`app-${app.id}`, app.getData());
 
     return app.getData();
   }
@@ -101,6 +107,10 @@ export class SubAppService {
   }
 
   async findOne(id: string) {
+    const cached = await this.cache.jsonGet<SubAppExportData>(`app-${id}`);
+    if (cached) {
+      return cached;
+    }
     const app = await this.appRepo.findOne({
       where: { id },
       relations: { owner: true, meta: true },
@@ -110,6 +120,8 @@ export class SubAppService {
       this.logger.warn(`子应用#${id}不存在`);
       throw new BusinessException('子应用不存在');
     }
+
+    await this.cache.jsonSet(`app-${id}`, app.getData());
 
     return app.getData();
   }
@@ -149,6 +161,8 @@ export class SubAppService {
 
     this.logger.log(`用户#${userId}访问子应用#${appId}成功`);
 
+    await this.cache.jsonSet(`app-${app.id}`, app.getData());
+
     return {
       ticket,
     };
@@ -168,6 +182,7 @@ export class SubAppService {
     await this.appRepo.save(app);
 
     this.logger.log(`用户#${owner}修改子应用#${id}信息`);
+    await this.cache.jsonSet(`app-${app.id}`, app.getData());
 
     return app.getData();
   }
@@ -178,6 +193,7 @@ export class SubAppService {
     await this.appRepo.remove(app);
 
     this.logger.log(`用户#${owner}删除了子应用#${id}`);
+    await this.cache.del(`app-${app.id}`);
 
     return true;
   }
