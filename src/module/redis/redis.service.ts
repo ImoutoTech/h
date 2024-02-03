@@ -18,6 +18,12 @@ export class RedisService {
     this.logger.warn(text, 'RedisService');
   }
 
+  async del(key: string) {
+    await this.redisClient.del(key);
+    this.log(`Redis del key ${key}，删除缓存`);
+    return true;
+  }
+
   async get(key: string) {
     const data = await this.redisClient.get(key);
     if (isNil(data)) {
@@ -56,5 +62,24 @@ export class RedisService {
       await this.redisClient.expire(key, ttl);
     }
     this.log(`Redis hashSet key ${key}，更新缓存, ttl=${ttl}`);
+  }
+
+  async jsonGet<T>(key: string) {
+    const data = await this.redisClient.get(key);
+    if (isNil(data)) {
+      this.warn(`Redis jsonGet key ${key}，缓存未命中`);
+    } else {
+      this.log(`Redis jsonGet key ${key}，命中缓存`);
+    }
+    return JSON.parse(data) as T;
+  }
+
+  async jsonSet(key: string, obj: Record<string, any>, ttl?: number) {
+    await this.redisClient.set(key, JSON.stringify(obj));
+
+    if (ttl) {
+      await this.redisClient.expire(key, ttl);
+    }
+    this.log(`Redis jsonSet key ${key}，更新缓存, ttl=${ttl}`);
   }
 }
