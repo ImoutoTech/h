@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 import { ConfigService } from '@nestjs/config';
@@ -8,7 +8,7 @@ import {
   LoginUserDto,
   UpdatePasswordDto,
 } from '@/dto';
-import { User } from '@/entity';
+import { User, UserExportData } from '@/entity';
 
 import { isNil } from 'lodash';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -16,6 +16,7 @@ import { type Repository, Like } from 'typeorm';
 import { paginate } from 'nestjs-typeorm-paginate';
 import { BusinessException } from '@/common/exceptions';
 import { UserJwtPayload } from '@/utils/types';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class UserService {
@@ -23,6 +24,9 @@ export class UserService {
 
   @InjectRepository(User)
   private userRepo: Repository<User>;
+
+  @Inject(RedisService)
+  private cache: RedisService;
 
   constructor(private configService: ConfigService) {}
 
@@ -47,6 +51,7 @@ export class UserService {
     }
 
     this.logger.log(`创建用户 ${JSON.stringify(user.getData())} 成功`);
+    await this.cache.jsonSet(`user-${user.id}`, user.getData());
     return user.getData();
   }
 
@@ -69,6 +74,10 @@ export class UserService {
   }
 
   async findOne(id: number) {
+    const cached = await this.cache.jsonGet<UserExportData>(`user-${id}`);
+    if (cached) {
+      return cached;
+    }
     const user = await this.userRepo.findOneBy({ id });
 
     if (isNil(user)) {
@@ -77,6 +86,7 @@ export class UserService {
     }
 
     this.logger.log(`获取用户#${id}信息`);
+    await this.cache.jsonSet(`user-${user.id}`, user.getData());
     return user.getData();
   }
 
@@ -167,6 +177,8 @@ export class UserService {
 
     await this.userRepo.save(user);
     this.logger.log(`用户#${user.id}修改了${editedProperties.join(',')}`);
+
+    await this.cache.jsonSet(`user-${user.id}`, user.getData());
 
     return user.getData();
   }
