@@ -193,7 +193,7 @@ export class SubAppService {
     await this.appRepo.remove(app);
 
     this.logger.log(`用户#${owner}删除了子应用#${id}`);
-    await this.cache.del(`app-${app.id}`);
+    await this.cache.del(`app-${id}`);
 
     return true;
   }
