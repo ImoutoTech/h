@@ -4,14 +4,15 @@ import {
   HttpStatus,
   Inject,
   Injectable,
-  Logger,
 } from '@nestjs/common';
+import { FastifyRequest } from 'fastify';
 import { Observable } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
 import { BusinessException, BUSINESS_ERROR_CODE } from '../exceptions';
 import * as jwt from 'jsonwebtoken';
+import { HLOGGER_TOKEN, HLogger } from '@/module/logger/logger.service';
 
-const parseHeaderToken = (request: any, logger: Logger): string => {
+const parseHeaderToken = (request: FastifyRequest, logger: HLogger): string => {
   const authorization = request.headers.authorization || '';
 
   const bearer = authorization.split(' ');
@@ -24,7 +25,11 @@ const parseHeaderToken = (request: any, logger: Logger): string => {
   return bearer[1];
 };
 
-const handleAuthError = (e: Error, logger: Logger, request: any) => {
+const handleAuthError = (
+  e: Error,
+  logger: HLogger,
+  request: FastifyRequest,
+) => {
   if (e instanceof jwt.TokenExpiredError) {
     logger.warn(`过期token请求${request.url}`);
     BusinessException.throw(
@@ -43,7 +48,8 @@ export class LoginGuard implements CanActivate {
   @Inject(ConfigService)
   private config: ConfigService;
 
-  private logger = new Logger();
+  @Inject(HLOGGER_TOKEN)
+  private logger: HLogger;
 
   canActivate(
     context: ExecutionContext,
@@ -75,7 +81,8 @@ export class RefreshGuard implements CanActivate {
   @Inject(ConfigService)
   private config: ConfigService;
 
-  private logger = new Logger();
+  @Inject(HLOGGER_TOKEN)
+  private logger: HLogger;
 
   canActivate(
     context: ExecutionContext,
@@ -107,7 +114,8 @@ export class AdminGuard implements CanActivate {
   @Inject(ConfigService)
   private config: ConfigService;
 
-  private logger = new Logger();
+  @Inject(HLOGGER_TOKEN)
+  private logger: HLogger;
 
   canActivate(
     context: ExecutionContext,

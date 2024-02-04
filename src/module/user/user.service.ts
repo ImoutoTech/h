@@ -1,4 +1,4 @@
-import { Injectable, Logger, Inject } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 import { ConfigService } from '@nestjs/config';
@@ -17,10 +17,12 @@ import { paginate } from 'nestjs-typeorm-paginate';
 import { BusinessException } from '@/common/exceptions';
 import { UserJwtPayload } from '@/utils/types';
 import { RedisService } from '../redis/redis.service';
+import { HLOGGER_TOKEN, HLogger } from '../logger/logger.service';
 
 @Injectable()
 export class UserService {
-  private logger = new Logger();
+  @Inject(HLOGGER_TOKEN)
+  private logger: HLogger;
 
   @InjectRepository(User)
   private userRepo: Repository<User>;
@@ -30,9 +32,17 @@ export class UserService {
 
   constructor(private configService: ConfigService) {}
 
+  private log(text: string) {
+    this.logger.log(text, UserService.name);
+  }
+
+  private warn(text: string) {
+    this.logger.warn(text, UserService.name);
+  }
+
   async create(param: CreateUserDto) {
     if (!isNil(await this.userRepo.findOneBy({ email: param.email }))) {
-      this.logger.warn(`用户(email: ${param.email})已存在`);
+      this.warn(`用户(email: ${param.email})已存在`);
       throw new BusinessException('邮箱已被注册');
     }
 
@@ -50,7 +60,7 @@ export class UserService {
       throw new BusinessException(e.message);
     }
 
-    this.logger.log(`创建用户 ${JSON.stringify(user.getData())} 成功`);
+    this.log(`创建用户 ${JSON.stringify(user.getData())} 成功`);
     await this.cache.jsonSet(`user-${user.id}`, user.getData());
     return user.getData();
   }
@@ -62,7 +72,7 @@ export class UserService {
       { where: { nickname: Like(`%${search}%`) } },
     );
 
-    this.logger.log(
+    this.log(
       `获取所有用户信息(page=${page}, size=${limit}, search=${search})，共查询到${meta.totalItems}条结果`,
     );
 
@@ -81,11 +91,11 @@ export class UserService {
     const user = await this.userRepo.findOneBy({ id });
 
     if (isNil(user)) {
-      this.logger.warn(`用户#${id}不存在`);
+      this.warn(`用户#${id}不存在`);
       throw new BusinessException('用户不存在');
     }
 
-    this.logger.log(`获取用户#${id}信息`);
+    this.log(`获取用户#${id}信息`);
     await this.cache.jsonSet(`user-${user.id}`, user.getData());
     return user.getData();
   }
@@ -93,12 +103,12 @@ export class UserService {
   async login(param: LoginUserDto) {
     const user = await this.userRepo.findOneBy({ email: param.email });
     if (isNil(user)) {
-      this.logger.warn(`不存在的用户${param.email}尝试登录`);
+      this.warn(`不存在的用户${param.email}尝试登录`);
       throw new BusinessException('用户不存在');
     }
 
     if (!user.checkPassword(param.password)) {
-      this.logger.warn(`用户${param.email}登录时密码错误`);
+      this.warn(`用户${param.email}登录时密码错误`);
       throw new BusinessException('密码错误');
     }
 
@@ -130,7 +140,7 @@ export class UserService {
       },
     );
 
-    this.logger.log(`用户${param.email}登录成功`);
+    this.log(`用户${param.email}登录成功`);
     return {
       token: `Bearer ${token}`,
       refresh: `Bearer ${refresh}`,
@@ -152,7 +162,7 @@ export class UserService {
       },
     );
 
-    this.logger.log(`用户#${user.id}刷新token成功`);
+    this.log(`用户#${user.id}刷新token成功`);
     return {
       token: `Bearer ${token}`,
     };
@@ -164,7 +174,7 @@ export class UserService {
     const user = await this.userRepo.findOneBy({ id });
 
     if (isNil(user)) {
-      this.logger.warn(`不存在的用户#${id}尝试修改信息`);
+      this.warn(`不存在的用户#${id}尝试修改信息`);
       throw new BusinessException('用户不存在');
     }
 
@@ -176,7 +186,7 @@ export class UserService {
     });
 
     await this.userRepo.save(user);
-    this.logger.log(`用户#${user.id}修改了${editedProperties.join(',')}`);
+    this.log(`用户#${user.id}修改了${editedProperties.join(',')}`);
 
     await this.cache.jsonSet(`user-${user.id}`, user.getData());
 
@@ -187,12 +197,12 @@ export class UserService {
     const user = await this.userRepo.findOneBy({ id });
 
     if (isNil(user)) {
-      this.logger.warn(`不存在的用户#${id}尝试修改密码`);
+      this.warn(`不存在的用户#${id}尝试修改密码`);
       throw new BusinessException('用户不存在');
     }
 
     if (!user.checkPassword(newData.oldVal)) {
-      this.logger.warn(`用户#${id}尝试使用错误的老密码修改密码`);
+      this.warn(`用户#${id}尝试使用错误的老密码修改密码`);
       throw new BusinessException('原密码错误');
     }
 
@@ -201,7 +211,7 @@ export class UserService {
       +this.configService.get('PWD_SALT_ROUND', 10),
     );
     await this.userRepo.save(user);
-    this.logger.log(`用户#${id}修改密码成功`);
+    this.log(`用户#${id}修改密码成功`);
 
     return user.getData();
   }

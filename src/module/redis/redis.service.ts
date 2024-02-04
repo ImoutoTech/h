@@ -1,14 +1,16 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { isNil } from 'lodash';
 import { RedisClientType } from 'redis';
 import { REDIS_CLIENT } from '@/utils/constants';
+import { HLOGGER_TOKEN, HLogger } from '../logger/logger.service';
 
 @Injectable()
 export class RedisService {
   @Inject(REDIS_CLIENT)
   private redisClient: RedisClientType;
 
-  private logger = new Logger();
+  @Inject(HLOGGER_TOKEN)
+  private logger: HLogger;
 
   log(text: string) {
     this.logger.log(text, 'RedisService');

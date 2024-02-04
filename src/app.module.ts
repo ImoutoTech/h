@@ -10,6 +10,7 @@ import { UserModule } from './module/user/user.module';
 import { BusinessException } from './common/exceptions';
 import { SubappModule } from './module/subapp/subapp.module';
 import { RedisModule } from './module/redis/redis.module';
+import { LoggerModule } from './module/logger/logger.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { RedisModule } from './module/redis/redis.module';
     UserModule,
     SubappModule,
     RedisModule,
+    LoggerModule,
   ],
   controllers: [AppController],
   providers: [

@@ -1,4 +1,4 @@
-import { Injectable, Logger, Inject } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Like, type Repository } from 'typeorm';
 import * as jwt from 'jsonwebtoken';
@@ -9,10 +9,12 @@ import { paginate } from 'nestjs-typeorm-paginate';
 import { BusinessException } from '@/common/exceptions';
 import { isNil } from 'lodash';
 import { RedisService } from '../redis/redis.service';
+import { HLOGGER_TOKEN, HLogger } from '../logger/logger.service';
 
 @Injectable()
 export class SubAppService {
-  private logger = new Logger();
+  @Inject(HLOGGER_TOKEN)
+  private logger: HLogger;
 
   @InjectRepository(SubApp)
   private appRepo: Repository<SubApp>;
@@ -28,6 +30,14 @@ export class SubAppService {
 
   constructor(private configService: ConfigService) {}
 
+  private log(text: string) {
+    this.logger.log(text, SubAppService.name);
+  }
+
+  private warn(text: string) {
+    this.logger.warn(text, SubAppService.name);
+  }
+
   private async getOneUserApp(owner: number, id: string) {
     const app = await this.appRepo.findOne({
       where: { id },
@@ -35,10 +45,10 @@ export class SubAppService {
     });
 
     if (isNil(app)) {
-      this.logger.warn(`用户#${owner}请求修改不存在的子应用#${id}`);
+      this.warn(`用户#${owner}请求修改不存在的子应用#${id}`);
       BusinessException.throwForbidden();
     } else if (app.owner.id !== owner) {
-      this.logger.warn(`用户#${owner}请求操作不属于他的子应用#${id}`);
+      this.warn(`用户#${owner}请求操作不属于他的子应用#${id}`);
       BusinessException.throwForbidden();
     }
 
@@ -74,7 +84,7 @@ export class SubAppService {
       },
     );
 
-    this.logger.log(
+    this.log(
       `获取所有子应用信息(page=${page}, size=${limit}, search=${search})，共查询到${meta.totalItems}条结果`,
     );
 
@@ -95,7 +105,7 @@ export class SubAppService {
       },
     );
 
-    this.logger.log(
+    this.log(
       `获取用户#${ownerId}子应用信息(page=${page}, size=${limit}, search=${search})，共查询到${meta.totalItems}条结果`,
     );
 
@@ -117,7 +127,7 @@ export class SubAppService {
     });
 
     if (isNil(app)) {
-      this.logger.warn(`子应用#${id}不存在`);
+      this.warn(`子应用#${id}不存在`);
       throw new BusinessException('子应用不存在');
     }
 
@@ -134,12 +144,12 @@ export class SubAppService {
     });
 
     if (isNil(user)) {
-      this.logger.warn(`不存在的用户#${userId}请求访问子应用#${appId}`);
+      this.warn(`不存在的用户#${userId}请求访问子应用#${appId}`);
       throw new BusinessException('用户不存在');
     }
 
     if (isNil(app)) {
-      this.logger.warn(`用户#${userId}请求访问不存在的子应用#${appId}`);
+      this.warn(`用户#${userId}请求访问不存在的子应用#${appId}`);
       throw new BusinessException('子应用不存在');
     }
 
@@ -159,7 +169,7 @@ export class SubAppService {
       },
     );
 
-    this.logger.log(`用户#${userId}访问子应用#${appId}成功`);
+    this.log(`用户#${userId}访问子应用#${appId}成功`);
 
     await this.cache.jsonSet(`app-${app.id}`, app.getData());
 
@@ -181,7 +191,7 @@ export class SubAppService {
 
     await this.appRepo.save(app);
 
-    this.logger.log(`用户#${owner}修改子应用#${id}信息`);
+    this.log(`用户#${owner}修改子应用#${id}信息`);
     await this.cache.jsonSet(`app-${app.id}`, app.getData());
 
     return app.getData();
@@ -192,7 +202,7 @@ export class SubAppService {
 
     await this.appRepo.remove(app);
 
-    this.logger.log(`用户#${owner}删除了子应用#${id}`);
+    this.log(`用户#${owner}删除了子应用#${id}`);
     await this.cache.del(`app-${id}`);
 
     return true;
