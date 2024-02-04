@@ -7,3 +7,5 @@ export const ENV_LIST = [
 ];
 
 export const REDIS_CLIENT = 'h-redis-client';
+
+export const LOGGER_PREFIX = '[h]';
