@@ -1,9 +1,1 @@
-export const enum BUSINESS_ERROR_CODE {
-  COMMON = 10001,
-
-  INVALID_TOKEN = 20001,
-  EMPTY_TOKEN = 20002,
-  EXPIRED_TOKEN = 20003,
-
-  ACCESS_FORBIDDEN = 30001,
-}
+export { BUSINESS_ERROR_CODE } from '@reus-able/const';
