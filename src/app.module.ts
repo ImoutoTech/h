@@ -1,5 +1,5 @@
 import { Module, ValidationPipe } from '@nestjs/common';
-import { APP_PIPE } from '@nestjs/core';
+import { APP_GUARD, APP_PIPE } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -7,10 +7,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ENV_LIST } from './utils/constants';
 import { UserModule } from './module/user/user.module';
-import { BusinessException } from './common/exceptions';
+
 import { SubappModule } from './module/subapp/subapp.module';
 import { RedisModule } from './module/redis/redis.module';
-import { LoggerModule } from '@reus-able/nestjs';
+import { LoggerModule, BusinessException } from '@reus-able/nestjs';
+import { AuthGuard } from './common/guard';
 
 @Module({
   imports: [
@@ -53,6 +54,10 @@ import { LoggerModule } from '@reus-able/nestjs';
           },
         });
       },
+    },
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
     },
   ],
 })

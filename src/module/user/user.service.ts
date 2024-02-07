@@ -14,10 +14,9 @@ import { isNil } from 'lodash';
 import { InjectRepository } from '@nestjs/typeorm';
 import { type Repository, Like } from 'typeorm';
 import { paginate } from 'nestjs-typeorm-paginate';
-import { BusinessException } from '@/common/exceptions';
 import { UserJwtPayload } from '@/utils/types';
 import { RedisService } from '../redis/redis.service';
-import { HLOGGER_TOKEN, HLogger } from '@reus-able/nestjs';
+import { HLOGGER_TOKEN, HLogger, BusinessException } from '@reus-able/nestjs';
 
 @Injectable()
 export class UserService {

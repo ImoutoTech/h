@@ -6,7 +6,6 @@ import {
   Param,
   Delete,
   VERSION_NEUTRAL,
-  UseGuards,
   Query,
   Request,
   DefaultValuePipe,
@@ -15,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { SubAppService } from './subapp.service';
 import { CreateSubAppDto, UpdateSubAppDto } from '@/dto';
-import { AdminGuard, LoginGuard } from '@/common/guard';
+import { AuthRoles } from '@/common/decorator';
 import { UserJwtPayload } from '@/utils/types';
 
 @Controller({
@@ -26,7 +25,7 @@ export class SubAppController {
   constructor(private readonly subappService: SubAppService) {}
 
   @Post('/reg')
-  @UseGuards(LoginGuard)
+  @AuthRoles('user')
   create(
     @Body() createSubAppDto: CreateSubAppDto,
     @Request() req: { user: UserJwtPayload },
@@ -35,7 +34,7 @@ export class SubAppController {
   }
 
   @Get('/all')
-  @UseGuards(AdminGuard)
+  @AuthRoles('admin')
   findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,
     @Query('size', new DefaultValuePipe(500), ParseIntPipe) size = 500,
@@ -45,7 +44,7 @@ export class SubAppController {
   }
 
   @Get('/my')
-  @UseGuards(LoginGuard)
+  @AuthRoles('user')
   findMy(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,
     @Query('size', new DefaultValuePipe(500), ParseIntPipe) size = 500,
@@ -61,13 +60,13 @@ export class SubAppController {
   }
 
   @Post(':id')
-  @UseGuards(LoginGuard)
+  @AuthRoles('user')
   callback(@Param('id') id: string, @Request() req: { user: UserJwtPayload }) {
     return this.subappService.callback(id, req.user.id);
   }
 
   @Put(':id')
-  @UseGuards(LoginGuard)
+  @AuthRoles('user')
   update(
     @Param('id') id: string,
     @Body() updateSubappDto: UpdateSubAppDto,
@@ -77,7 +76,7 @@ export class SubAppController {
   }
 
   @Delete(':id')
-  @UseGuards(LoginGuard)
+  @AuthRoles('user')
   remove(@Param('id') id: string, @Request() req: { user: UserJwtPayload }) {
     return this.subappService.remove(id, req.user.id);
   }

@@ -7,7 +7,6 @@ import {
   VERSION_NEUTRAL,
   Put,
   Query,
-  UseGuards,
   Request,
   ParseIntPipe,
   DefaultValuePipe,
@@ -20,7 +19,7 @@ import {
   LoginUserDto,
   UpdatePasswordDto,
 } from '@/dto';
-import { AdminGuard, LoginGuard, RefreshGuard } from '@/common/guard';
+import { AuthRoles } from '@/common/decorator';
 import type { UserJwtPayload } from '@/utils/types';
 
 @Controller({
@@ -31,6 +30,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post('/register')
+  @AuthRoles()
   create(@Body() createUserDto: CreateUserDto, @Query('md5') md5: boolean) {
     const regData = { ...createUserDto };
 
@@ -41,6 +41,7 @@ export class UserController {
   }
 
   @Post('/login')
+  @AuthRoles()
   login(@Body() loginUserDto: LoginUserDto, @Query('md5') md5: boolean) {
     const loginData = { ...loginUserDto };
 
@@ -52,19 +53,19 @@ export class UserController {
   }
 
   @Get('/refresh')
-  @UseGuards(RefreshGuard)
+  @AuthRoles('refresh')
   refresh(@Request() req: { user: UserJwtPayload }) {
     return this.userService.refresh(req.user);
   }
 
   @Get('/validate')
-  @UseGuards(LoginGuard)
+  @AuthRoles('user')
   validate(@Request() req: { user: UserJwtPayload }) {
     return req.user;
   }
 
   @Get('/all')
-  @UseGuards(AdminGuard)
+  @AuthRoles('admin')
   findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,
     @Query('size', new DefaultValuePipe(500), ParseIntPipe) size = 500,
@@ -74,13 +75,13 @@ export class UserController {
   }
 
   @Get(':id')
-  @UseGuards(LoginGuard)
+  @AuthRoles('user')
   findOne(@Param('id') id: string) {
     return this.userService.findOne(+id);
   }
 
   @Put(':id')
-  @UseGuards(LoginGuard)
+  @AuthRoles('user')
   update(
     @Request() req: { user: UserJwtPayload },
     @Body() updateUserDto: UpdateUserDto,
@@ -89,7 +90,7 @@ export class UserController {
   }
 
   @Put(':id/password')
-  @UseGuards(LoginGuard)
+  @AuthRoles('user')
   updatePassword(
     @Request() req: { user: UserJwtPayload },
     @Body() updateData: UpdatePasswordDto,

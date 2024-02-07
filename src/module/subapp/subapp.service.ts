@@ -6,7 +6,7 @@ import { CreateSubAppDto, UpdateSubAppDto } from '@/dto';
 import { User, SubAppMeta, SubApp, type SubAppExportData } from '@/entity';
 import { ConfigService } from '@nestjs/config';
 import { paginate } from 'nestjs-typeorm-paginate';
-import { BusinessException } from '@/common/exceptions';
+import { BusinessException } from '@reus-able/nestjs';
 import { isNil } from 'lodash';
 import { RedisService } from '../redis/redis.service';
 import { HLOGGER_TOKEN, HLogger } from '@reus-able/nestjs';
