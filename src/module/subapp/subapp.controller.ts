@@ -7,15 +7,14 @@ import {
   Delete,
   VERSION_NEUTRAL,
   Query,
-  Request,
   DefaultValuePipe,
   ParseIntPipe,
   Put,
 } from '@nestjs/common';
 import { SubAppService } from './subapp.service';
 import { CreateSubAppDto, UpdateSubAppDto } from '@/dto';
-import { AuthRoles } from '@/common/decorator';
-import { UserJwtPayload } from '@/utils/types';
+import { AuthRoles, UserParams } from '@/common/decorator';
+import { UserJwtPayload } from '@reus-able/types';
 
 @Controller({
   path: 'app',
@@ -28,9 +27,9 @@ export class SubAppController {
   @AuthRoles('user')
   create(
     @Body() createSubAppDto: CreateSubAppDto,
-    @Request() req: { user: UserJwtPayload },
+    @UserParams() user: UserJwtPayload,
   ) {
-    return this.subappService.create(createSubAppDto, req.user.id);
+    return this.subappService.create(createSubAppDto, user.id);
   }
 
   @Get('/all')
@@ -49,9 +48,9 @@ export class SubAppController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,
     @Query('size', new DefaultValuePipe(500), ParseIntPipe) size = 500,
     @Query('search') search = '',
-    @Request() req: { user: UserJwtPayload },
+    @UserParams() user: UserJwtPayload,
   ) {
-    return this.subappService.findUserApp(req.user.id, page, size, search);
+    return this.subappService.findUserApp(user.id, page, size, search);
   }
 
   @Get(':id')
@@ -61,8 +60,8 @@ export class SubAppController {
 
   @Post(':id')
   @AuthRoles('user')
-  callback(@Param('id') id: string, @Request() req: { user: UserJwtPayload }) {
-    return this.subappService.callback(id, req.user.id);
+  callback(@Param('id') id: string, @UserParams() user: UserJwtPayload) {
+    return this.subappService.callback(id, user.id);
   }
 
   @Put(':id')
@@ -70,14 +69,14 @@ export class SubAppController {
   update(
     @Param('id') id: string,
     @Body() updateSubappDto: UpdateSubAppDto,
-    @Request() req: { user: UserJwtPayload },
+    @UserParams() user: UserJwtPayload,
   ) {
-    return this.subappService.update(id, updateSubappDto, req.user.id);
+    return this.subappService.update(id, updateSubappDto, user.id);
   }
 
   @Delete(':id')
   @AuthRoles('user')
-  remove(@Param('id') id: string, @Request() req: { user: UserJwtPayload }) {
-    return this.subappService.remove(id, req.user.id);
+  remove(@Param('id') id: string, @UserParams() user: UserJwtPayload) {
+    return this.subappService.remove(id, user.id);
   }
 }

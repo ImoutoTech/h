@@ -7,7 +7,6 @@ import {
   VERSION_NEUTRAL,
   Put,
   Query,
-  Request,
   ParseIntPipe,
   DefaultValuePipe,
 } from '@nestjs/common';
@@ -19,8 +18,8 @@ import {
   LoginUserDto,
   UpdatePasswordDto,
 } from '@/dto';
-import { AuthRoles } from '@/common/decorator';
-import type { UserJwtPayload } from '@/utils/types';
+import { AuthRoles, UserParams } from '@/common/decorator';
+import { type UserJwtPayload } from '@reus-able/types';
 
 @Controller({
   path: 'user',
@@ -54,14 +53,14 @@ export class UserController {
 
   @Get('/refresh')
   @AuthRoles('refresh')
-  refresh(@Request() req: { user: UserJwtPayload }) {
-    return this.userService.refresh(req.user);
+  refresh(@UserParams() user: UserJwtPayload) {
+    return this.userService.refresh(user);
   }
 
   @Get('/validate')
   @AuthRoles('user')
-  validate(@Request() req: { user: UserJwtPayload }) {
-    return req.user;
+  validate(@UserParams() user: UserJwtPayload) {
+    return user;
   }
 
   @Get('/all')
@@ -83,16 +82,16 @@ export class UserController {
   @Put(':id')
   @AuthRoles('user')
   update(
-    @Request() req: { user: UserJwtPayload },
+    @UserParams() user: UserJwtPayload,
     @Body() updateUserDto: UpdateUserDto,
   ) {
-    return this.userService.update(req.user.id, updateUserDto);
+    return this.userService.update(user.id, updateUserDto);
   }
 
   @Put(':id/password')
   @AuthRoles('user')
   updatePassword(
-    @Request() req: { user: UserJwtPayload },
+    @UserParams() user: UserJwtPayload,
     @Body() updateData: UpdatePasswordDto,
     @Query('md5') md5: boolean,
   ) {
@@ -103,6 +102,6 @@ export class UserController {
       newData.oldVal = Md5.hashStr(updateData.oldVal);
     }
 
-    return this.userService.updatePassword(req.user.id, updateData);
+    return this.userService.updatePassword(user.id, updateData);
   }
 }

@@ -9,11 +9,7 @@ import {
 
 import * as bcrypt from 'bcrypt';
 import { SubApp } from '@/entity/SubApp';
-
-export enum UserRole {
-  ADMIN = 0,
-  USER = 1,
-}
+import { UserRole } from '@reus-able/types';
 
 export interface UserExportData {
   id: number;

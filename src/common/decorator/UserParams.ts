@@ -1,4 +1,4 @@
-import { UserJwtPayload } from '@/utils/types';
+import { UserJwtPayload } from '@reus-able/types';
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
 export const UserParams = createParamDecorator(
