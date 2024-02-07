@@ -2,7 +2,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import { isNil } from 'lodash';
 import { RedisClientType } from 'redis';
 import { REDIS_CLIENT } from '@/utils/constants';
-import { HLOGGER_TOKEN, HLogger } from '../logger/logger.service';
+import { HLOGGER_TOKEN, HLogger } from '@reus-able/nestjs';
 
 @Injectable()
 export class RedisService {

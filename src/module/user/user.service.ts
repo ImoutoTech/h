@@ -17,7 +17,7 @@ import { paginate } from 'nestjs-typeorm-paginate';
 import { BusinessException } from '@/common/exceptions';
 import { UserJwtPayload } from '@/utils/types';
 import { RedisService } from '../redis/redis.service';
-import { HLOGGER_TOKEN, HLogger } from '../logger/logger.service';
+import { HLOGGER_TOKEN, HLogger } from '@reus-able/nestjs';
 
 @Injectable()
 export class UserService {

@@ -9,7 +9,7 @@ import { paginate } from 'nestjs-typeorm-paginate';
 import { BusinessException } from '@/common/exceptions';
 import { isNil } from 'lodash';
 import { RedisService } from '../redis/redis.service';
-import { HLOGGER_TOKEN, HLogger } from '../logger/logger.service';
+import { HLOGGER_TOKEN, HLogger } from '@reus-able/nestjs';
 
 @Injectable()
 export class SubAppService {

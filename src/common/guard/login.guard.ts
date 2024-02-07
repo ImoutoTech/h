@@ -10,7 +10,7 @@ import { Observable } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
 import { BusinessException, BUSINESS_ERROR_CODE } from '../exceptions';
 import * as jwt from 'jsonwebtoken';
-import { HLOGGER_TOKEN, HLogger } from '@/module/logger/logger.service';
+import { HLOGGER_TOKEN, HLogger } from '@reus-able/nestjs';
 
 const parseHeaderToken = (request: FastifyRequest, logger: HLogger): string => {
   const authorization = request.headers.authorization || '';
