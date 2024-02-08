@@ -18,7 +18,7 @@ import {
   LoginUserDto,
   UpdatePasswordDto,
 } from '@/dto';
-import { AuthRoles, UserParams } from '@/common/decorator';
+import { AuthRoles, UserParams } from '@reus-able/nestjs';
 import { type UserJwtPayload } from '@reus-able/types';
 
 @Controller({

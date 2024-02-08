@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { SubAppService } from './subapp.service';
 import { CreateSubAppDto, UpdateSubAppDto } from '@/dto';
-import { AuthRoles, UserParams } from '@/common/decorator';
+import { AuthRoles, UserParams } from '@reus-able/nestjs';
 import { UserJwtPayload } from '@reus-able/types';
 
 @Controller({

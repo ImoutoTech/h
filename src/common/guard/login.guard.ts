@@ -12,6 +12,7 @@ import { BUSINESS_ERROR_CODE } from '@reus-able/const';
 import * as jwt from 'jsonwebtoken';
 import { HLOGGER_TOKEN, HLogger, BusinessException } from '@reus-able/nestjs';
 import { Reflector } from '@nestjs/core';
+import { UserJwtPayload, UserRole, AuthRoleType } from '@reus-able/types';
 
 const parseHeaderToken = (request: FastifyRequest, logger: HLogger): string => {
   const authorization = request.headers.authorization || '';
@@ -58,7 +59,10 @@ export class AuthGuard implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    const roles = this.reflector.get<string[]>('roles', context.getHandler());
+    const roles = this.reflector.get<AuthRoleType[]>(
+      'roles',
+      context.getHandler(),
+    );
     if (!roles || !roles.length) {
       return true;
     }
@@ -70,7 +74,7 @@ export class AuthGuard implements CanActivate {
       const info = jwt.verify(
         token,
         this.config.get<string>('TOKEN_SECRET', ''),
-      ) as jwt.JwtPayload;
+      ) as UserJwtPayload;
 
       if (info.refresh && !roles.includes('refresh')) {
         this.logger.warn(`用户#${info.id}错误使用refresh token`);
@@ -82,7 +86,7 @@ export class AuthGuard implements CanActivate {
         BusinessException.throw(BUSINESS_ERROR_CODE.INVALID_TOKEN, 'token错误');
       }
 
-      if ((info.role as number) !== 0 && roles.includes('admin')) {
+      if (info.role !== UserRole.ADMIN && roles.includes('admin')) {
         this.logger.warn(`用户#${info.id}尝试访问admin权限接口`);
         BusinessException.throwForbidden();
       }

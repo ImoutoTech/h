@@ -26,11 +26,11 @@ dependencies:
     specifier: ^1.0.2
     version: 1.0.2
   '@reus-able/nestjs':
-    specifier: ^1.0.7
-    version: 1.0.7(@nestjs/platform-express@10.3.0)(class-transformer@0.5.1)(class-validator@0.14.1)
+    specifier: ^1.0.8
+    version: 1.0.8(@nestjs/platform-express@10.3.0)(class-transformer@0.5.1)(class-validator@0.14.1)
   '@reus-able/types':
-    specifier: ^1.0.4
-    version: 1.0.4(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.1)(rxjs@7.8.1)
+    specifier: ^1.0.5
+    version: 1.0.5(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.1)(rxjs@7.8.1)
   bcrypt:
     specifier: ^5.1.1
     version: 5.1.1
@@ -796,15 +796,15 @@ packages:
       typescript: 5.3.3
     dev: false
 
-  /@reus-able/nestjs@1.0.7(@nestjs/platform-express@10.3.0)(class-transformer@0.5.1)(class-validator@0.14.1):
-    resolution: {integrity: sha512-NNNCtporzK8witbkyxCfIReDa7NEcMHeF8wAhvcVVuZG0ydSQv3UnB1FHS1jnbl6DinFDT/ILWi6SGdUgkzEBw==}
+  /@reus-able/nestjs@1.0.8(@nestjs/platform-express@10.3.0)(class-transformer@0.5.1)(class-validator@0.14.1):
+    resolution: {integrity: sha512-q1r8wAeNWD1B8Ca5wpHWr+i8Jsr1K8Q++3GIht7iNiCMoa2ELy5VzDPVAR98PqW3ovt+44/HXzk3VQZWiPFUZg==}
     dependencies:
       '@nestjs/common': 10.3.1(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1)
       '@nestjs/config': 3.1.1(@nestjs/common@10.3.1)(reflect-metadata@0.1.14)
       '@nestjs/core': 10.3.1(@nestjs/common@10.3.1)(@nestjs/platform-express@10.3.0)(reflect-metadata@0.1.14)(rxjs@7.8.1)
       '@nestjs/platform-fastify': 10.3.1(@nestjs/common@10.3.1)(@nestjs/core@10.3.1)
       '@reus-able/const': 1.0.2
-      '@reus-able/types': 1.0.2(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1)
+      '@reus-able/types': 1.0.5(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1)
       '@types/node': 20.11.16
       chalk: 4.1.2
       dayjs: 1.11.10
@@ -827,8 +827,8 @@ packages:
       - supports-color
     dev: false
 
-  /@reus-able/types@1.0.2(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1):
-    resolution: {integrity: sha512-Kz+hr4+l/xQ6Hz/6ly2C1hAmbct5sEaga5RLEQ7trxFN59albZSwooHe1IoEh2A81TRk5TeaTWSeORZFn4KeyA==}
+  /@reus-able/types@1.0.5(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1):
+    resolution: {integrity: sha512-AFs2zFp/tvRg5rKiPVo54iefIuNjITHtD7//JdiTTrYPPNDCgCa/4yHBlJIcblCzD2/ynV6VIIkXS40gRaPF6w==}
     dependencies:
       '@nestjs/common': 10.3.1(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1)
       typescript: 5.3.3
@@ -839,8 +839,8 @@ packages:
       - rxjs
     dev: false
 
-  /@reus-able/types@1.0.4(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.1)(rxjs@7.8.1):
-    resolution: {integrity: sha512-QgGbWddGN9Z5PUcXuDkae8t2ILBc5t30+gfzyBA4nSucV1x27RLw8Xht5L39oq31ubF6rg/eGKF5hB/LiNoQSQ==}
+  /@reus-able/types@1.0.5(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.1)(rxjs@7.8.1):
+    resolution: {integrity: sha512-AFs2zFp/tvRg5rKiPVo54iefIuNjITHtD7//JdiTTrYPPNDCgCa/4yHBlJIcblCzD2/ynV6VIIkXS40gRaPF6w==}
     dependencies:
       '@nestjs/common': 10.3.1(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.1)(rxjs@7.8.1)
       typescript: 5.3.3
