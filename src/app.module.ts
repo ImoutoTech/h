@@ -1,5 +1,5 @@
 import { Module, ValidationPipe } from '@nestjs/common';
-import { APP_GUARD, APP_PIPE } from '@nestjs/core';
+import { APP_GUARD, APP_PIPE, Reflector } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -10,8 +10,13 @@ import { UserModule } from './module/user/user.module';
 
 import { SubappModule } from './module/subapp/subapp.module';
 import { RedisModule } from './module/redis/redis.module';
-import { LoggerModule, BusinessException } from '@reus-able/nestjs';
-import { AuthGuard } from './common/guard';
+import {
+  LoggerModule,
+  BusinessException,
+  HLOGGER_TOKEN,
+  HLogger,
+  AuthGuard,
+} from '@reus-able/nestjs';
 
 @Module({
   imports: [
@@ -57,7 +62,10 @@ import { AuthGuard } from './common/guard';
     },
     {
       provide: APP_GUARD,
-      useClass: AuthGuard,
+      useFactory(config: ConfigService, reflector: Reflector, logger: HLogger) {
+        return new AuthGuard(config, logger, reflector);
+      },
+      inject: [ConfigService, Reflector, HLOGGER_TOKEN],
     },
   ],
 })
