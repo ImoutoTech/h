@@ -23,6 +23,8 @@ async function bootstrap() {
     type: VersioningType.URI,
   });
 
+  app.enableCors();
+
   app.useGlobalInterceptors(new TransformInterceptor());
   app.useGlobalFilters(new AllExceptionsFilter(), new HttpExceptionFilter());
 
