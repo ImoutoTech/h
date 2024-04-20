@@ -81,6 +81,9 @@ export class SubAppService {
       {
         where: { name: Like(`%${search}%`) },
         relations: { owner: true, meta: true },
+        order: {
+          created_at: 'ASC',
+        },
       },
     );
 
@@ -102,6 +105,9 @@ export class SubAppService {
       {
         where: { owner: { id: ownerId }, name: Like(`%${search}%`) },
         relations: { owner: true, meta: true },
+        order: {
+          created_at: 'ASC',
+        },
       },
     );
 
