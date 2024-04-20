@@ -195,6 +195,11 @@ export class SubAppService {
       }
     });
 
+    if (updateData.status !== undefined) {
+      app.meta.status = updateData.status;
+    }
+
+    await this.metaRepo.save(app.meta);
     await this.appRepo.save(app);
 
     this.log(`用户#${owner}修改子应用#${id}信息`);

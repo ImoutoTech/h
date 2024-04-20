@@ -45,7 +45,7 @@ export class SubAppMeta {
     enum: AppStatus,
     default: AppStatus.RUNNING,
   })
-  status: number;
+  status: AppStatus;
 
   public getData(): SubAppMetaExportData {
     return {
