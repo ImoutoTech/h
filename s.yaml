@@ -26,7 +26,7 @@ resources:
           /opt/nodejs20/bin:/usr/local/bin/apache-maven/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/ruby/bin
       customRuntimeConfig:
         command:
-          - npm run start:prod
+          - ./bootstrap
         port: 4000
       functionName: ${vars.functionName}
       code: .
