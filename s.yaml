@@ -55,13 +55,13 @@ resources:
               - DELETE
               - HEAD
               - OPTIONS
-  fc3_domain_0:
+  main_domain:
     component: fc3-domain
     props:
       region: ${vars.region}
-      domainName: auto
-      protocol: HTTP
+      domainName: ${env(H_DOMAIN)}
+      protocol: ${env(H_DOMAIN_PROTO)}
       routeConfig:
         routes:
-          - path: /*
+          - path: ${env(H_ROUTE_PATH)}
             functionName: ${vars.functionName}
