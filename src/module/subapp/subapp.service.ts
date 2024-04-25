@@ -254,6 +254,7 @@ export class SubAppService {
     const secretList = app.secrets.map((s) => ({
       value: `${s.value.slice(0, 8)}********`,
       enabled: s.status,
+      id: s.id,
     }));
 
     this.log(
