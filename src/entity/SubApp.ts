@@ -8,10 +8,12 @@ import {
   ManyToOne,
   OneToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 
 import { User } from '@/entity/User';
 import { SubAppMeta, SubAppMetaExportData } from './SubAppMeta';
+import { SubAppSecret } from './SubAppSecret';
 
 export interface SubAppExportData {
   name: string;
@@ -61,6 +63,11 @@ export class SubApp {
   //   default: 0,
   // })
   // visitNum: number;
+
+  @OneToMany(() => SubAppSecret, (s) => s.app, {
+    cascade: true,
+  })
+  secrets: SubAppSecret[];
 
   @OneToOne(() => SubAppMeta, (m) => m.app)
   meta: SubAppMeta;
