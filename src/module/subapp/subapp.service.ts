@@ -263,4 +263,33 @@ export class SubAppService {
 
     return secretList;
   }
+
+  async setAppSecret(app: string, id: number, owner: number) {
+    const secret = await this.scRepo.findOneOrFail({
+      where: {
+        app: {
+          owner: {
+            id: owner,
+          },
+          id: app,
+        },
+        id,
+      },
+      relations: {
+        app: {
+          owner: true,
+        },
+      },
+    });
+
+    secret.status = !secret.status;
+
+    await this.scRepo.save(secret);
+
+    this.log(
+      `用户#${owner}设置子应用#${id}的秘钥${secret.value}为${secret.status}`,
+    );
+
+    return null;
+  }
 }

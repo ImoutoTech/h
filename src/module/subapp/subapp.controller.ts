@@ -91,4 +91,14 @@ export class SubAppController {
   getSecret(@Param('id') id: string, @UserParams() user: UserJwtPayload) {
     return this.subappService.getAppSecret(id, user.id);
   }
+
+  @Put(':id/secret/:sid')
+  @AuthRoles('user')
+  setSecret(
+    @Param('id') app: string,
+    @Param('sid') id: string,
+    @UserParams() user: UserJwtPayload,
+  ) {
+    return this.subappService.setAppSecret(app, +id, user.id);
+  }
 }
