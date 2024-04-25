@@ -101,4 +101,14 @@ export class SubAppController {
   ) {
     return this.subappService.setAppSecret(app, +id, user.id);
   }
+
+  @Delete(':id/secret/:sid')
+  @AuthRoles('user')
+  delSecret(
+    @Param('id') app: string,
+    @Param('sid') id: string,
+    @UserParams() user: UserJwtPayload,
+  ) {
+    return this.subappService.delAppSecret(app, +id, user.id);
+  }
 }

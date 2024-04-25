@@ -292,4 +292,29 @@ export class SubAppService {
 
     return null;
   }
+
+  async delAppSecret(app: string, id: number, owner: number) {
+    const secret = await this.scRepo.findOneOrFail({
+      where: {
+        app: {
+          owner: {
+            id: owner,
+          },
+          id: app,
+        },
+        id,
+      },
+      relations: {
+        app: {
+          owner: true,
+        },
+      },
+    });
+
+    await this.scRepo.delete(secret);
+
+    this.log(`用户#${owner}删除子应用#${id}的秘钥${secret.value}`);
+
+    return null;
+  }
 }
