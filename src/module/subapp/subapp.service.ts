@@ -242,7 +242,10 @@ export class SubAppService {
 
     this.log(`用户#${owner}为子应用#${id}创建了新的秘钥${secret.value}`);
 
-    return null;
+    return {
+      value: secret.value,
+      enabled: secret.status,
+    };
   }
 
   async getAppSecret(id: string, owner: number) {
