@@ -85,4 +85,10 @@ export class SubAppController {
   createSecret(@Param('id') id: string, @UserParams() user: UserJwtPayload) {
     return this.subappService.createAppSecret(id, user.id);
   }
+
+  @Get(':id/secret')
+  @AuthRoles('user')
+  getSecret(@Param('id') id: string, @UserParams() user: UserJwtPayload) {
+    return this.subappService.getAppSecret(id, user.id);
+  }
 }

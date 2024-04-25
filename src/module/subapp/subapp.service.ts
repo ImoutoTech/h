@@ -244,4 +244,19 @@ export class SubAppService {
 
     return null;
   }
+
+  async getAppSecret(id: string, owner: number) {
+    const app = await this.getOneUserApp(owner, id);
+
+    const secretList = app.secrets.map((s) => ({
+      value: `${s.value.slice(0, 8)}********`,
+      enabled: s.status,
+    }));
+
+    this.log(
+      `用户#${owner}获取子应用#${id}秘钥列表，共${app.secrets.length}条`,
+    );
+
+    return secretList;
+  }
 }
