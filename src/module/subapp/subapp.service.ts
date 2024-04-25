@@ -3,13 +3,20 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Like, type Repository } from 'typeorm';
 import * as jwt from 'jsonwebtoken';
 import { CreateSubAppDto, UpdateSubAppDto } from '@/dto';
-import { User, SubAppMeta, SubApp, type SubAppExportData } from '@/entity';
+import {
+  User,
+  SubAppMeta,
+  SubApp,
+  type SubAppExportData,
+  SubAppSecret,
+} from '@/entity';
 import { ConfigService } from '@nestjs/config';
 import { paginate } from 'nestjs-typeorm-paginate';
 import { BusinessException } from '@reus-able/nestjs';
 import { isNil } from 'lodash';
 import { RedisService } from '../redis/redis.service';
 import { HLOGGER_TOKEN, HLogger } from '@reus-able/nestjs';
+import { generateRandomString } from '@/utils';
 
 @Injectable()
 export class SubAppService {
@@ -21,6 +28,9 @@ export class SubAppService {
 
   @InjectRepository(SubAppMeta)
   private metaRepo: Repository<SubAppMeta>;
+
+  @InjectRepository(SubAppSecret)
+  private scRepo: Repository<SubAppSecret>;
 
   @InjectRepository(User)
   private userRepo: Repository<User>;
@@ -41,7 +51,7 @@ export class SubAppService {
   private async getOneUserApp(owner: number, id: string) {
     const app = await this.appRepo.findOne({
       where: { id },
-      relations: { owner: true, meta: true },
+      relations: { owner: true, meta: true, secrets: true },
     });
 
     if (isNil(app)) {
@@ -217,5 +227,21 @@ export class SubAppService {
     await this.cache.del(`app-${id}`);
 
     return true;
+  }
+
+  async createAppSecret(id: string, owner: number) {
+    const app = await this.getOneUserApp(owner, id);
+    const secret = this.scRepo.create({
+      app,
+      value: generateRandomString(16),
+    });
+
+    app.secrets.push(secret);
+
+    await this.appRepo.save(app);
+
+    this.log(`用户#${owner}为子应用#${id}创建了新的秘钥${secret.value}`);
+
+    return null;
   }
 }

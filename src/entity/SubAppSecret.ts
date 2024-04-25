@@ -16,7 +16,7 @@ export class SubAppSecret {
   app: SubApp;
 
   @Column({
-    default: 0,
+    nullable: false,
   })
   value: string;
 

@@ -79,4 +79,10 @@ export class SubAppController {
   remove(@Param('id') id: string, @UserParams() user: UserJwtPayload) {
     return this.subappService.remove(id, user.id);
   }
+
+  @Post(':id/secret')
+  @AuthRoles('user')
+  createSecret(@Param('id') id: string, @UserParams() user: UserJwtPayload) {
+    return this.subappService.createAppSecret(id, user.id);
+  }
 }
