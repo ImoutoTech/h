@@ -127,7 +127,7 @@ export class OAuthService {
     );
     await this.cache.del(redisKey);
 
-    this.warn(`子应用${app.id}获取token成功`);
+    this.log(`子应用${app.id}获取token成功`);
 
     return {
       access_token: token,
