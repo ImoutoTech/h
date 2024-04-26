@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Query,
 } from '@nestjs/common';
 import { OAuthService } from './oauth.service';
 import { OauthAuthorizeDto } from '@/dto';
@@ -26,9 +27,14 @@ export class OAuthController {
   }
 
   @Post('token')
-  @AuthRoles('user')
-  getToken() {
-    return this.service.getToken();
+  @HttpCode(HttpStatus.OK)
+  getToken(
+    @Query('client_id') id: string,
+    @Query('client_secret') secret: string,
+    @Query('code') code: string,
+    @Query('redirect_uri') url: string,
+  ) {
+    return this.service.getToken(id, secret, code, url);
   }
 
   @Get('user')

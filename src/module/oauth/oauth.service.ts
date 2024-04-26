@@ -9,7 +9,12 @@ import {
   HLogger,
   RedisService,
 } from '@reus-able/nestjs';
+import { isNil } from 'lodash';
 import { Repository } from 'typeorm';
+
+interface RedisCodeData {
+  user: number;
+}
 
 @Injectable()
 export class OAuthService {
@@ -35,6 +40,12 @@ export class OAuthService {
 
   private getCodeRedisKey(code: string) {
     const CODE_REDIS_PREFIX = 'oauth-code-';
+
+    return `${CODE_REDIS_PREFIX}${code}`;
+  }
+
+  private getTokenRedisKey(code: string) {
+    const CODE_REDIS_PREFIX = 'oauth-token-';
 
     return `${CODE_REDIS_PREFIX}${code}`;
   }
@@ -76,7 +87,50 @@ export class OAuthService {
     };
   }
 
-  async getToken() {}
+  async getToken(id: string, secret: string, code: string, url: string) {
+    const redisKey = this.getCodeRedisKey(code);
+    const codeData = await this.cache.jsonGet<RedisCodeData>(redisKey);
+
+    if (isNil(codeData)) {
+      this.warn(`子应用${id}获取token失败，非法code`);
+      throw new BusinessException('code错误或已经过期');
+    }
+
+    const app = await this.appRepo.findOneOrFail({
+      where: {
+        id,
+      },
+      relations: {
+        secrets: true,
+      },
+    });
+
+    if (!url.startsWith(app.callback)) {
+      this.warn(`子应用${app.id}获取token失败，非法回调地址`);
+      throw new BusinessException('非法回调地址');
+    }
+
+    if (!app.secrets.map((s) => s.value).includes(secret)) {
+      this.warn(`子应用${app.id}获取token失败，非法秘钥`);
+      throw new BusinessException('非法秘钥');
+    }
+
+    const token = generateRandomString(16);
+    const tokenKey = this.getTokenRedisKey(token);
+
+    await this.cache.jsonSet(tokenKey, {
+      user: codeData.user,
+    });
+    await this.cache.del(redisKey);
+
+    this.warn(`子应用${app.id}获取token成功`);
+
+    return {
+      access_token: token,
+      scope: 'user',
+      token_type: 'Bearer',
+    };
+  }
 
   async getUser() {}
 }
