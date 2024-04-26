@@ -30,8 +30,8 @@ dependencies:
     specifier: ^1.0.3
     version: 1.0.3
   '@reus-able/nestjs':
-    specifier: ^1.0.9
-    version: 1.0.9(@nestjs/platform-express@10.3.0)(class-transformer@0.5.1)(class-validator@0.14.1)
+    specifier: ^1.0.14
+    version: 1.0.14(@nestjs/platform-express@10.3.0)(class-transformer@0.5.1)(class-validator@0.14.1)
   '@reus-able/types':
     specifier: ^1.0.5
     version: 1.0.5(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.1)(rxjs@7.8.1)
@@ -469,28 +469,6 @@ packages:
       - webpack-cli
     dev: true
 
-  /@nestjs/common@10.3.8(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1):
-    resolution: {integrity: sha512-P+vPEIvqx2e+fonsYVlFXKvoChyJ8Tq+lfpqdVFqblovHbFr3kZ/nYX0cPs+XuW6bnRT8tz0SSR9XBGU43kJhw==}
-    peerDependencies:
-      class-transformer: '*'
-      class-validator: '*'
-      reflect-metadata: ^0.1.12 || ^0.2.0
-      rxjs: ^7.1.0
-    peerDependenciesMeta:
-      class-transformer:
-        optional: true
-      class-validator:
-        optional: true
-    dependencies:
-      class-transformer: 0.5.1
-      class-validator: 0.14.1
-      iterare: 1.2.1
-      reflect-metadata: 0.1.14
-      rxjs: 7.8.1
-      tslib: 2.6.2
-      uid: 2.0.2
-    dev: false
-
   /@nestjs/common@10.3.8(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.1)(rxjs@7.8.1):
     resolution: {integrity: sha512-P+vPEIvqx2e+fonsYVlFXKvoChyJ8Tq+lfpqdVFqblovHbFr3kZ/nYX0cPs+XuW6bnRT8tz0SSR9XBGU43kJhw==}
     peerDependencies:
@@ -525,38 +503,6 @@ packages:
       lodash: 4.17.21
       rxjs: 7.8.1
       uuid: 9.0.1
-    dev: false
-
-  /@nestjs/core@10.3.8(@nestjs/common@10.3.8)(@nestjs/platform-express@10.3.0)(reflect-metadata@0.1.14)(rxjs@7.8.1):
-    resolution: {integrity: sha512-AxF4tpYLDNn5Wfb3C4bNaaHJ4pREH5FJrSisR2A5zkYpQFORFs0Tc36lOFPMwBTy8Iv2wUwWLUVc5ftBnxEv4w==}
-    requiresBuild: true
-    peerDependencies:
-      '@nestjs/common': ^10.0.0
-      '@nestjs/microservices': ^10.0.0
-      '@nestjs/platform-express': ^10.0.0
-      '@nestjs/websockets': ^10.0.0
-      reflect-metadata: ^0.1.12 || ^0.2.0
-      rxjs: ^7.1.0
-    peerDependenciesMeta:
-      '@nestjs/microservices':
-        optional: true
-      '@nestjs/platform-express':
-        optional: true
-      '@nestjs/websockets':
-        optional: true
-    dependencies:
-      '@nestjs/common': 10.3.8(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1)
-      '@nestjs/platform-express': 10.3.0(@nestjs/common@10.3.8)(@nestjs/core@10.3.8)
-      '@nuxtjs/opencollective': 0.3.2
-      fast-safe-stringify: 2.1.1
-      iterare: 1.2.1
-      path-to-regexp: 3.2.0
-      reflect-metadata: 0.1.14
-      rxjs: 7.8.1
-      tslib: 2.6.2
-      uid: 2.0.2
-    transitivePeerDependencies:
-      - encoding
     dev: false
 
   /@nestjs/core@10.3.8(@nestjs/common@10.3.8)(@nestjs/platform-express@10.3.0)(reflect-metadata@0.2.1)(rxjs@7.8.1):
@@ -784,21 +730,27 @@ packages:
       typescript: 5.3.3
     dev: false
 
-  /@reus-able/nestjs@1.0.9(@nestjs/platform-express@10.3.0)(class-transformer@0.5.1)(class-validator@0.14.1):
-    resolution: {integrity: sha512-hfaCdngyyU+ytayR9zpdqt/aYqRqDRZC5v/l4tjivHAmwoXF31E8Fv+J0hcEDf3c3wmIQI81A8rz+Tgik/KQSA==}
+  /@reus-able/const@1.0.7:
+    resolution: {integrity: sha512-xkyXG5PwkqwxiGDAbBiHaT2GrL9NEdvTunsMgygv7vzfHUYkJ4EMRoxgAiKUwCUHlwTXZ7qKXkgxwSmlh/zucg==}
     dependencies:
-      '@nestjs/common': 10.3.8(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1)
+      typescript: 5.3.3
+    dev: false
+
+  /@reus-able/nestjs@1.0.14(@nestjs/platform-express@10.3.0)(class-transformer@0.5.1)(class-validator@0.14.1):
+    resolution: {integrity: sha512-eDnsig1D+GvTtv5hgDFsH8vlG6gP4NoqrOi50duDGLovtbxMQ4Foa+Yv0S67rR8b2gRl7jbO3hhY3cfq3xL9yw==}
+    dependencies:
+      '@nestjs/common': 10.3.8(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.1)(rxjs@7.8.1)
       '@nestjs/config': 3.2.2(@nestjs/common@10.3.8)(rxjs@7.8.1)
-      '@nestjs/core': 10.3.8(@nestjs/common@10.3.8)(@nestjs/platform-express@10.3.0)(reflect-metadata@0.1.14)(rxjs@7.8.1)
+      '@nestjs/core': 10.3.8(@nestjs/common@10.3.8)(@nestjs/platform-express@10.3.0)(reflect-metadata@0.2.1)(rxjs@7.8.1)
       '@nestjs/platform-fastify': 10.3.8(@nestjs/common@10.3.8)(@nestjs/core@10.3.8)
-      '@reus-able/const': 1.0.3
-      '@reus-able/types': 1.0.5(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1)
+      '@reus-able/const': 1.0.7
+      '@reus-able/types': 1.0.5(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.1)(rxjs@7.8.1)
       '@types/node': 20.11.16
       chalk: 4.1.2
       dayjs: 1.11.10
-      fastify: 4.26.0
+      fastify: 4.26.2
       jsonwebtoken: 9.0.2
-      reflect-metadata: 0.1.14
+      reflect-metadata: 0.2.1
       rxjs: 7.8.1
       typescript: 5.3.3
       winston: 3.11.0
@@ -813,18 +765,6 @@ packages:
       - class-validator
       - encoding
       - supports-color
-    dev: false
-
-  /@reus-able/types@1.0.5(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1):
-    resolution: {integrity: sha512-AFs2zFp/tvRg5rKiPVo54iefIuNjITHtD7//JdiTTrYPPNDCgCa/4yHBlJIcblCzD2/ynV6VIIkXS40gRaPF6w==}
-    dependencies:
-      '@nestjs/common': 10.3.8(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1)
-      typescript: 5.3.3
-    transitivePeerDependencies:
-      - class-transformer
-      - class-validator
-      - reflect-metadata
-      - rxjs
     dev: false
 
   /@reus-able/types@1.0.5(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.1)(rxjs@7.8.1):
@@ -2337,29 +2277,6 @@ packages:
       fast-content-type-parse: 1.1.0
       fast-json-stringify: 5.10.0
       find-my-way: 7.7.0
-      light-my-request: 5.11.0
-      pino: 8.17.2
-      process-warning: 3.0.0
-      proxy-addr: 2.0.7
-      rfdc: 1.3.0
-      secure-json-parse: 2.7.0
-      semver: 7.5.4
-      toad-cache: 3.7.0
-    transitivePeerDependencies:
-      - supports-color
-    dev: false
-
-  /fastify@4.26.0:
-    resolution: {integrity: sha512-Fq/7ziWKc6pYLYLIlCRaqJqEVTIZ5tZYfcW/mDK2AQ9v/sqjGFpj0On0/7hU50kbPVjLO4de+larPA1WwPZSfw==}
-    dependencies:
-      '@fastify/ajv-compiler': 3.5.0
-      '@fastify/error': 3.4.1
-      '@fastify/fast-json-stringify-compiler': 4.3.0
-      abstract-logging: 2.0.1
-      avvio: 8.2.1
-      fast-content-type-parse: 1.1.0
-      fast-json-stringify: 5.10.0
-      find-my-way: 8.1.0
       light-my-request: 5.11.0
       pino: 8.17.2
       process-warning: 3.0.0

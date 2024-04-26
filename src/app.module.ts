@@ -14,11 +14,9 @@ import { OauthModule } from './module/oauth/oauth.module';
 import {
   LoggerModule,
   BusinessException,
-  HLOGGER_TOKEN,
-  HLogger,
   AuthGuard,
+  FastifyCorsMiddleware,
 } from '@reus-able/nestjs';
-import { FastifyCorsMiddleware } from './utils/cors';
 
 @Module({
   imports: [
@@ -68,10 +66,7 @@ import { FastifyCorsMiddleware } from './utils/cors';
     },
     {
       provide: APP_GUARD,
-      useFactory(config: ConfigService, reflector: Reflector, logger: HLogger) {
-        return new AuthGuard(config, logger, reflector);
-      },
-      inject: [ConfigService, Reflector, HLOGGER_TOKEN],
+      useClass: AuthGuard,
     },
   ],
 })
