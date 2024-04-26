@@ -1,4 +1,4 @@
-import { Module, ValidationPipe } from '@nestjs/common';
+import { MiddlewareConsumer, Module, ValidationPipe } from '@nestjs/common';
 import { APP_GUARD, APP_PIPE, Reflector } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -18,6 +18,7 @@ import {
   HLogger,
   AuthGuard,
 } from '@reus-able/nestjs';
+import { FastifyCorsMiddleware } from './utils/cors';
 
 @Module({
   imports: [
@@ -74,4 +75,8 @@ import {
     },
   ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(FastifyCorsMiddleware).exclude('/oauth/(.*)').forRoutes('*');
+  }
+}
