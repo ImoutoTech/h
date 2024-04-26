@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { OAuthService } from './oauth.service';
 import { OauthAuthorizeDto } from '@/dto';
-import { AuthRoles, UserParams } from '@reus-able/nestjs';
+import { AuthRoles, UserParams, RequiredPipe } from '@reus-able/nestjs';
 import { UserJwtPayload } from '@reus-able/types';
 
 @Controller('oauth')
@@ -29,10 +29,10 @@ export class OAuthController {
   @Post('token')
   @HttpCode(HttpStatus.OK)
   getToken(
-    @Query('client_id') id: string,
-    @Query('client_secret') secret: string,
-    @Query('code') code: string,
-    @Query('redirect_uri') url: string,
+    @Query('client_id', RequiredPipe) id: string,
+    @Query('client_secret', RequiredPipe) secret: string,
+    @Query('code', RequiredPipe) code: string,
+    @Query('redirect_uri', RequiredPipe) url: string,
   ) {
     return this.service.getToken(id, secret, code, url);
   }
