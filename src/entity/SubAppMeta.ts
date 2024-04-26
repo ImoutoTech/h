@@ -30,7 +30,6 @@ export class SubAppMeta {
   @OneToOne(() => SubApp, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
-    cascade: true,
   })
   app: SubApp;
 

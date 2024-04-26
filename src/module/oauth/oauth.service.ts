@@ -57,6 +57,9 @@ export class OAuthService {
     const token = generateRandomString(16);
     const redisKey = this.getCodeRedisKey(token);
 
+    app.meta.visitNum += 1;
+    this.appRepo.save(app);
+
     await this.cache.jsonSet(
       redisKey,
       {

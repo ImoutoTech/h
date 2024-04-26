@@ -69,7 +69,9 @@ export class SubApp {
   })
   secrets: SubAppSecret[];
 
-  @OneToOne(() => SubAppMeta, (m) => m.app)
+  @OneToOne(() => SubAppMeta, (m) => m.app, {
+    cascade: true,
+  })
   meta: SubAppMeta;
 
   @CreateDateColumn()
