@@ -118,9 +118,13 @@ export class OAuthService {
     const token = generateRandomString(16);
     const tokenKey = this.getTokenRedisKey(token);
 
-    await this.cache.jsonSet(tokenKey, {
-      user: codeData.user,
-    });
+    await this.cache.jsonSet(
+      tokenKey,
+      {
+        user: codeData.user,
+      },
+      600,
+    );
     await this.cache.del(redisKey);
 
     this.warn(`子应用${app.id}获取token成功`);
