@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Post } from '@nestjs/common';
 import { OAuthService } from './oauth.service';
 
 @Controller('oauth')
@@ -10,7 +10,7 @@ export class OAuthController {
     return this.service.authorize();
   }
 
-  @Get('token')
+  @Post('token')
   getToken() {
     return this.service.getToken();
   }
