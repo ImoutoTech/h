@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Headers,
   HttpCode,
   HttpStatus,
   Post,
@@ -38,7 +39,7 @@ export class OAuthController {
   }
 
   @Get('user')
-  getUser() {
-    return this.service.getUser();
+  getUser(@Headers('Authorization') token: string) {
+    return this.service.getUser(token);
   }
 }

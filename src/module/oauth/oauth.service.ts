@@ -1,5 +1,5 @@
 import { OauthAuthorizeDto } from '@/dto';
-import { SubApp, User } from '@/entity';
+import { SubApp, User, UserExportData } from '@/entity';
 import { generateRandomString } from '@/utils';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -136,5 +136,31 @@ export class OAuthService {
     };
   }
 
-  async getUser() {}
+  async getUser(token: string) {
+    if (!token || !token.startsWith('Bearer ')) {
+      throw new BusinessException('非法秘钥');
+    }
+
+    const key = token.split(' ')?.[1];
+    const redisData = await this.cache.jsonGet<RedisCodeData>(
+      this.getTokenRedisKey(key),
+    );
+
+    if (isNil(redisData)) {
+      throw new BusinessException('非法秘钥');
+    }
+
+    await this.cache.del(this.getTokenRedisKey(key));
+
+    const cached = await this.cache.jsonGet<UserExportData>(
+      `user-${redisData.user}`,
+    );
+    if (cached) {
+      return cached;
+    }
+
+    const user = await this.userRepo.findOneByOrFail({ id: redisData.user });
+
+    return user.getData();
+  }
 }
