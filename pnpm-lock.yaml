@@ -30,8 +30,8 @@ dependencies:
     specifier: ^1.0.3
     version: 1.0.3
   '@reus-able/nestjs':
-    specifier: ^1.0.14
-    version: 1.0.14(@nestjs/platform-express@10.3.0)(class-transformer@0.5.1)(class-validator@0.14.1)
+    specifier: ^1.0.16
+    version: 1.0.16(@nestjs/platform-express@10.3.0)(class-transformer@0.5.1)(class-validator@0.14.1)
   '@reus-able/types':
     specifier: ^1.0.5
     version: 1.0.5(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.1)(rxjs@7.8.1)
@@ -683,8 +683,25 @@ packages:
       '@redis/client': 1.5.13
     dev: false
 
+  /@redis/bloom@1.2.0(@redis/client@1.5.14):
+    resolution: {integrity: sha512-HG2DFjYKbpNmVXsa0keLHp/3leGJz1mjh09f2RLGGLQZzSHpkmZWuwJbAvo3QcRY8p80m5+ZdXZdYOSBLlp7Cg==}
+    peerDependencies:
+      '@redis/client': ^1.0.0
+    dependencies:
+      '@redis/client': 1.5.14
+    dev: false
+
   /@redis/client@1.5.13:
     resolution: {integrity: sha512-epkUM9D0Sdmt93/8Ozk43PNjLi36RZzG+d/T1Gdu5AI8jvghonTeLYV69WVWdilvFo+PYxbP0TZ0saMvr6nscQ==}
+    engines: {node: '>=14'}
+    dependencies:
+      cluster-key-slot: 1.1.2
+      generic-pool: 3.9.0
+      yallist: 4.0.0
+    dev: false
+
+  /@redis/client@1.5.14:
+    resolution: {integrity: sha512-YGn0GqsRBFUQxklhY7v562VMOP0DcmlrHHs3IV1mFE3cbxe31IITUkqhBcIhVSI/2JqtWAJXg5mjV4aU+zD0HA==}
     engines: {node: '>=14'}
     dependencies:
       cluster-key-slot: 1.1.2
@@ -700,12 +717,28 @@ packages:
       '@redis/client': 1.5.13
     dev: false
 
+  /@redis/graph@1.1.1(@redis/client@1.5.14):
+    resolution: {integrity: sha512-FEMTcTHZozZciLRl6GiiIB4zGm5z5F3F6a6FZCyrfxdKOhFlGkiAqlexWMBzCi4DcRoyiOsuLfW+cjlGWyExOw==}
+    peerDependencies:
+      '@redis/client': ^1.0.0
+    dependencies:
+      '@redis/client': 1.5.14
+    dev: false
+
   /@redis/json@1.0.6(@redis/client@1.5.13):
     resolution: {integrity: sha512-rcZO3bfQbm2zPRpqo82XbW8zg4G/w4W3tI7X8Mqleq9goQjAGLL7q/1n1ZX4dXEAmORVZ4s1+uKLaUOg7LrUhw==}
     peerDependencies:
       '@redis/client': ^1.0.0
     dependencies:
       '@redis/client': 1.5.13
+    dev: false
+
+  /@redis/json@1.0.6(@redis/client@1.5.14):
+    resolution: {integrity: sha512-rcZO3bfQbm2zPRpqo82XbW8zg4G/w4W3tI7X8Mqleq9goQjAGLL7q/1n1ZX4dXEAmORVZ4s1+uKLaUOg7LrUhw==}
+    peerDependencies:
+      '@redis/client': ^1.0.0
+    dependencies:
+      '@redis/client': 1.5.14
     dev: false
 
   /@redis/search@1.1.6(@redis/client@1.5.13):
@@ -716,12 +749,28 @@ packages:
       '@redis/client': 1.5.13
     dev: false
 
+  /@redis/search@1.1.6(@redis/client@1.5.14):
+    resolution: {integrity: sha512-mZXCxbTYKBQ3M2lZnEddwEAks0Kc7nauire8q20oA0oA/LoA+E/b5Y5KZn232ztPb1FkIGqo12vh3Lf+Vw5iTw==}
+    peerDependencies:
+      '@redis/client': ^1.0.0
+    dependencies:
+      '@redis/client': 1.5.14
+    dev: false
+
   /@redis/time-series@1.0.5(@redis/client@1.5.13):
     resolution: {integrity: sha512-IFjIgTusQym2B5IZJG3XKr5llka7ey84fw/NOYqESP5WUfQs9zz1ww/9+qoz4ka/S6KcGBodzlCeZ5UImKbscg==}
     peerDependencies:
       '@redis/client': ^1.0.0
     dependencies:
       '@redis/client': 1.5.13
+    dev: false
+
+  /@redis/time-series@1.0.5(@redis/client@1.5.14):
+    resolution: {integrity: sha512-IFjIgTusQym2B5IZJG3XKr5llka7ey84fw/NOYqESP5WUfQs9zz1ww/9+qoz4ka/S6KcGBodzlCeZ5UImKbscg==}
+    peerDependencies:
+      '@redis/client': ^1.0.0
+    dependencies:
+      '@redis/client': 1.5.14
     dev: false
 
   /@reus-able/const@1.0.3:
@@ -736,8 +785,8 @@ packages:
       typescript: 5.3.3
     dev: false
 
-  /@reus-able/nestjs@1.0.14(@nestjs/platform-express@10.3.0)(class-transformer@0.5.1)(class-validator@0.14.1):
-    resolution: {integrity: sha512-eDnsig1D+GvTtv5hgDFsH8vlG6gP4NoqrOi50duDGLovtbxMQ4Foa+Yv0S67rR8b2gRl7jbO3hhY3cfq3xL9yw==}
+  /@reus-able/nestjs@1.0.16(@nestjs/platform-express@10.3.0)(class-transformer@0.5.1)(class-validator@0.14.1):
+    resolution: {integrity: sha512-i526z/LYeUcIJlmhjko5c10/BLHRHZPAqy1spDS2WCQ3Nrpzl741CquENQVp2xKwySV6/0NCfdFaIedrxSy4qA==}
     dependencies:
       '@nestjs/common': 10.3.8(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.1)(rxjs@7.8.1)
       '@nestjs/config': 3.2.2(@nestjs/common@10.3.8)(rxjs@7.8.1)
@@ -745,11 +794,14 @@ packages:
       '@nestjs/platform-fastify': 10.3.8(@nestjs/common@10.3.8)(@nestjs/core@10.3.8)
       '@reus-able/const': 1.0.7
       '@reus-able/types': 1.0.5(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.1)(rxjs@7.8.1)
+      '@types/lodash': 4.17.0
       '@types/node': 20.11.16
       chalk: 4.1.2
       dayjs: 1.11.10
       fastify: 4.26.2
       jsonwebtoken: 9.0.2
+      lodash: 4.17.21
+      redis: 4.6.13
       reflect-metadata: 0.2.1
       rxjs: 7.8.1
       typescript: 5.3.3
@@ -867,6 +919,10 @@ packages:
   /@types/lodash@4.14.202:
     resolution: {integrity: sha512-OvlIYQK9tNneDlS0VN54LLd5uiPCBOp7gS5Z0f1mjoJYBrtStzgmJBxONW3U6OZqdtNzZPmn9BS/7WI7BFFcFQ==}
     dev: true
+
+  /@types/lodash@4.17.0:
+    resolution: {integrity: sha512-t7dhREVv6dbNj0q17X12j7yDG4bD/DHYX7o5/DbDxobP0HnGPgpRz2Ej77aL7TZT3DSw13fqUTj8J4mMnqa7WA==}
+    dev: false
 
   /@types/mime@1.3.5:
     resolution: {integrity: sha512-/pyBZWSLD2n0dcHE3hq8s8ZvcETHtEuF+3E7XVt0Ig2nvsVQXdghHVcEkIWjy9A0wKfTn97a/PSDYohKIlnP/w==}
@@ -3750,6 +3806,17 @@ packages:
       '@redis/json': 1.0.6(@redis/client@1.5.13)
       '@redis/search': 1.1.6(@redis/client@1.5.13)
       '@redis/time-series': 1.0.5(@redis/client@1.5.13)
+    dev: false
+
+  /redis@4.6.13:
+    resolution: {integrity: sha512-MHgkS4B+sPjCXpf+HfdetBwbRz6vCtsceTmw1pHNYJAsYxrfpOP6dz+piJWGos8wqG7qb3vj/Rrc5qOlmInUuA==}
+    dependencies:
+      '@redis/bloom': 1.2.0(@redis/client@1.5.14)
+      '@redis/client': 1.5.14
+      '@redis/graph': 1.1.1(@redis/client@1.5.14)
+      '@redis/json': 1.0.6(@redis/client@1.5.14)
+      '@redis/search': 1.1.6(@redis/client@1.5.14)
+      '@redis/time-series': 1.0.5(@redis/client@1.5.14)
     dev: false
 
   /reflect-metadata@0.1.14:

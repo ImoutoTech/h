@@ -8,7 +8,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ENV_LIST } from './utils/constants';
 import { UserModule } from './module/user/user.module';
 import { SubappModule } from './module/subapp/subapp.module';
-import { RedisModule } from './module/redis/redis.module';
 import { OauthModule } from './module/oauth/oauth.module';
 
 import {
@@ -16,6 +15,7 @@ import {
   BusinessException,
   AuthGuard,
   FastifyCorsMiddleware,
+  RedisModule,
 } from '@reus-able/nestjs';
 
 @Module({
@@ -38,9 +38,9 @@ import {
         autoLoadEntities: true,
       }),
     }),
+    RedisModule,
     UserModule,
     SubappModule,
-    RedisModule,
     LoggerModule,
     OauthModule,
   ],

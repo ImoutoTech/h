@@ -14,8 +14,7 @@ import { ConfigService } from '@nestjs/config';
 import { paginate } from 'nestjs-typeorm-paginate';
 import { BusinessException } from '@reus-able/nestjs';
 import { isNil } from 'lodash';
-import { RedisService } from '../redis/redis.service';
-import { HLOGGER_TOKEN, HLogger } from '@reus-able/nestjs';
+import { HLOGGER_TOKEN, HLogger, RedisService } from '@reus-able/nestjs';
 import { generateRandomString } from '@/utils';
 
 @Injectable()
