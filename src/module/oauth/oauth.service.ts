@@ -110,7 +110,12 @@ export class OAuthService {
       throw new BusinessException('非法回调地址');
     }
 
-    if (!app.secrets.map((s) => s.value).includes(secret)) {
+    if (
+      !app.secrets
+        .filter((s) => s.status)
+        .map((s) => s.value)
+        .includes(secret)
+    ) {
       this.warn(`子应用${app.id}获取token失败，非法秘钥`);
       throw new BusinessException('非法秘钥');
     }
