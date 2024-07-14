@@ -43,6 +43,7 @@ resources:
         port: 4000
       functionName: ${vars.functionName}
       code: .
+      logConfig: auto
       triggers:
         - triggerName: http-trigger
           triggerType: http
