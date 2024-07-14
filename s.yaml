@@ -36,6 +36,7 @@ resources:
         REDIS_USERNAME: ${env(REDIS_USERNAME)}
         REDIS_AUTHPASS: ${env(REDIS_AUTHPASS)}
         REDIS_DATABASE: ${env(REDIS_DATABASE)}
+        ALLOWED_ORIGIN: ${env(ALLOWED_ORIGIN)}
       customRuntimeConfig:
         command:
           - ./bootstrap
