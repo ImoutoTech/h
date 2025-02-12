@@ -5,11 +5,14 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 
 import * as bcrypt from 'bcrypt';
 import { SubApp } from '@/entity/SubApp';
 import { UserRole } from '@reus-able/types';
+import { Role } from './Role';
 
 export interface UserExportData {
   id: number;
@@ -59,6 +62,12 @@ export class User {
 
   @OneToMany(() => SubApp, (app) => app.owner)
   subApps: SubApp[];
+
+  @ManyToMany(() => Role)
+  @JoinTable({
+    name: 'user_role_relation',
+  })
+  roles: Role[];
 
   @CreateDateColumn()
   created_at: Date;

@@ -34,7 +34,7 @@ import {
         username: configService.get('MYSQL_USER', 'root'),
         password: configService.get('MYSQL_PASSWORD', 'root'),
         database: configService.get('MYSQL_DATABASE', 'h'),
-        synchronize: false,
+        synchronize: true,
         autoLoadEntities: true,
       }),
     }),
