@@ -104,7 +104,10 @@ export class UserService {
   }
 
   async login(param: LoginUserDto) {
-    const user = await this.userRepo.findOneBy({ email: param.email });
+    const user = await this.userRepo.findOne({
+      where: { email: param.email },
+      relations: ['roles'],
+    });
     if (isNil(user)) {
       this.warn(`不存在的用户${param.email}尝试登录`);
       throw new BusinessException('用户不存在');
@@ -119,6 +122,7 @@ export class UserService {
       email: user.email,
       role: user.role,
       id: user.id,
+      roles: user.roles,
     };
 
     const token = jwt.sign(

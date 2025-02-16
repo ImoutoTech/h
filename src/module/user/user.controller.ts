@@ -9,6 +9,7 @@ import {
   Query,
   ParseIntPipe,
   DefaultValuePipe,
+  HttpCode,
 } from '@nestjs/common';
 import { Md5 } from 'ts-md5';
 import { UserService } from './user.service';
@@ -41,6 +42,7 @@ export class UserController {
 
   @Post('/login')
   @AuthRoles()
+  @HttpCode(200)
   login(@Body() loginUserDto: LoginUserDto, @Query('md5') md5: boolean) {
     const loginData = { ...loginUserDto };
 
