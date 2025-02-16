@@ -9,6 +9,7 @@ import { ENV_LIST } from './utils/constants';
 import { UserModule } from './module/user/user.module';
 import { SubappModule } from './module/subapp/subapp.module';
 import { OauthModule } from './module/oauth/oauth.module';
+import { SystemModule } from './module/system/system.module';
 
 import {
   LoggerModule,
@@ -43,6 +44,7 @@ import {
     SubappModule,
     LoggerModule,
     OauthModule,
+    SystemModule,
   ],
   controllers: [AppController],
   providers: [
