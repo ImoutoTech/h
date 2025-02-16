@@ -32,6 +32,11 @@ export const PERMISSION_LIST = [
     code: 'PeqSazMt',
   },
   {
+    name: '查看所有子应用',
+    description: '查看所有子应用',
+    code: 'hZLbqmHh',
+  },
+  {
     name: '新建角色',
     description: '新建角色',
     code: 'YXoSxbuX',
@@ -90,6 +95,11 @@ export const PERMISSION_LIST = [
     name: '查看用户',
     description: '查看用户',
     code: 'pedimtLB',
+  },
+  {
+    name: '查看所有用户',
+    description: '查看所有用户',
+    code: 'bJqZjnMW',
   },
 ];
 

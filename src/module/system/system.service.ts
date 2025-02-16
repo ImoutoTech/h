@@ -80,8 +80,4 @@ export class SystemService {
     this.log('初始化完成');
     return true;
   }
-
-  async getPermissions() {
-    return this.permissionRepo.find();
-  }
 }

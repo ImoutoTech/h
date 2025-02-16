@@ -19,7 +19,7 @@ import {
   LoginUserDto,
   UpdatePasswordDto,
 } from '@/dto';
-import { AuthRoles, UserParams } from '@reus-able/nestjs';
+import { AuthRoles, PermissionGuard, UserParams } from '@reus-able/nestjs';
 import { type UserJwtPayload } from '@reus-able/types';
 
 @Controller({
@@ -66,7 +66,7 @@ export class UserController {
   }
 
   @Get('/all')
-  @AuthRoles('admin')
+  @PermissionGuard('bJqZjnMW')
   findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,
     @Query('size', new DefaultValuePipe(500), ParseIntPipe) size = 500,

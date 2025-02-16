@@ -30,8 +30,8 @@ dependencies:
     specifier: ^1.0.3
     version: 1.0.3
   '@reus-able/nestjs':
-    specifier: ^1.1.2
-    version: 1.1.2(@nestjs/platform-express@10.3.0)(class-transformer@0.5.1)(class-validator@0.14.1)
+    specifier: ^1.1.6
+    version: 1.1.6(@nestjs/platform-express@10.3.0)(class-transformer@0.5.1)(class-validator@0.14.1)
   '@reus-able/types':
     specifier: ^1.0.6
     version: 1.0.6(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.1)(rxjs@7.8.1)
@@ -785,8 +785,8 @@ packages:
       typescript: 5.3.3
     dev: false
 
-  /@reus-able/nestjs@1.1.2(@nestjs/platform-express@10.3.0)(class-transformer@0.5.1)(class-validator@0.14.1):
-    resolution: {integrity: sha512-T1vt3oWBiPBESsyprr4eqNcpxfXcfikNxTVNpypg4RFx4Kf9SJFMrz7vhtkYw9tWDGfqvZVnWdF3U/+S/HxOOg==}
+  /@reus-able/nestjs@1.1.6(@nestjs/platform-express@10.3.0)(class-transformer@0.5.1)(class-validator@0.14.1):
+    resolution: {integrity: sha512-hdhXAXuvmTDavy2wjLf7wjXVSqneRi42zvOE53yaH6IQbjEP1wjZL591vZQ5bsPvAtKXaSNbxmuFLNqeFhjueQ==}
     dependencies:
       '@nestjs/common': 10.3.8(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.1)(rxjs@7.8.1)
       '@nestjs/config': 3.2.2(@nestjs/common@10.3.8)(rxjs@7.8.1)
