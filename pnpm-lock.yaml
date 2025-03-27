@@ -30,14 +30,14 @@ importers:
         specifier: ^10.0.2
         version: 10.0.2(@nestjs/common@10.4.15(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@10.4.15)(reflect-metadata@0.2.2)(rxjs@7.8.2)(typeorm@0.3.21(mysql2@3.14.0)(redis@4.7.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@20.17.27)(typescript@5.8.2)))
       '@reus-able/const':
-        specifier: ^1.0.3
-        version: 1.0.7
+        specifier: 1.0.3
+        version: 1.0.3
       '@reus-able/nestjs':
-        specifier: ^1.0.18
-        version: 1.1.6(@nestjs/platform-express@10.4.15)(class-transformer@0.5.1)(class-validator@0.14.1)
+        specifier: 1.0.18
+        version: 1.0.18(@nestjs/platform-express@10.4.15)(class-transformer@0.5.1)(class-validator@0.14.1)
       '@reus-able/types':
-        specifier: ^1.0.5
-        version: 1.0.6(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+        specifier: 1.0.5
+        version: 1.0.5(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       bcrypt:
         specifier: ^5.1.1
         version: 5.1.1
@@ -429,14 +429,17 @@ packages:
     peerDependencies:
       '@redis/client': ^1.0.0
 
+  '@reus-able/const@1.0.3':
+    resolution: {integrity: sha512-1NUdVRs1z8STEHl43LTarXpnz36xVquZ52GDBJ4REz7IRFWdXR5vlw1CczowSyf3OvSTawksDdqDihTkC+h3Hg==}
+
   '@reus-able/const@1.0.7':
     resolution: {integrity: sha512-xkyXG5PwkqwxiGDAbBiHaT2GrL9NEdvTunsMgygv7vzfHUYkJ4EMRoxgAiKUwCUHlwTXZ7qKXkgxwSmlh/zucg==}
 
-  '@reus-able/nestjs@1.1.6':
-    resolution: {integrity: sha512-hdhXAXuvmTDavy2wjLf7wjXVSqneRi42zvOE53yaH6IQbjEP1wjZL591vZQ5bsPvAtKXaSNbxmuFLNqeFhjueQ==}
+  '@reus-able/nestjs@1.0.18':
+    resolution: {integrity: sha512-hp8ZV/ApK9GS22/qn0kpODDU7tzi/hdL7aeX7guwJPPxr9dxETP61gBybjPZrBEFphJHUIMfjSmk+s9wpaIncQ==}
 
-  '@reus-able/types@1.0.6':
-    resolution: {integrity: sha512-X/mkOq5WHB2jNG/08WHA2c5Q0PgXBAAaOJEd5Zj+iCh66zDhK0N/m4Catk93anhTPPUlbUd7qEPKNCOyDqWRLg==}
+  '@reus-able/types@1.0.5':
+    resolution: {integrity: sha512-AFs2zFp/tvRg5rKiPVo54iefIuNjITHtD7//JdiTTrYPPNDCgCa/4yHBlJIcblCzD2/ynV6VIIkXS40gRaPF6w==}
 
   '@sqltools/formatter@1.2.5':
     resolution: {integrity: sha512-Uy0+khmZqUrUGm5dmMqVlnvufZRSK0FbYzVgp0UMstm+F5+W2/jnEEQyc9vo1ZR/E5ZI/B1WjjoTqBqwJL6Krw==}
@@ -3007,18 +3010,22 @@ snapshots:
     dependencies:
       '@redis/client': 1.6.0
 
+  '@reus-able/const@1.0.3':
+    dependencies:
+      typescript: 5.8.2
+
   '@reus-able/const@1.0.7':
     dependencies:
       typescript: 5.8.2
 
-  '@reus-able/nestjs@1.1.6(@nestjs/platform-express@10.4.15)(class-transformer@0.5.1)(class-validator@0.14.1)':
+  '@reus-able/nestjs@1.0.18(@nestjs/platform-express@10.4.15)(class-transformer@0.5.1)(class-validator@0.14.1)':
     dependencies:
       '@nestjs/common': 10.4.15(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@nestjs/config': 3.3.0(@nestjs/common@10.4.15(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(rxjs@7.8.2)
       '@nestjs/core': 10.4.15(@nestjs/common@10.4.15(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@10.4.15)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@nestjs/platform-fastify': 10.4.15(@nestjs/common@10.4.15(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@10.4.15)
       '@reus-able/const': 1.0.7
-      '@reus-able/types': 1.0.6(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@reus-able/types': 1.0.5(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@types/lodash': 4.17.16
       '@types/node': 20.17.27
       chalk: 4.1.2
@@ -3042,7 +3049,7 @@ snapshots:
       - class-validator
       - encoding
 
-  '@reus-able/types@1.0.6(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)':
+  '@reus-able/types@1.0.5(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)':
     dependencies:
       '@nestjs/common': 10.4.15(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       typescript: 5.8.2
