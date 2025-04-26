@@ -25,12 +25,45 @@ export class AuthPermissionService implements PermissionService {
   }
 
   async getPermissionByRole(roleId: string) {
-    console.log('获取角色权限', roleId);
-    return [roleId];
+    this.log(`获取角色权限: ${roleId}`);
+    if (!roleId) {
+      return [];
+    }
+
+    const role = await this.roleRepo.findOne({
+      where: { id: Number(roleId) },
+      relations: ['permissions'],
+    });
+
+    if (!role) {
+      this.warn(`未找到角色: ${roleId}`);
+      return [];
+    }
+
+    return role.permissions.map((permission) => permission.code);
   }
 
   async getPermissionByRoles(roles: string[]) {
-    console.log('获取角色权限', roles);
-    return roles;
+    this.log(`获取多个角色权限: ${roles.join(', ')}`);
+
+    if (!roles || roles.length === 0) {
+      return [];
+    }
+
+    const roleIds = roles.map((id) => Number(id));
+    const rolePermissions = await this.roleRepo.find({
+      where: roleIds.map((id) => ({ id })),
+      relations: ['permissions'],
+    });
+
+    // 合并所有角色的权限，并去重
+    const permissions = new Set<string>();
+    rolePermissions.forEach((role) => {
+      role.permissions.forEach((permission) => {
+        permissions.add(permission.code);
+      });
+    });
+
+    return Array.from(permissions);
   }
 }
