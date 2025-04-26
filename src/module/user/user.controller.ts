@@ -76,13 +76,13 @@ export class UserController {
   }
 
   @Get(':id')
-  @AuthRoles('user')
+  @PermissionGuard('pedimtLB')
   findOne(@Param('id') id: string) {
     return this.userService.findOne(+id);
   }
 
   @Put(':id')
-  @AuthRoles('user')
+  @PermissionGuard('gnhNAwmj')
   update(
     @UserParams() user: UserJwtPayload,
     @Body() updateUserDto: UpdateUserDto,
@@ -91,7 +91,7 @@ export class UserController {
   }
 
   @Put(':id/password')
-  @AuthRoles('user')
+  @PermissionGuard('gnhNAwmj')
   updatePassword(
     @UserParams() user: UserJwtPayload,
     @Body() updateData: UpdatePasswordDto,
