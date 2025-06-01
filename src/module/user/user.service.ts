@@ -122,7 +122,7 @@ export class UserService {
       email: user.email,
       role: user.role,
       id: user.id,
-      roles: user.roles,
+      roles: user.roles.map((r) => r.id),
     };
 
     const token = jwt.sign(
@@ -162,6 +162,7 @@ export class UserService {
         role: user.role,
         id: user.id,
         refresh: false,
+        roles: user.roles,
       },
       this.configService.get<string>('TOKEN_SECRET', ''),
       {
