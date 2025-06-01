@@ -2,8 +2,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import { HLogger, HLOGGER_TOKEN } from '@reus-able/nestjs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Role, Permission } from '@/entity';
+import { Role, Permission, User } from '@/entity';
 import { PERMISSION_LIST, ROLE_LIST } from '@/utils/constants';
+import { UserRole } from '@reus-able/types';
 
 @Injectable()
 export class SystemService {
@@ -15,6 +16,9 @@ export class SystemService {
 
   @InjectRepository(Permission)
   private permissionRepo: Repository<Permission>;
+
+  @InjectRepository(User)
+  private userRepo: Repository<User>;
 
   private log(text: string) {
     this.logger.log(text, SystemService.name);
@@ -64,6 +68,19 @@ export class SystemService {
       return role;
     });
     await this.roleRepo.save(roles);
+
+    // 为所有用户添加默认角色
+    const users = await this.userRepo.find();
+    const adminRole = roles.find((r) => r.name === '管理员');
+    const userRole = roles.find((r) => r.name === '用户');
+    for (const user of users) {
+      const targetRole = user.role === UserRole.ADMIN ? adminRole : userRole;
+      user.roles = [targetRole];
+      this.log(`用户[${user.nickname}]已添加角色[${targetRole.name}]`);
+    }
+    await this.userRepo.save(users);
+    this.log('用户角色数据初始化完成');
+
     this.log('角色初始化完成');
     return roles;
   }
