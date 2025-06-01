@@ -3,7 +3,7 @@ import { SystemService } from './system.service';
 import { SystemController } from './system.controller';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Role, Permission } from '@/entity';
+import { Role, Permission, User } from '@/entity';
 import { AuthPermissionService } from './permission.service';
 import { PERMISSION_SERVICE_TOKEN } from '@reus-able/nestjs';
 
@@ -16,7 +16,7 @@ import { PERMISSION_SERVICE_TOKEN } from '@reus-able/nestjs';
       useClass: AuthPermissionService,
     },
   ],
-  imports: [ConfigModule, TypeOrmModule.forFeature([Role, Permission])],
+  imports: [ConfigModule, TypeOrmModule.forFeature([Role, Permission, User])],
   exports: [PERMISSION_SERVICE_TOKEN],
 })
 export class SystemModule {}
