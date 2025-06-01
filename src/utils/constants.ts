@@ -120,8 +120,8 @@ export const ROLE_LIST = [
       PERMISSION_CODE_MAP['删除子应用'],
       PERMISSION_CODE_MAP['修改子应用'],
       PERMISSION_CODE_MAP['查看子应用'],
-      PERMISSION_CODE_MAP['修改角色'],
-      PERMISSION_CODE_MAP['查看角色'],
+      PERMISSION_CODE_MAP['修改用户'],
+      PERMISSION_CODE_MAP['查看用户'],
     ],
   },
 ];
