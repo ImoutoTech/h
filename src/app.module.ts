@@ -9,6 +9,7 @@ import { ENV_LIST } from './utils/constants';
 import { UserModule } from './module/user/user.module';
 import { SubappModule } from './module/subapp/subapp.module';
 import { OauthModule } from './module/oauth/oauth.module';
+import { SystemModule } from './module/system/system.module';
 
 import {
   LoggerModule,
@@ -34,7 +35,7 @@ import {
         username: configService.get('MYSQL_USER', 'root'),
         password: configService.get('MYSQL_PASSWORD', 'root'),
         database: configService.get('MYSQL_DATABASE', 'h'),
-        synchronize: false,
+        synchronize: true,
         autoLoadEntities: true,
       }),
     }),
@@ -43,6 +44,7 @@ import {
     SubappModule,
     LoggerModule,
     OauthModule,
+    SystemModule,
   ],
   controllers: [AppController],
   providers: [

@@ -9,6 +9,7 @@ import {
   Query,
   ParseIntPipe,
   DefaultValuePipe,
+  HttpCode,
 } from '@nestjs/common';
 import { Md5 } from 'ts-md5';
 import { UserService } from './user.service';
@@ -18,7 +19,7 @@ import {
   LoginUserDto,
   UpdatePasswordDto,
 } from '@/dto';
-import { AuthRoles, UserParams } from '@reus-able/nestjs';
+import { AuthRoles, PermissionGuard, UserParams } from '@reus-able/nestjs';
 import { type UserJwtPayload } from '@reus-able/types';
 
 @Controller({
@@ -41,6 +42,7 @@ export class UserController {
 
   @Post('/login')
   @AuthRoles()
+  @HttpCode(200)
   login(@Body() loginUserDto: LoginUserDto, @Query('md5') md5: boolean) {
     const loginData = { ...loginUserDto };
 
@@ -64,7 +66,7 @@ export class UserController {
   }
 
   @Get('/all')
-  @AuthRoles('admin')
+  @PermissionGuard('bJqZjnMW')
   findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,
     @Query('size', new DefaultValuePipe(500), ParseIntPipe) size = 500,
@@ -74,13 +76,13 @@ export class UserController {
   }
 
   @Get(':id')
-  @AuthRoles('user')
+  @PermissionGuard('pedimtLB')
   findOne(@Param('id') id: string) {
     return this.userService.findOne(+id);
   }
 
   @Put(':id')
-  @AuthRoles('user')
+  @PermissionGuard('gnhNAwmj')
   update(
     @UserParams() user: UserJwtPayload,
     @Body() updateUserDto: UpdateUserDto,
@@ -89,7 +91,7 @@ export class UserController {
   }
 
   @Put(':id/password')
-  @AuthRoles('user')
+  @PermissionGuard('gnhNAwmj')
   updatePassword(
     @UserParams() user: UserJwtPayload,
     @Body() updateData: UpdatePasswordDto,

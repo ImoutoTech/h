@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { SubAppService } from './subapp.service';
 import { CreateSubAppDto, UpdateSubAppDto } from '@/dto';
-import { AuthRoles, UserParams } from '@reus-able/nestjs';
+import { AuthRoles, UserParams, PermissionGuard } from '@reus-able/nestjs';
 import { UserJwtPayload } from '@reus-able/types';
 
 @Controller({
@@ -24,7 +24,7 @@ export class SubAppController {
   constructor(private readonly subappService: SubAppService) {}
 
   @Post('/reg')
-  @AuthRoles('user')
+  @PermissionGuard('mwGSuMXj')
   create(
     @Body() createSubAppDto: CreateSubAppDto,
     @UserParams() user: UserJwtPayload,
@@ -33,7 +33,7 @@ export class SubAppController {
   }
 
   @Get('/all')
-  @AuthRoles('admin')
+  @PermissionGuard('hZLbqmHh')
   findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,
     @Query('size', new DefaultValuePipe(500), ParseIntPipe) size = 500,
@@ -43,7 +43,7 @@ export class SubAppController {
   }
 
   @Get('/my')
-  @AuthRoles('user')
+  @PermissionGuard('PeqSazMt')
   findMy(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,
     @Query('size', new DefaultValuePipe(500), ParseIntPipe) size = 500,
@@ -65,7 +65,7 @@ export class SubAppController {
   }
 
   @Put(':id')
-  @AuthRoles('user')
+  @PermissionGuard('QffBvVPP')
   update(
     @Param('id') id: string,
     @Body() updateSubappDto: UpdateSubAppDto,
@@ -75,25 +75,25 @@ export class SubAppController {
   }
 
   @Delete(':id')
-  @AuthRoles('user')
+  @PermissionGuard('qtNiAVBF')
   remove(@Param('id') id: string, @UserParams() user: UserJwtPayload) {
     return this.subappService.remove(id, user.id);
   }
 
   @Post(':id/secret')
-  @AuthRoles('user')
+  @PermissionGuard('QffBvVPP')
   createSecret(@Param('id') id: string, @UserParams() user: UserJwtPayload) {
     return this.subappService.createAppSecret(id, user.id);
   }
 
   @Get(':id/secret')
-  @AuthRoles('user')
+  @PermissionGuard('PeqSazMt')
   getSecret(@Param('id') id: string, @UserParams() user: UserJwtPayload) {
     return this.subappService.getAppSecret(id, user.id);
   }
 
   @Put(':id/secret/:sid')
-  @AuthRoles('user')
+  @PermissionGuard('QffBvVPP')
   setSecret(
     @Param('id') app: string,
     @Param('sid') id: string,
@@ -103,7 +103,7 @@ export class SubAppController {
   }
 
   @Delete(':id/secret/:sid')
-  @AuthRoles('user')
+  @PermissionGuard('QffBvVPP')
   delSecret(
     @Param('id') app: string,
     @Param('sid') id: string,
