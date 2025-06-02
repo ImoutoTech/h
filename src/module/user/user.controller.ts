@@ -75,6 +75,12 @@ export class UserController {
     return this.userService.findAll(page, size, search);
   }
 
+  @Get('/permission')
+  @AuthRoles('user')
+  getUserPermission(@UserParams() user: UserJwtPayload) {
+    return this.userService.getUserPermission(user.id);
+  }
+
   @Get(':id')
   @PermissionGuard('pedimtLB')
   findOne(@Param('id') id: string) {

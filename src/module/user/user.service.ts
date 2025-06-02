@@ -21,6 +21,7 @@ import {
   BusinessException,
   RedisService,
 } from '@reus-able/nestjs';
+import { AuthPermissionService } from '../system/permission.service';
 
 @Injectable()
 export class UserService {
@@ -33,7 +34,10 @@ export class UserService {
   @Inject(RedisService)
   private cache: RedisService;
 
-  constructor(private configService: ConfigService) {}
+  constructor(
+    private configService: ConfigService,
+    private permissionService: AuthPermissionService,
+  ) {}
 
   private log(text: string) {
     this.logger.log(text, UserService.name);
@@ -222,5 +226,24 @@ export class UserService {
     this.log(`用户#${id}修改密码成功`);
 
     return user.getData();
+  }
+
+  async getUserPermission(id: number) {
+    const user = await this.userRepo.findOne({
+      where: { id },
+      relations: ['roles'],
+    });
+    if (isNil(user)) {
+      this.warn(`不存在的用户#${id}尝试获取权限`);
+      throw new BusinessException('用户不存在');
+    }
+
+    const permissions = await this.permissionService.getPermissionByRoles(
+      user.roles.map((r) => String(r.id)),
+    );
+
+    this.log(`用户#${id}获取自身权限完成`);
+
+    return permissions;
   }
 }
