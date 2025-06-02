@@ -5,10 +5,11 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { User, Role, Permission } from '@/entity';
+import { AuthPermissionService } from '../system/permission.service';
 
 @Module({
   controllers: [UserController],
-  providers: [UserService],
+  providers: [UserService, AuthPermissionService],
   imports: [ConfigModule, TypeOrmModule.forFeature([User, Role, Permission])],
 })
 export class UserModule {}
