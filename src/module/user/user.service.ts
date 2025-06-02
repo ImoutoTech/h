@@ -147,7 +147,7 @@ export class UserService {
       },
       this.configService.get<string>('TOKEN_SECRET', ''),
       {
-        expiresIn: '7d',
+        expiresIn: '14d',
       },
     );
 
