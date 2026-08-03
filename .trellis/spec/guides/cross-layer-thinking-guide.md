@@ -116,6 +116,7 @@ After implementation:
 - [ ] Tested with edge cases (null, empty, invalid)
 - [ ] Verified error handling at each boundary
 - [ ] Checked data survives round-trip
+- [ ] For OAuth/OIDC callbacks, preserved every provider-returned protocol parameter required by the standards library (for example RFC 9207 `iss`), rather than reconstructing a reduced callback URL from selected fields
 - [ ] Checked that consumers import shared decoders / projections instead of
       casting payload fields locally
 - [ ] Checked that derived state points back to the source event identifier

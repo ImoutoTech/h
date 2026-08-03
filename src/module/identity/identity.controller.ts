@@ -77,6 +77,7 @@ export class IdentityController {
         query.code,
         query.state,
         query.error,
+        query.iss,
       );
     } catch (reason) {
       const message = reason instanceof Error ? reason.message : '';

@@ -33,6 +33,10 @@ export class ExternalCallbackDto {
   @IsOptional()
   @IsString()
   error?: string;
+
+  @IsOptional()
+  @IsString()
+  iss?: string;
 }
 
 export const PROVIDERS = ['github', 'google'] as const;

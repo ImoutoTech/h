@@ -19,6 +19,7 @@ Use this contract whenever changing OIDC endpoints, sub-application credentials,
 
 - OIDC supports only Authorization Code, `S256` PKCE, and `openid profile email`; no refresh token or offline access.
 - External callback results are Redis-backed, single-use, and short-lived. URLs contain only an opaque result ID, never local/provider tokens or binding tokens.
+- External-provider callbacks preserve every protocol parameter required by the standards client. In particular, Google callback `iss` must flow through `ExternalCallbackDto -> IdentityController -> ExternalIdentityService` and be included in the reconstructed callback URL passed to `openid-client`; never rebuild that URL from only `code` and `state`, and never disable issuer validation to compensate.
 - `authenticated` session result: `{ outcome, token, refresh, user }`.
 - Authenticated bind callback: `{ outcome: 'bound', user }`; binding-token exchange: `{ outcome: 'bound', token, refresh, user }`.
 - Provider and confidential-client secrets use separate AES-256-GCM keys/envelopes. Plaintext is allowed only for one-time creation responses or transient provider memory.
@@ -31,6 +32,7 @@ Use this contract whenever changing OIDC endpoints, sub-application credentials,
 ### 4. Validation & Error Matrix
 
 - Missing/invalid/replayed state or result ID -> typed `state_invalid_or_expired` without echoing state.
+- Google callback missing or mismatched `iss` -> reject through `openid-client` as `provider_error`; do not synthesize an issuer or bypass RFC 9207 validation.
 - Disabled provider -> `provider_disabled`; incomplete credentials -> `provider_misconfigured`; sanitized upstream failure -> `provider_error`; cancellation -> `cancelled`.
 - Existing verified email without an identity -> `binding_required`; unverified/missing email -> `verified_email_required`.
 - Redirect mismatch, missing/wrong verifier, code replay, or unsupported scope/flow -> standard protocol error; never redirect to an unregistered URI.
@@ -51,6 +53,7 @@ Use this contract whenever changing OIDC endpoints, sub-application credentials,
 - OIDC: mounted issuer routes, Discovery/JWKS claims, exact redirect rejection, S256 enforcement, code/state consume/replay, approve/deny continuation allowlist, and key rotation.
 - Storage: Redis consume/revoke/grant indexing; AES key/AAD isolation and tamper detection; client reload generation concurrency.
 - Identity: first login, collision, concurrent binding, last-login invariant, sanitized outcomes, admin permission separation, and result replay.
+- Google protocol regression: assert the exact callback URL passed to `authorizationCodeGrant` contains `code`, `state`, and the provider-returned `iss`, while PKCE verifier, expected state, and expected nonce remain enabled.
 - Migration: cryptographic preflight before DDL, representative up/down on disposable MySQL, preservation/rollback guards.
 - Environment: repeat protocol checks under Node 22, real providers, and a standard relying-party client.
 - Startup wiring: compile the complete Nest feature-module provider graph using an actual `RedisService` prototype and resolve `ExternalIdentityService`; assert one atomic `getDel` per consume.
@@ -70,6 +73,24 @@ if (redirectUri.startsWith(app.callback)) return providerToken;
 assertRegisteredRedirectUri(redirectUri);
 const resultId = await storeSingleUseResult(normalizedOutcome);
 return fixedSafeHouseCallback(resultId);
+```
+
+#### Wrong
+
+```typescript
+const currentUrl = new URL(callback);
+currentUrl.searchParams.set('code', code);
+currentUrl.searchParams.set('state', state); // provider-returned iss was dropped
+```
+
+#### Correct
+
+```typescript
+const currentUrl = new URL(callback);
+currentUrl.searchParams.set('code', code);
+currentUrl.searchParams.set('state', state);
+if (issuer) currentUrl.searchParams.set('iss', issuer);
+// authorizationCodeGrant validates iss against discovered Google metadata.
 ```
 
 #### Wrong

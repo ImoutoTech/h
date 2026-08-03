@@ -23,21 +23,6 @@ interface ExternalProfile {
   avatarUrl?: string;
 }
 
-type GoogleOAuthStage = 'discovery' | 'token_exchange' | 'claims_projection';
-type GoogleOAuthSubstage =
-  | 'authorization_response'
-  | 'token_response_shape'
-  | 'id_token_signature'
-  | 'id_token_claim'
-  | 'jwks'
-  | 'unknown';
-type GoogleOAuthReason =
-  | 'validation_failed'
-  | 'invalid_shape'
-  | 'verification_failed'
-  | 'key_resolution_failed'
-  | 'unclassified';
-
 @Injectable()
 export class ExternalIdentityService {
   @InjectRepository(ExternalIdentity)
@@ -111,6 +96,7 @@ export class ExternalIdentityService {
     code: string | undefined,
     state: string,
     error?: string,
+    issuer?: string,
   ) {
     const transaction = await this.oneTimeState.consume<any>(
       `external-state:${state}`,
@@ -127,7 +113,7 @@ export class ExternalIdentityService {
       const profile =
         provider === 'github'
           ? await this.githubProfile(code)
-          : await this.googleProfile(code, state, transaction);
+          : await this.googleProfile(code, state, transaction, issuer);
       if (!profile.emailVerified || !profile.email) {
         this.logger.warn(
           `外部登录失败 provider=${provider} outcome=verified_email_required`,
@@ -241,120 +227,38 @@ export class ExternalIdentityService {
     code: string,
     state: string,
     transaction: any,
+    issuer?: string,
   ): Promise<ExternalProfile> {
     const credentials = await this.providers.credentials('google');
     const callback = `${this.config.get<string>('PUBLIC_URL')}/external/google/callback`;
     const client = await nativeImport('openid-client');
-    let configuration: Awaited<ReturnType<typeof client.discovery>>;
-    try {
-      configuration = await client.discovery(
-        new URL('https://accounts.google.com'),
-        credentials.clientId,
-        credentials.clientSecret,
-      );
-    } catch (reason) {
-      this.logGoogleOAuthDiagnostic('discovery', reason);
-      throw reason;
-    }
+    const configuration = await client.discovery(
+      new URL('https://accounts.google.com'),
+      credentials.clientId,
+      credentials.clientSecret,
+    );
     const currentUrl = new URL(callback);
     currentUrl.searchParams.set('code', code);
     currentUrl.searchParams.set('state', state);
-    let tokens: Awaited<ReturnType<typeof client.authorizationCodeGrant>>;
-    try {
-      tokens = await client.authorizationCodeGrant(configuration, currentUrl, {
+    if (issuer) currentUrl.searchParams.set('iss', issuer);
+    const tokens = await client.authorizationCodeGrant(
+      configuration,
+      currentUrl,
+      {
         pkceCodeVerifier: transaction.verifier,
         expectedNonce: transaction.nonce,
         expectedState: state,
-      });
-    } catch (reason) {
-      this.logGoogleOAuthDiagnostic('token_exchange', reason);
-      throw reason;
-    }
-    try {
-      const claims = tokens.claims();
-      if (!claims?.sub) throw new BusinessException('Google 身份令牌无效');
-      return {
-        providerUserId: claims.sub,
-        email: claims.email as string,
-        emailVerified: claims.email_verified === true,
-        displayName: claims.name as string,
-        avatarUrl: claims.picture as string,
-      };
-    } catch (reason) {
-      this.logGoogleOAuthDiagnostic('claims_projection', reason);
-      throw reason;
-    }
-  }
-
-  private logGoogleOAuthDiagnostic(stage: GoogleOAuthStage, reason: unknown) {
-    const { substage, reasonTag } = this.classifyGoogleOAuthError(reason);
-    this.logger.warn(
-      `[DEBUG-google-oauth] stage=${stage} substage=${substage} reason=${reasonTag}`,
-      ExternalIdentityService.name,
+      },
     );
-  }
-
-  private classifyGoogleOAuthError(reason: unknown): {
-    substage: GoogleOAuthSubstage;
-    reasonTag: GoogleOAuthReason;
-  } {
-    const details: string[] = [];
-    let current = reason;
-    for (let depth = 0; depth < 4 && current instanceof Object; depth += 1) {
-      for (const key of ['name', 'code', 'message']) {
-        const value = this.readDiagnosticProperty(current, key);
-        if (typeof value === 'string') details.push(value);
-      }
-      current = this.readDiagnosticProperty(current, 'cause');
-    }
-    const text = details.join('\n');
-
-    if (
-      /OAUTH_KEY_SELECTION_FAILED|JWK|verification key|key selection/i.test(
-        text,
-      )
-    )
-      return { substage: 'jwks', reasonTag: 'key_resolution_failed' };
-    if (
-      /signature verification failed|signing algorithm|JWS ["']alg/i.test(text)
-    )
-      return {
-        substage: 'id_token_signature',
-        reasonTag: 'verification_failed',
-      };
-    if (
-      /OAUTH_JWT_(?:CLAIM_COMPARISON|TIMESTAMP_CHECK)|ID Token|JWT [^\n]*claim|nonce|audience|issuer/i.test(
-        text,
-      )
-    )
-      return { substage: 'id_token_claim', reasonTag: 'validation_failed' };
-    if (
-      /OAUTH_AUTHORIZATION_RESPONSE_ERROR|AuthorizationResponseError|authorization response|authorization code|state[^\n]*(?:parameter|mismatch)/i.test(
-        text,
-      )
-    )
-      return {
-        substage: 'authorization_response',
-        reasonTag: 'validation_failed',
-      };
-    if (
-      /OAUTH_(?:INVALID_RESPONSE|RESPONSE_BODY_ERROR|RESPONSE_IS_NOT_JSON|RESPONSE_IS_NOT_CONFORM|PARSE_ERROR)|token endpoint|access token|["']response["'] body|response content-type|invalid response encountered/i.test(
-        text,
-      )
-    )
-      return {
-        substage: 'token_response_shape',
-        reasonTag: 'invalid_shape',
-      };
-    return { substage: 'unknown', reasonTag: 'unclassified' };
-  }
-
-  private readDiagnosticProperty(reason: object, key: string) {
-    try {
-      return (reason as Record<string, unknown>)[key];
-    } catch {
-      return undefined;
-    }
+    const claims = tokens.claims();
+    if (!claims?.sub) throw new BusinessException('Google 身份令牌无效');
+    return {
+      providerUserId: claims.sub,
+      email: claims.email as string,
+      emailVerified: claims.email_verified === true,
+      displayName: claims.name as string,
+      avatarUrl: claims.picture as string,
+    };
   }
 
   private async resolve(

@@ -18,8 +18,20 @@ describe('IdentityController external callback', () => {
 
     await controller.callback(
       'google',
-      { state: 'callback-state', error: 'access_denied' },
+      {
+        state: 'callback-state',
+        error: 'access_denied',
+        iss: 'https://accounts.google.com',
+      },
       response,
+    );
+
+    expect(identities.callback).toHaveBeenCalledWith(
+      'google',
+      undefined,
+      'callback-state',
+      'access_denied',
+      'https://accounts.google.com',
     );
 
     expect(response.redirect).toHaveBeenCalledWith(
