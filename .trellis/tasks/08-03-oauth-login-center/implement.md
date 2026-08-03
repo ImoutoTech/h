@@ -84,6 +84,17 @@ Also validate Discovery/JWKS and one real standard-client code flow against an i
 - `safe-house` router/auth store/callback views: failed state restoration can strand both external and relying-party login flows.
 - Never auto-revert a production schema after new external-only accounts exist; use backup/forward migration per `design.md`.
 
+## Acceptance checkpoint (2026-08-04)
+
+- [x] Password login and real GitHub/Google login smoke tests passed; Google RFC 9207 `iss` callback propagation regression is covered.
+- [x] Discovery/JWKS smoke tests passed; only Authorization Code, `openid profile email`, RS256 and S256 are advertised.
+- [x] Legacy `/oauth/authorize`, `/oauth/token`, and `/oauth/user` routes return 404.
+- [x] Backend lint, build, and all 33 automated tests pass on Node 22.
+- [x] Provider administration and linked-identity pages were verified against the running frontend/backend pair.
+- [ ] Run migration up/down against a disposable MySQL database. The current environment targets a shared remote database and must not be used for rollback acceptance.
+- [ ] Complete a standard relying-party Authorization Code + PKCE exchange, including wrong verifier and code replay cases, against an isolated test client environment.
+- [ ] Complete the remaining ordinary-user permission, callback cancellation/expiry, and responsive browser matrix before archiving this task.
+
 ## Pre-start checks
 
 - [ ] `prd.md` has no blocking open questions and passes convergence review.
