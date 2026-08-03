@@ -11,5 +11,6 @@ import { AuthPermissionService } from '../system/permission.service';
   controllers: [UserController],
   providers: [UserService, AuthPermissionService],
   imports: [ConfigModule, TypeOrmModule.forFeature([User, Role, Permission])],
+  exports: [UserService],
 })
 export class UserModule {}

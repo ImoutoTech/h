@@ -51,7 +51,7 @@ export class User {
   email: string;
 
   @Column({
-    nullable: false,
+    nullable: true,
   })
   password: string;
 
@@ -88,6 +88,7 @@ export class User {
   }
 
   public checkPassword(pwd: string): boolean {
+    if (!this.password) return false;
     return bcrypt.compareSync(pwd, this.password);
   }
 }

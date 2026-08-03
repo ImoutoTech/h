@@ -5,6 +5,8 @@ import {
 } from '@nestjs/platform-fastify';
 import { VersioningType, VERSION_NEUTRAL } from '@nestjs/common';
 import { AppModule } from './app.module';
+import { ConfigService } from '@nestjs/config';
+import { safeHouseCallbackUrl } from './module/identity/safe-house-callback';
 
 import {
   TransformInterceptor,
@@ -23,8 +25,13 @@ async function bootstrap() {
     type: VersioningType.URI,
   });
 
+  const config = app.get(ConfigService);
+  const safeHouseBase = config.getOrThrow<string>('SAFE_HOUSE_PUBLIC_URL');
+  safeHouseCallbackUrl(safeHouseBase, 'startup-validation');
+  const safeHouseUrl = new URL(safeHouseBase);
   app.enableCors({
-    origin: '*',
+    origin: safeHouseUrl.origin,
+    credentials: true,
   });
 
   app.useGlobalInterceptors(new TransformInterceptor());

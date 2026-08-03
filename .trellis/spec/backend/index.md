@@ -9,5 +9,6 @@ Project-specific guidance for this single-package NestJS service.
 | [Error Handling](./error-handling.md) | Validation, domain exceptions, global filters, and safe responses |
 | [Logging Guidelines](./logging-guidelines.md) | `HLogger` injection, event levels, and sensitive-data rules |
 | [Quality Guidelines](./quality-guidelines.md) | TypeScript baseline, review expectations, and verification commands |
+| [OAuth / OIDC Identity Center](./oauth-identity-guidelines.md) | Protocol, secret, callback, identity-linking, migration, and test contracts |
 
 These documents describe the repository as it exists. The generic NestJS text in `README.md` is starter content and is not a source of project-specific conventions.

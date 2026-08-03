@@ -10,6 +10,7 @@ import { UserModule } from './module/user/user.module';
 import { SubappModule } from './module/subapp/subapp.module';
 import { OauthModule } from './module/oauth/oauth.module';
 import { SystemModule } from './module/system/system.module';
+import { IdentityModule } from './module/identity/identity.module';
 
 import {
   LoggerModule,
@@ -35,7 +36,9 @@ import {
         username: configService.get('MYSQL_USER', 'root'),
         password: configService.get('MYSQL_PASSWORD', 'root'),
         database: configService.get('MYSQL_DATABASE', 'h'),
-        synchronize: true,
+        synchronize:
+          process.env.NODE_ENV !== 'production' &&
+          configService.get<string>('TYPEORM_SYNCHRONIZE', 'false') === 'true',
         autoLoadEntities: true,
       }),
     }),
@@ -45,6 +48,7 @@ import {
     LoggerModule,
     OauthModule,
     SystemModule,
+    IdentityModule,
   ],
   controllers: [AppController],
   providers: [
