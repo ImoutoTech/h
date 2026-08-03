@@ -7,6 +7,8 @@ import { VersioningType, VERSION_NEUTRAL } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { safeHouseCallbackUrl } from './module/identity/safe-house-callback';
+import { resolveListenPort } from './utils/listen-port';
+import { createCorsOptions } from './utils/cors-options';
 
 import {
   TransformInterceptor,
@@ -28,15 +30,12 @@ async function bootstrap() {
   const config = app.get(ConfigService);
   const safeHouseBase = config.getOrThrow<string>('SAFE_HOUSE_PUBLIC_URL');
   safeHouseCallbackUrl(safeHouseBase, 'startup-validation');
-  const safeHouseUrl = new URL(safeHouseBase);
-  app.enableCors({
-    origin: safeHouseUrl.origin,
-    credentials: true,
-  });
+  app.enableCors(createCorsOptions(safeHouseBase));
 
   app.useGlobalInterceptors(new TransformInterceptor());
   app.useGlobalFilters(new AllExceptionsFilter(), new HttpExceptionFilter());
 
-  await app.listen(4000, '0.0.0.0');
+  const port = resolveListenPort(config.get<string>('PORT'));
+  await app.listen(port, '0.0.0.0');
 }
 bootstrap();

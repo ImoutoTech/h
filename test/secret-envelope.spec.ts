@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   decryptSecret,
   encryptSecret,
+  parseSecretKey,
 } from '../src/module/identity/secret-envelope';
 
 describe('provider secret envelope', () => {
@@ -32,5 +33,19 @@ describe('provider secret envelope', () => {
         key,
       ),
     ).toThrow();
+  });
+
+  it('identifies the invalid key variable without exposing its value', () => {
+    expect(() => parseSecretKey('not-a-key', 'OIDC_CLIENT_SECRET_KEY')).toThrow(
+      'OIDC_CLIENT_SECRET_KEY must be a base64 encoded 32-byte key',
+    );
+    expect(() => parseSecretKey('not-a-key', 'PROVIDER_SECRET_KEY')).toThrow(
+      'PROVIDER_SECRET_KEY must be a base64 encoded 32-byte key',
+    );
+    try {
+      parseSecretKey('sensitive-invalid-value', 'PROVIDER_SECRET_KEY');
+    } catch (error) {
+      expect(String(error)).not.toContain('sensitive-invalid-value');
+    }
   });
 });

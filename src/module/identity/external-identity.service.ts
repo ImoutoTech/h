@@ -9,11 +9,11 @@ import {
   RedisService,
 } from '@reus-able/nestjs';
 import { randomBytes, createHash } from 'crypto';
-import type { DataSource, Repository } from 'typeorm';
+import { DataSource, type Repository } from 'typeorm';
 import { ProviderConfigService } from './provider-config.service';
 import { nativeImport } from '../oauth/native-import';
 import { UserService } from '../user/user.service';
-import { consumeJson } from './one-time-state';
+import { OneTimeStateService } from './one-time-state.service';
 
 interface ExternalProfile {
   providerUserId: string;
@@ -29,7 +29,6 @@ export class ExternalIdentityService {
   private identityRepo: Repository<ExternalIdentity>;
   @InjectRepository(User) private userRepo: Repository<User>;
   @Inject(RedisService) private cache: RedisService;
-  @Inject('h-redis-client') private redisClient: any;
   @Inject(HLOGGER_TOKEN) private logger: HLogger;
 
   constructor(
@@ -37,6 +36,7 @@ export class ExternalIdentityService {
     private readonly config: ConfigService,
     private readonly dataSource: DataSource,
     private readonly userService: UserService,
+    private readonly oneTimeState: OneTimeStateService,
   ) {}
 
   async list(userId: number) {
@@ -61,8 +61,7 @@ export class ExternalIdentityService {
   }
 
   async exchangeResult(id: string) {
-    const result = await consumeJson<Record<string, any>>(
-      this.redisClient,
+    const result = await this.oneTimeState.consume<Record<string, any>>(
       `external-result:${id}`,
     );
     if (!result) return { outcome: 'state_invalid_or_expired' };
@@ -98,8 +97,7 @@ export class ExternalIdentityService {
     state: string,
     error?: string,
   ) {
-    const transaction = await consumeJson<any>(
-      this.redisClient,
+    const transaction = await this.oneTimeState.consume<any>(
       `external-state:${state}`,
     );
     if (!transaction || transaction.provider !== provider)
@@ -324,8 +322,7 @@ export class ExternalIdentityService {
   }
 
   async bind(userId: number, token: string) {
-    const data = await consumeJson<any>(
-      this.redisClient,
+    const data = await this.oneTimeState.consume<any>(
       `external-binding:${token}`,
     );
     if (!data) throw new BusinessException('绑定凭证无效或已过期');

@@ -17,7 +17,10 @@ export class ClientSecretService {
     return encryptSecret(
       secret,
       `oidc-client:${appId}`,
-      parseSecretKey(this.config.get<string>('OIDC_CLIENT_SECRET_KEY')),
+      parseSecretKey(
+        this.config.get<string>('OIDC_CLIENT_SECRET_KEY'),
+        'OIDC_CLIENT_SECRET_KEY',
+      ),
       version,
     );
   }
@@ -35,7 +38,10 @@ export class ClientSecretService {
         keyVersion: secret.keyVersion,
       },
       `oidc-client:${appId}`,
-      parseSecretKey(this.config.get<string>('OIDC_CLIENT_SECRET_KEY')),
+      parseSecretKey(
+        this.config.get<string>('OIDC_CLIENT_SECRET_KEY'),
+        'OIDC_CLIENT_SECRET_KEY',
+      ),
     );
   }
 }

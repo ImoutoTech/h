@@ -24,7 +24,10 @@ export class OauthLoginCenter1722672000000 implements MigrationInterface {
     );
     let encryptedSecrets: Array<{ id: number; envelope: any }> = [];
     if (legacySecrets.length) {
-      const key = parseSecretKey(process.env.OIDC_CLIENT_SECRET_KEY);
+      const key = parseSecretKey(
+        process.env.OIDC_CLIENT_SECRET_KEY,
+        'OIDC_CLIENT_SECRET_KEY',
+      );
       const keyVersion = process.env.OIDC_CLIENT_SECRET_KEY_VERSION;
       if (!keyVersion)
         throw new Error('OIDC_CLIENT_SECRET_KEY_VERSION is required');
@@ -91,7 +94,10 @@ export class OauthLoginCenter1722672000000 implements MigrationInterface {
     );
     const plaintextSecrets: Array<{ id: number; value: string }> = [];
     if (encryptedSecrets.length) {
-      const key = parseSecretKey(process.env.OIDC_CLIENT_SECRET_KEY);
+      const key = parseSecretKey(
+        process.env.OIDC_CLIENT_SECRET_KEY,
+        'OIDC_CLIENT_SECRET_KEY',
+      );
       for (const secret of encryptedSecrets) {
         plaintextSecrets.push({
           id: secret.id,

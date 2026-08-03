@@ -5,6 +5,7 @@ import { IdentityController } from './identity.controller';
 import { ExternalIdentityService } from './external-identity.service';
 import { ProviderConfigService } from './provider-config.service';
 import { UserModule } from '../user/user.module';
+import { OneTimeStateService } from './one-time-state.service';
 
 @Module({
   imports: [
@@ -12,7 +13,11 @@ import { UserModule } from '../user/user.module';
     UserModule,
   ],
   controllers: [IdentityController],
-  providers: [ExternalIdentityService, ProviderConfigService],
+  providers: [
+    ExternalIdentityService,
+    ProviderConfigService,
+    OneTimeStateService,
+  ],
   exports: [ProviderConfigService],
 })
 export class IdentityModule {}

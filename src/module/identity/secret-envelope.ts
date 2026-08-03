@@ -8,10 +8,13 @@ export interface SecretEnvelope {
   keyVersion: string;
 }
 
-export function parseSecretKey(value: string): Buffer {
+export function parseSecretKey(
+  value: string,
+  label: 'OIDC_CLIENT_SECRET_KEY' | 'PROVIDER_SECRET_KEY',
+): Buffer {
   const key = Buffer.from(value || '', 'base64');
   if (key.length !== 32)
-    throw new Error('PROVIDER_SECRET_KEY must be a base64 encoded 32-byte key');
+    throw new Error(`${label} must be a base64 encoded 32-byte key`);
   return key;
 }
 

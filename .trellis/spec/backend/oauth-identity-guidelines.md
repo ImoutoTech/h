@@ -23,6 +23,9 @@ Use this contract whenever changing OIDC endpoints, sub-application credentials,
 - Authenticated bind callback: `{ outcome: 'bound', user }`; binding-token exchange: `{ outcome: 'bound', token, refresh, user }`.
 - Provider and confidential-client secrets use separate AES-256-GCM keys/envelopes. Plaintext is allowed only for one-time creation responses or transient provider memory.
 - Required deployment keys include `OIDC_ISSUER`, current signing private JWK/kid, optional previous public JWK, `OIDC_CLIENT_SECRET_KEY`, `PROVIDER_SECRET_KEY`, and validated `SAFE_HOUSE_PUBLIC_URL`.
+- `PORT` controls the internal listener and defaults to the historical `4000`; when set, it is a decimal integer in `1..65535`. Local environments without a reverse proxy must align it with the port in `OIDC_ISSUER` and `PUBLIC_URL`.
+- Install exactly one credentialed CORS policy, derived from the exact origin of `SAFE_HOUSE_PUBLIC_URL`, across `/external`, `/oauth`, and `/oidc`. Do not combine Nest/Fastify CORS with the legacy `FastifyCorsMiddleware` or `ALLOWED_ORIGIN` path exceptions.
+- Feature modules may inject only providers exported by imported modules. One-time Redis state is accessed through the Identity-owned adapter that injects the exported `RedisService`; never inject the upstream private raw-client token.
 - OIDC ESM packages run on Node 22 LTS through native dynamic import; the Nest build remains CommonJS.
 
 ### 4. Validation & Error Matrix
@@ -33,6 +36,9 @@ Use this contract whenever changing OIDC endpoints, sub-application credentials,
 - Redirect mismatch, missing/wrong verifier, code replay, or unsupported scope/flow -> standard protocol error; never redirect to an unregistered URI.
 - Unbinding the last login method -> domain error `不能解绑最后一种可用登录方式`.
 - Secret decryption or migration preflight failure -> abort before the first MySQL DDL because MySQL DDL implicitly commits.
+- Invalid `PORT` (sign, whitespace, fraction, text, zero, or above `65535`) -> fail startup without echoing the configured value.
+- Allowed safe-house origin -> credentialed CORS headers and authorized preflight `204`; another browser origin -> no CORS authorization; an Origin-less protocol/server client remains allowed.
+- Installed `RedisService` without atomic `getDel` capability -> fail closed; never degrade one-time state to separate `GET` plus `DEL`.
 
 ### 5. Good/Base/Bad Cases
 
@@ -47,6 +53,8 @@ Use this contract whenever changing OIDC endpoints, sub-application credentials,
 - Identity: first login, collision, concurrent binding, last-login invariant, sanitized outcomes, admin permission separation, and result replay.
 - Migration: cryptographic preflight before DDL, representative up/down on disposable MySQL, preservation/rollback guards.
 - Environment: repeat protocol checks under Node 22, real providers, and a standard relying-party client.
+- Startup wiring: compile the complete Nest feature-module provider graph using an actual `RedisService` prototype and resolve `ExternalIdentityService`; assert one atomic `getDel` per consume.
+- CORS/listener: test default and boundary ports, invalid port rejection, allowed-origin GET/OPTIONS headers, denied-origin absence of authorization, and a static regression proving the legacy middleware/path exclusions are absent.
 
 ### 7. Wrong vs Correct
 
@@ -62,4 +70,20 @@ if (redirectUri.startsWith(app.callback)) return providerToken;
 assertRegisteredRedirectUri(redirectUri);
 const resultId = await storeSingleUseResult(normalizedOutcome);
 return fixedSafeHouseCallback(resultId);
+```
+
+#### Wrong
+
+```typescript
+consumer.apply(FastifyCorsMiddleware).exclude('/oauth/(.*)').forRoutes('*');
+@Inject('h-redis-client') private readonly redisClient: RedisClient;
+await app.listen(4000);
+```
+
+#### Correct
+
+```typescript
+app.enableCors(corsOptionsForSafeHouse(safeHouseBase));
+constructor(private readonly oneTimeState: OneTimeStateService) {}
+await app.listen(resolveListenPort(config.get<string>('PORT')));
 ```

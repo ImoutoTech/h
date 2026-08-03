@@ -73,7 +73,10 @@ export class ProviderConfigService {
       const envelope = encryptSecret(
         body.clientSecret,
         provider,
-        parseSecretKey(this.config.get<string>('PROVIDER_SECRET_KEY')),
+        parseSecretKey(
+          this.config.get<string>('PROVIDER_SECRET_KEY'),
+          'PROVIDER_SECRET_KEY',
+        ),
         version,
       );
       item.secretCiphertext = envelope.ciphertext;
@@ -104,7 +107,10 @@ export class ProviderConfigService {
         keyVersion: item.keyVersion,
       },
       provider,
-      parseSecretKey(this.config.get<string>('PROVIDER_SECRET_KEY')),
+      parseSecretKey(
+        this.config.get<string>('PROVIDER_SECRET_KEY'),
+        'PROVIDER_SECRET_KEY',
+      ),
     );
     return { clientId: item.clientId, clientSecret };
   }
