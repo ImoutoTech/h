@@ -95,7 +95,7 @@ export class IdentityController {
       this.config.get<string>('SAFE_HOUSE_PUBLIC_URL'),
       resultId,
     );
-    return response.redirect(302, destination);
+    return response.redirect(destination, 302);
   }
 
   @Get('identities/:provider/start')

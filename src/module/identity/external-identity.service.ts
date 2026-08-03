@@ -112,7 +112,7 @@ export class ExternalIdentityService {
       const profile =
         provider === 'github'
           ? await this.githubProfile(code)
-          : await this.googleProfile(code, transaction);
+          : await this.googleProfile(code, state, transaction);
       if (!profile.emailVerified || !profile.email) {
         this.logger.warn(
           `外部登录失败 provider=${provider} outcome=verified_email_required`,
@@ -224,6 +224,7 @@ export class ExternalIdentityService {
 
   private async googleProfile(
     code: string,
+    state: string,
     transaction: any,
   ): Promise<ExternalProfile> {
     const credentials = await this.providers.credentials('google');
@@ -234,12 +235,16 @@ export class ExternalIdentityService {
       credentials.clientId,
       credentials.clientSecret,
     );
+    const currentUrl = new URL(callback);
+    currentUrl.searchParams.set('code', code);
+    currentUrl.searchParams.set('state', state);
     const tokens = await client.authorizationCodeGrant(
       configuration,
-      new URL(`${callback}?code=${encodeURIComponent(code)}&state=unused`),
+      currentUrl,
       {
         pkceCodeVerifier: transaction.verifier,
         expectedNonce: transaction.nonce,
+        expectedState: state,
       },
     );
     const claims = tokens.claims();
