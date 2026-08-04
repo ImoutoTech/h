@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, ValidationPipe } from '@nestjs/common';
+import { Module, ValidationPipe } from '@nestjs/common';
 import { APP_GUARD, APP_PIPE } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -10,12 +10,12 @@ import { UserModule } from './module/user/user.module';
 import { SubappModule } from './module/subapp/subapp.module';
 import { OauthModule } from './module/oauth/oauth.module';
 import { SystemModule } from './module/system/system.module';
+import { IdentityModule } from './module/identity/identity.module';
 
 import {
   LoggerModule,
   BusinessException,
   AuthGuard,
-  FastifyCorsMiddleware,
   RedisModule,
 } from '@reus-able/nestjs';
 
@@ -35,7 +35,9 @@ import {
         username: configService.get('MYSQL_USER', 'root'),
         password: configService.get('MYSQL_PASSWORD', 'root'),
         database: configService.get('MYSQL_DATABASE', 'h'),
-        synchronize: true,
+        synchronize:
+          process.env.NODE_ENV !== 'production' &&
+          configService.get<string>('TYPEORM_SYNCHRONIZE', 'false') === 'true',
         autoLoadEntities: true,
       }),
     }),
@@ -45,6 +47,7 @@ import {
     LoggerModule,
     OauthModule,
     SystemModule,
+    IdentityModule,
   ],
   controllers: [AppController],
   providers: [
@@ -72,8 +75,4 @@ import {
     },
   ],
 })
-export class AppModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(FastifyCorsMiddleware).exclude('/oauth/(.*)').forRoutes('*');
-  }
-}
+export class AppModule {}

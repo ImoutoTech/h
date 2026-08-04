@@ -1,6 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Like, type Repository } from 'typeorm';
+import { DataSource, Like, type Repository } from 'typeorm';
 import * as jwt from 'jsonwebtoken';
 import { CreateSubAppDto, UpdateSubAppDto } from '@/dto';
 import {
@@ -16,6 +16,7 @@ import { BusinessException } from '@reus-able/nestjs';
 import { isNil } from 'lodash';
 import { HLOGGER_TOKEN, HLogger, RedisService } from '@reus-able/nestjs';
 import { generateRandomString } from '@/utils';
+import { ClientSecretService } from '../oauth/client-secret.service';
 
 @Injectable()
 export class SubAppService {
@@ -37,7 +38,11 @@ export class SubAppService {
   @Inject(RedisService)
   private cache: RedisService;
 
-  constructor(private configService: ConfigService) {}
+  constructor(
+    private configService: ConfigService,
+    private readonly clientSecrets: ClientSecretService,
+    private readonly dataSource: DataSource,
+  ) {}
 
   private log(text: string) {
     this.logger.log(text, SubAppService.name);
@@ -72,6 +77,8 @@ export class SubAppService {
     attrs.forEach((key) => {
       app[key] = regData[key];
     });
+    app.redirectUris = [regData.callback];
+    app.clientType = 'public';
     app.owner = await this.userRepo.findOneBy({ id: owner });
     app.meta = meta;
 
@@ -230,19 +237,31 @@ export class SubAppService {
 
   async createAppSecret(id: string, owner: number) {
     const app = await this.getOneUserApp(owner, id);
+    // oidc-provider accepts one shared secret per client. Rotate the aggregate
+    // so the newly returned plaintext is always the active credential.
+    app.secrets.forEach((item) => {
+      item.status = false;
+    });
+    const plaintext = generateRandomString(32);
+    const envelope = this.clientSecrets.encrypt(plaintext, app.id);
     const secret = this.scRepo.create({
       app,
-      value: generateRandomString(16),
+      value: null,
+      secretCiphertext: envelope.ciphertext,
+      secretIv: envelope.iv,
+      secretTag: envelope.tag,
+      secretHint: envelope.hint,
+      keyVersion: envelope.keyVersion,
     });
 
     app.secrets.push(secret);
 
     await this.appRepo.save(app);
 
-    this.log(`用户#${owner}为子应用#${id}创建了新的秘钥${secret.value}`);
+    this.log(`用户#${owner}为子应用#${id}创建了新的秘钥#${secret.id}`);
 
     return {
-      value: secret.value,
+      value: plaintext,
       enabled: secret.status,
     };
   }
@@ -251,7 +270,7 @@ export class SubAppService {
     const app = await this.getOneUserApp(owner, id);
 
     const secretList = app.secrets.map((s) => ({
-      value: `${s.value.slice(0, 8)}********`,
+      value: s.secretHint || '未配置',
       enabled: s.status,
       id: s.id,
     }));
@@ -264,30 +283,39 @@ export class SubAppService {
   }
 
   async setAppSecret(app: string, id: number, owner: number) {
-    const secret = await this.scRepo.findOneOrFail({
-      where: {
-        app: {
-          owner: {
-            id: owner,
+    const enabled = await this.dataSource.transaction(async (manager) => {
+      const repo = manager.getRepository(SubAppSecret);
+      const secret = await repo.findOneOrFail({
+        where: {
+          app: {
+            owner: {
+              id: owner,
+            },
+            id: app,
           },
-          id: app,
+          id,
         },
-        id,
-      },
-      relations: {
-        app: {
-          owner: true,
+        relations: {
+          app: {
+            owner: true,
+          },
         },
-      },
+      });
+      const enabled = !secret.status;
+      if (enabled) {
+        await repo
+          .createQueryBuilder()
+          .update(SubAppSecret)
+          .set({ status: false })
+          .where('appId = :app', { app })
+          .execute();
+      }
+      secret.status = enabled;
+      await repo.save(secret);
+      return enabled;
     });
 
-    secret.status = !secret.status;
-
-    await this.scRepo.save(secret);
-
-    this.log(
-      `用户#${owner}设置子应用#${id}的秘钥${secret.value}为${secret.status}`,
-    );
+    this.log(`用户#${owner}设置子应用#${app}的秘钥#${id}为${enabled}`);
 
     return null;
   }
@@ -312,7 +340,7 @@ export class SubAppService {
 
     await this.scRepo.delete(secret);
 
-    this.log(`用户#${owner}删除子应用#${id}的秘钥${secret.value}`);
+    this.log(`用户#${owner}删除子应用#${app}的秘钥#${id}`);
 
     return null;
   }

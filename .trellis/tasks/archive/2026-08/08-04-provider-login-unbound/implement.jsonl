@@ -1,0 +1,4 @@
+{"file":".trellis/spec/backend/oauth-identity-guidelines.md","reason":"Backend callback, identity ownership, one-time state, concurrency, and required test contracts."}
+{"file":".trellis/spec/backend/error-handling.md","reason":"Typed client-visible domain outcomes and safe error translation."}
+{"file":".trellis/spec/backend/quality-guidelines.md","reason":"Backend implementation boundaries and verification commands."}
+{"file":".trellis/tasks/archive/2026-08/08-03-oauth-login-center/research/frontend-contract.md","reason":"Existing cross-repository callback result contract and compatibility context."}

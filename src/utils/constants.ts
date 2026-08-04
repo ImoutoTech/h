@@ -101,6 +101,11 @@ export const PERMISSION_LIST = [
     description: '查看所有用户',
     code: 'bJqZjnMW',
   },
+  {
+    name: '管理外部登录提供方',
+    description: '查看和修改 GitHub、Google 登录配置',
+    code: 'oauth-provider-admin',
+  },
 ];
 
 export const PERMISSION_CODE_MAP = PERMISSION_LIST.reduce((acc, curr) => {

@@ -122,11 +122,15 @@ export class UserService {
       throw new BusinessException('密码错误');
     }
 
+    return this.issueSession(user);
+  }
+
+  issueSession(user: User) {
     const tokenBaseData = {
       email: user.email,
       role: user.role,
       id: user.id,
-      roles: user.roles.map((r) => r.id),
+      roles: user.roles?.map((r) => r.id) || [],
     };
 
     const token = jwt.sign(
@@ -151,7 +155,7 @@ export class UserService {
       },
     );
 
-    this.log(`用户${param.email}登录成功`);
+    this.log(`用户${user.email}登录成功`);
     return {
       token: `Bearer ${token}`,
       refresh: `Bearer ${refresh}`,

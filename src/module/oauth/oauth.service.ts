@@ -1,26 +1,20 @@
-import { OauthAuthorizeDto } from '@/dto';
-import { SubApp, User, UserExportData } from '@/entity';
-import { generateRandomString } from '@/utils';
+import { User, SubApp } from '@/entity';
 import { Inject, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  BusinessException,
-  HLOGGER_TOKEN,
-  HLogger,
-  RedisService,
-} from '@reus-able/nestjs';
-import { isNil } from 'lodash';
-import { Repository } from 'typeorm';
-
-interface RedisCodeData {
-  user: number;
-}
+import { BusinessException, RedisService } from '@reus-able/nestjs';
+import type { Repository } from 'typeorm';
+import { nativeImport } from './native-import';
+import { createRedisAdapter } from './redis-adapter';
+import { ClientSecretService } from './client-secret.service';
+import { AtomicReloader } from './atomic-reloader';
+import { publicJwks, toPublicJwk } from './public-jwks';
+import { Duplex } from 'stream';
+import { ServerResponse } from 'http';
+import { isProviderResumeContinuation } from './continuation-url';
 
 @Injectable()
 export class OAuthService {
-  @Inject(HLOGGER_TOKEN)
-  private logger: HLogger;
-
   @InjectRepository(SubApp)
   private appRepo: Repository<SubApp>;
 
@@ -30,142 +24,253 @@ export class OAuthService {
   @Inject(RedisService)
   private cache: RedisService;
 
-  private log(text: string) {
-    this.logger.log(text, OAuthService.name);
+  private providers = new AtomicReloader<any>();
+  private currentPublicJwk: Record<string, any>;
+  private previousPublicJwk?: Record<string, any>;
+
+  constructor(
+    private readonly config: ConfigService,
+    private readonly clientSecrets: ClientSecretService,
+  ) {}
+
+  async initialize() {
+    const apps = await this.appRepo.find({
+      relations: { secrets: true },
+      order: { id: 'ASC' },
+    });
+    const fingerprint = JSON.stringify(
+      apps.map((app) => ({
+        id: app.id,
+        redirectUris: app.redirectUris,
+        clientType: app.clientType,
+        secrets: app.secrets
+          ?.map((secret) => [
+            secret.id,
+            secret.status,
+            secret.secretCiphertext,
+            secret.secretIv,
+            secret.secretTag,
+            secret.keyVersion,
+          ])
+          .sort(([left], [right]) => Number(left) - Number(right)),
+      })),
+    );
+    return this.providers.get(fingerprint, () => this.build(apps));
   }
 
-  private warn(text: string) {
-    this.logger.warn(text, OAuthService.name);
-  }
-
-  private getCodeRedisKey(code: string) {
-    const CODE_REDIS_PREFIX = 'oauth-code-';
-
-    return `${CODE_REDIS_PREFIX}${code}`;
-  }
-
-  private getTokenRedisKey(code: string) {
-    const CODE_REDIS_PREFIX = 'oauth-token-';
-
-    return `${CODE_REDIS_PREFIX}${code}`;
-  }
-
-  async authorize(body: OauthAuthorizeDto, userId: number) {
-    const app = await this.appRepo.findOneOrFail({
-      where: {
-        id: body.client_id,
+  private async build(apps: SubApp[]) {
+    const issuer = this.config.get<string>('OIDC_ISSUER');
+    const jwkText = this.config.get<string>('OIDC_SIGNING_JWK');
+    const kid = this.config.get<string>('OIDC_SIGNING_KID');
+    if (!issuer || !jwkText || !kid) {
+      throw new Error(
+        'OIDC_ISSUER, OIDC_SIGNING_JWK and OIDC_SIGNING_KID are required',
+      );
+    }
+    const jwk = JSON.parse(jwkText);
+    jwk.kid = kid;
+    this.currentPublicJwk = toPublicJwk(jwk);
+    const previousJwkText = this.config.get<string>('OIDC_PREVIOUS_PUBLIC_JWK');
+    const previousKid = this.config.get<string>('OIDC_PREVIOUS_KID');
+    if (previousJwkText) {
+      const previous = JSON.parse(previousJwkText);
+      previous.kid = previousKid || previous.kid;
+      if (!previous.kid || previous.d) {
+        throw new Error(
+          'OIDC_PREVIOUS_PUBLIC_JWK must be public and have a kid',
+        );
+      }
+      this.previousPublicJwk = previous;
+    } else {
+      this.previousPublicJwk = undefined;
+    }
+    const clients = apps.map((app) => ({
+      client_id: app.id,
+      redirect_uris: app.redirectUris || [app.callback],
+      response_types: ['code'],
+      grant_types: ['authorization_code'],
+      token_endpoint_auth_method:
+        app.clientType === 'confidential' ? 'client_secret_post' : 'none',
+      client_secret:
+        app.clientType === 'confidential'
+          ? this.clientSecrets.decrypt(
+              app.secrets?.find(
+                (secret) => secret.status && secret.secretCiphertext,
+              ),
+              app.id,
+            )
+          : undefined,
+    }));
+    const { Provider, interactionPolicy } = await nativeImport('oidc-provider');
+    const interactionPolicyConfig = interactionPolicy.base();
+    interactionPolicyConfig
+      .get('consent')
+      .checks.add(
+        new interactionPolicy.Check(
+          'consent_required_each_time',
+          'every authorization request requires explicit consent',
+          (ctx: any) =>
+            ctx.oidc.result?.consent
+              ? interactionPolicy.Check.NO_NEED_TO_PROMPT
+              : interactionPolicy.Check.REQUEST_PROMPT,
+        ),
+        0,
+      );
+    const provider = new Provider(issuer, {
+      adapter: createRedisAdapter(this.cache),
+      clients,
+      jwks: { keys: [jwk] },
+      // oidc-provider resolves custom routes relative to the issuer pathname.
+      routes: { jwks: '/jwks' },
+      claims: {
+        openid: ['sub'],
+        profile: ['nickname', 'picture'],
+        email: ['email', 'email_verified'],
       },
-      relations: {
-        meta: true,
+      conformIdTokenClaims: false,
+      grantTypes: ['authorization_code'],
+      responseTypes: ['code'],
+      features: {
+        devInteractions: { enabled: false },
+        deviceFlow: { enabled: false },
+        revocation: { enabled: false },
+        introspection: { enabled: false },
+        userinfo: { enabled: true },
+      },
+      pkce: { required: () => true, methods: ['S256'] },
+      scopes: ['openid', 'profile', 'email'],
+      ttl: {
+        AuthorizationCode: 120,
+        AccessToken: 600,
+        IdToken: 600,
+        Interaction: 600,
+      },
+      interactions: {
+        policy: interactionPolicyConfig,
+        url: (_ctx: any, interaction: any) =>
+          `/oauth/interaction/${interaction.uid}`,
+      },
+      findAccount: async (_ctx: any, id: string) => {
+        const user = await this.userRepo.findOneBy({ id: Number(id) });
+        if (!user) return undefined;
+        return {
+          accountId: String(user.id),
+          claims: async (_use: string, scope: string) => ({
+            sub: String(user.id),
+            ...(scope.includes('profile')
+              ? { nickname: user.nickname, picture: user.avatar }
+              : {}),
+            ...(scope.includes('email')
+              ? { email: user.email, email_verified: true }
+              : {}),
+          }),
+        };
       },
     });
+    return provider;
+  }
 
-    if (!body.redirect_uri.startsWith(app.callback)) {
-      this.warn(`用户#${userId}尝试授权子应用${app.id}失败，非法回调地址`);
-      throw new BusinessException('非法回调地址');
-    }
+  jwks() {
+    if (!this.currentPublicJwk)
+      throw new Error('OIDC provider is not initialized');
+    return publicJwks(this.currentPublicJwk, this.previousPublicJwk);
+  }
 
-    const token = generateRandomString(16);
-    const redisKey = this.getCodeRedisKey(token);
-
-    app.meta.visitNum += 1;
-    this.appRepo.save(app);
-
-    await this.cache.jsonSet(
-      redisKey,
-      {
-        user: userId,
-      },
-      600,
-    );
-
-    this.log(`用户#${userId}尝试授权子应用${app.id}成功`);
-
+  async discovery() {
+    const provider = await this.initialize();
     return {
-      state: body.state,
-      access_token: token,
+      issuer: this.config.get<string>('OIDC_ISSUER'),
+      authorization_endpoint: provider.urlFor('authorization'),
+      token_endpoint: provider.urlFor('token'),
+      userinfo_endpoint: provider.urlFor('userinfo'),
+      jwks_uri: provider.urlFor('jwks'),
+      response_types_supported: ['code'],
+      grant_types_supported: ['authorization_code'],
+      subject_types_supported: ['public'],
+      id_token_signing_alg_values_supported: ['RS256'],
+      scopes_supported: ['openid', 'profile', 'email'],
+      claims_supported: [
+        'sub',
+        'nickname',
+        'picture',
+        'email',
+        'email_verified',
+      ],
+      code_challenge_methods_supported: ['S256'],
+      token_endpoint_auth_methods_supported: ['none', 'client_secret_post'],
     };
   }
 
-  async getToken(id: string, secret: string, code: string, url: string) {
-    const redisKey = this.getCodeRedisKey(code);
-    const codeData = await this.cache.jsonGet<RedisCodeData>(redisKey);
-
-    if (isNil(codeData)) {
-      this.warn(`子应用${id}获取token失败，非法code`);
-      throw new BusinessException('code错误或已经过期');
-    }
-
-    const app = await this.appRepo.findOneOrFail({
-      where: {
-        id,
-      },
-      relations: {
-        secrets: true,
-      },
-    });
-
-    if (!url.startsWith(app.callback)) {
-      this.warn(`子应用${app.id}获取token失败，非法回调地址`);
-      throw new BusinessException('非法回调地址');
-    }
-
-    if (
-      !app.secrets
-        .filter((s) => s.status)
-        .map((s) => s.value)
-        .includes(secret)
-    ) {
-      this.warn(`子应用${app.id}获取token失败，非法秘钥`);
-      throw new BusinessException('非法秘钥');
-    }
-
-    const token = generateRandomString(16);
-    const tokenKey = this.getTokenRedisKey(token);
-
-    await this.cache.jsonSet(
-      tokenKey,
-      {
-        user: codeData.user,
-      },
-      600,
-    );
-    await this.cache.del(redisKey);
-
-    this.log(`子应用${app.id}获取token成功`);
-
+  async interaction(uid: string, request: any, response: any) {
+    const provider = await this.initialize();
+    const details = await provider.interactionDetails(request, response);
+    if (details.uid !== uid)
+      throw new BusinessException('授权交互无效或已过期');
+    const app = await this.appRepo.findOneBy({ id: details.params.client_id });
     return {
-      access_token: token,
-      scope: 'user',
-      token_type: 'Bearer',
+      uid,
+      client: app
+        ? { id: app.id, name: app.name, description: app.description }
+        : undefined,
+      prompt: details.prompt.name,
+      scope: details.params.scope,
     };
   }
 
-  async getUser(token: string) {
-    if (!token || !token.startsWith('Bearer ')) {
-      throw new BusinessException('非法秘钥');
+  async finish(
+    uid: string,
+    approved: boolean,
+    userId: number,
+    request: any,
+    response: any,
+  ) {
+    const provider = await this.initialize();
+    const details = await provider.interactionDetails(request, response);
+    if (details.uid !== uid)
+      throw new BusinessException('授权交互无效或已过期');
+    let grantId = details.grantId;
+    if (approved && !grantId) {
+      const grant = new provider.Grant({
+        accountId: String(userId),
+        clientId: details.params.client_id,
+      });
+      grant.addOIDCScope(details.params.scope);
+      grantId = await grant.save();
     }
-
-    const key = token.split(' ')?.[1];
-    const redisData = await this.cache.jsonGet<RedisCodeData>(
-      this.getTokenRedisKey(key),
-    );
-
-    if (isNil(redisData)) {
-      throw new BusinessException('非法秘钥');
+    const result = approved
+      ? {
+          login: { accountId: String(userId) },
+          consent: { grantId },
+        }
+      : {
+          error: 'access_denied',
+          error_description: 'End-User denied the authorization request',
+        };
+    const capture = new ServerResponse(request);
+    const socket = new Duplex({
+      read() {},
+      write(_chunk, _encoding, callback) {
+        callback();
+      },
+    });
+    capture.assignSocket(socket as any);
+    await provider.interactionFinished(request, capture, result, {
+      mergeWithLastSubmission: false,
+    });
+    const continuationUrl = String(capture.getHeader('location') || '');
+    const setCookie = capture.getHeader('set-cookie');
+    capture.detachSocket(socket as any);
+    const issuer = this.config.get<string>('OIDC_ISSUER', '');
+    if (!isProviderResumeContinuation(continuationUrl, issuer)) {
+      throw new BusinessException('授权继续地址无效');
     }
-
-    await this.cache.del(this.getTokenRedisKey(key));
-
-    const cached = await this.cache.jsonGet<UserExportData>(
-      `user-${redisData.user}`,
-    );
-    if (cached) {
-      return cached;
-    }
-
-    const user = await this.userRepo.findOneByOrFail({ id: redisData.user });
-
-    return user.getData();
+    return {
+      continuationUrl,
+      cookies: Array.isArray(setCookie)
+        ? setCookie
+        : setCookie
+          ? [String(setCookie)]
+          : [],
+    };
   }
 }

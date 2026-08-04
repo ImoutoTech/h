@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 1
-- **Last Active**: 2026-08-03
+- **Total Sessions**: 3
+- **Last Active**: 2026-08-04
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~28 | Active |
+| `journal-1.md` | ~87 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,8 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 3 | 2026-08-04 | 修复未绑定 Provider 登录自动建号 | `4c14225`, `e489321` | `codex/oauth-login-center` |
+| 2 | 2026-08-04 | 完成 OAuth 登录中心验收 | `f358fb5`, `f138a42`, `643d9f2` | `codex/oauth-login-center` |
 | 1 | 2026-08-03 | Bootstrap project guidelines | `fbc68e7` | `master` |
 <!-- @@@/auto:session-history -->
 

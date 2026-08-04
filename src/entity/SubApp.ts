@@ -25,6 +25,8 @@ export interface SubAppExportData {
   visitNum: number;
   description: string;
   meta: SubAppMetaExportData;
+  redirectUris: string[];
+  clientType: 'public' | 'confidential';
 }
 
 @Entity({
@@ -48,6 +50,12 @@ export class SubApp {
     nullable: false,
   })
   callback: string;
+
+  @Column({ type: 'json', nullable: false })
+  redirectUris: string[];
+
+  @Column({ type: 'varchar', length: 20, default: 'public' })
+  clientType: 'public' | 'confidential';
 
   @Column({
     nullable: false,
@@ -91,6 +99,8 @@ export class SubApp {
       visitNum: this.meta?.visitNum,
       description: this.description,
       meta: this.meta?.getData(),
+      redirectUris: this.redirectUris || (this.callback ? [this.callback] : []),
+      clientType: this.clientType || 'public',
     };
   }
 }
