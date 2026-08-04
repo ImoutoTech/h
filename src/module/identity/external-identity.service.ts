@@ -142,14 +142,8 @@ export class ExternalIdentityService {
             user: winner.user.getData(),
           };
         } else {
-          const emailOwner = await this.userRepo.findOneBy({
-            email: profile.email,
-          });
-          if (!emailOwner || transaction.bindUserId) throw reason;
-          result = {
-            outcome: 'binding_required',
-            bindingToken: await this.createBinding(provider, profile),
-          };
+          if (transaction.bindUserId) throw reason;
+          result = { outcome: 'identity_not_bound' };
         }
       }
     } catch (reason) {
@@ -164,6 +158,7 @@ export class ExternalIdentityService {
         where: { id: result.user.id },
         relations: ['roles'],
       });
+      if (!user) throw new BusinessException('绑定用户不存在');
       return {
         outcome: result.outcome,
         ...this.userService.issueSession(user),
@@ -281,23 +276,8 @@ export class ExternalIdentityService {
           user: existing.user.getData(),
         };
       }
-      let user: User;
-      if (bindUserId) user = await users.findOneBy({ id: bindUserId });
-      else {
-        const emailOwner = await users.findOneBy({ email: profile.email });
-        if (emailOwner)
-          return {
-            outcome: 'binding_required',
-            bindingToken: await this.createBinding(provider, profile),
-          };
-        user = users.create({
-          email: profile.email,
-          nickname: profile.displayName || profile.email.split('@')[0],
-          avatar: profile.avatarUrl,
-          password: null,
-        });
-        await users.save(user);
-      }
+      if (!bindUserId) return { outcome: 'identity_not_bound' };
+      const user = await users.findOneBy({ id: bindUserId });
       if (!user) throw new BusinessException('绑定用户不存在');
       await identities.save(
         identities.create({
@@ -314,19 +294,6 @@ export class ExternalIdentityService {
         user: user.getData(),
       };
     });
-  }
-
-  private async createBinding(
-    provider: ExternalProvider,
-    profile: ExternalProfile,
-  ) {
-    const token = randomBytes(32).toString('base64url');
-    await this.cache.jsonSet(
-      `external-binding:${token}`,
-      { provider, profile },
-      600,
-    );
-    return token;
   }
 
   async bind(userId: number, token: string) {

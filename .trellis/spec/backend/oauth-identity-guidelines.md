@@ -25,6 +25,7 @@ Use this contract whenever changing OIDC endpoints, sub-application credentials,
 - External callback results are Redis-backed, single-use, and short-lived. URLs contain only an opaque result ID, never local/provider tokens or binding tokens.
 - External-provider callbacks preserve every protocol parameter required by the standards client. In particular, Google callback `iss` must flow through `ExternalCallbackDto -> IdentityController -> ExternalIdentityService` and be included in the reconstructed callback URL passed to `openid-client`; never rebuild that URL from only `code` and `state`, and never disable issuer validation to compensate.
 - `authenticated` session result: `{ outcome, token, refresh, user }`.
+- A verified Provider identity without an existing `(provider, provider_user_id)` row returns `{ outcome: 'identity_not_bound' }`; an unauthenticated callback never creates a user, external identity, local session, or binding token.
 - Authenticated bind callback: `{ outcome: 'bound', user }`; binding-token exchange: `{ outcome: 'bound', token, refresh, user }`.
 - Provider and confidential-client secrets use separate AES-256-GCM keys/envelopes. Plaintext is allowed only for one-time creation responses or transient provider memory.
 - Required deployment keys include `OIDC_ISSUER`, current signing private JWK/kid, optional previous public JWK, `OIDC_CLIENT_SECRET_KEY`, `PROVIDER_SECRET_KEY`, and validated `SAFE_HOUSE_PUBLIC_URL`.
@@ -40,7 +41,7 @@ Use this contract whenever changing OIDC endpoints, sub-application credentials,
 - Missing/invalid/replayed state or result ID -> typed `state_invalid_or_expired` without echoing state.
 - Google callback missing or mismatched `iss` -> reject through `openid-client` as `provider_error`; do not synthesize an issuer or bypass RFC 9207 validation.
 - Disabled provider -> `provider_disabled`; incomplete credentials -> `provider_misconfigured`; sanitized upstream failure -> `provider_error`; cancellation -> `cancelled`.
-- Existing verified email without an identity -> `binding_required`; unverified/missing email -> `verified_email_required`.
+- Verified Provider identity without an external-identity binding -> `identity_not_bound`; unverified/missing email -> `verified_email_required`.
 - Redirect mismatch, missing/wrong verifier, code replay, or unsupported scope/flow -> standard protocol error; never redirect to an unregistered URI.
 - Unbinding the last login method -> domain error `不能解绑最后一种可用登录方式`.
 - Secret decryption or migration preflight failure -> abort before the first MySQL DDL because MySQL DDL implicitly commits.
@@ -52,7 +53,9 @@ Use this contract whenever changing OIDC endpoints, sub-application credentials,
 ### 5. Good/Base/Bad Cases
 
 - Good: consume callback/result/binding data with atomic Redis `GETDEL`, then return a normalized projection.
+- Good: an unauthenticated callback with no identity row returns `identity_not_bound` before any user/identity save or session issuance; only a callback state carrying an authenticated `bindUserId` may create the identity relation.
 - Base: account-link uniqueness races read the winning identity and verify ownership before succeeding.
+- Bad: treat a verified Provider email as registration consent, create a passwordless user during login, or emit a binding token for an unbound login callback.
 - Bad: prefix-match redirect URIs, put tokens in callback URLs, persist provider tokens, expose ciphertext envelopes, or return raw database/provider errors.
 - Bad: invoke TypeORM's stock migration run/revert CLI or print caught migration errors, because SQL parameter logs can disclose plaintext or encrypted secret material.
 
@@ -60,7 +63,7 @@ Use this contract whenever changing OIDC endpoints, sub-application credentials,
 
 - OIDC: mounted issuer routes, Discovery/JWKS claims, exact redirect rejection, S256 enforcement, code/state consume/replay, issuer-owned approve/deny resume allowlist, consent on every request, and key rotation.
 - Storage: Redis consume/revoke/grant indexing; AES key/AAD isolation and tamper detection; client reload generation concurrency.
-- Identity: first login, collision, concurrent binding, last-login invariant, sanitized outcomes, admin permission separation, and result replay.
+- Identity: unbound login has no database/session side effects, existing-identity login, authenticated binding, concurrent binding/ownership races, last-login invariant, sanitized outcomes, admin permission separation, and result replay.
 - Google protocol regression: assert the exact callback URL passed to `authorizationCodeGrant` contains `code`, `state`, and the provider-returned `iss`, while PKCE verifier, expected state, and expected nonce remain enabled.
 - Migration: cryptographic preflight before DDL, representative up/down on disposable MySQL, preservation/rollback guards.
 - Migration CLI: statically assert run/revert scripts use the safe runner and its catch path cannot serialize TypeORM errors; execute down/up on a disposable database and assert output contains no `query:`, `PARAMETERS`, environment secrets, or database secret values.
@@ -83,6 +86,23 @@ if (redirectUri.startsWith(app.callback)) return providerToken;
 assertRegisteredRedirectUri(redirectUri);
 const resultId = await storeSingleUseResult(normalizedOutcome);
 return fixedSafeHouseCallback(resultId);
+```
+
+#### Wrong
+
+```typescript
+if (!existingIdentity) {
+  const user = await users.save(users.create({ email: profile.email }));
+  return authenticate(user);
+}
+```
+
+#### Correct
+
+```typescript
+if (!existingIdentity && !bindUserId) {
+  return { outcome: 'identity_not_bound' };
+}
 ```
 
 #### Wrong
