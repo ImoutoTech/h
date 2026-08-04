@@ -14,10 +14,14 @@ Use this contract whenever changing OIDC endpoints, sub-application credentials,
 - Identity management: `GET /external/identities/me`, `GET /external/identities/:provider/start`, `POST /external/identities/bind`, `DELETE /external/identities/:id`.
 - Provider administration: `GET /external/admin/providers`, `POST /external/admin/providers/:provider` with permission `oauth-provider-admin`.
 - Database uniqueness: `(provider, provider_user_id)` identifies an external identity; redirect URI comparison is exact.
+- Migration commands: `pnpm migration:run` and `pnpm migration:revert` invoke `src/database/run-migrations.ts`; `migration:show` remains read-only.
 
 ### 3. Contracts
 
 - OIDC supports only Authorization Code, `S256` PKCE, and `openid profile email`; no refresh token or offline access.
+- Every authorization request requires a fresh explicit consent interaction, even when an OIDC session or grant already exists.
+- Validate the URL returned by `interactionFinished` as an issuer-owned `/oidc/auth/:id` resume URL. The provider performs the subsequent exact registered-client callback validation.
+- Derive OIDC Redis key suffixes from a one-way digest of codes, tokens, session IDs, UIDs, and grant IDs so infrastructure key logging cannot disclose bearer material.
 - External callback results are Redis-backed, single-use, and short-lived. URLs contain only an opaque result ID, never local/provider tokens or binding tokens.
 - External-provider callbacks preserve every protocol parameter required by the standards client. In particular, Google callback `iss` must flow through `ExternalCallbackDto -> IdentityController -> ExternalIdentityService` and be included in the reconstructed callback URL passed to `openid-client`; never rebuild that URL from only `code` and `state`, and never disable issuer validation to compensate.
 - `authenticated` session result: `{ outcome, token, refresh, user }`.
@@ -28,6 +32,8 @@ Use this contract whenever changing OIDC endpoints, sub-application credentials,
 - Install exactly one credentialed CORS policy, derived from the exact origin of `SAFE_HOUSE_PUBLIC_URL`, across `/external`, `/oauth`, and `/oidc`. Do not combine Nest/Fastify CORS with the legacy `FastifyCorsMiddleware` or `ALLOWED_ORIGIN` path exceptions.
 - Feature modules may inject only providers exported by imported modules. One-time Redis state is accessed through the Identity-owned adapter that injects the exported `RedisService`; never inject the upstream private raw-client token.
 - OIDC ESM packages run on Node 22 LTS through native dynamic import; the Nest build remains CommonJS.
+- Migration run/revert must not use TypeORM's stock CLI because it enables query/parameter logging. The repository runner emits only fixed success/failure text and must never serialize TypeORM errors containing SQL or secret parameters.
+- Register `application/x-www-form-urlencoded` support without colliding with Nest/Fastify's default parser, and forward the parsed form body to `oidc-provider` for token requests.
 
 ### 4. Validation & Error Matrix
 
@@ -41,20 +47,24 @@ Use this contract whenever changing OIDC endpoints, sub-application credentials,
 - Invalid `PORT` (sign, whitespace, fraction, text, zero, or above `65535`) -> fail startup without echoing the configured value.
 - Allowed safe-house origin -> credentialed CORS headers and authorized preflight `204`; another browser origin -> no CORS authorization; an Origin-less protocol/server client remains allowed.
 - Installed `RedisService` without atomic `getDel` capability -> fail closed; never degrade one-time state to separate `GET` plus `DEL`.
+- Migration failure -> fixed non-sensitive error text and non-zero exit status; never log the TypeORM error object, query, or parameters.
 
 ### 5. Good/Base/Bad Cases
 
 - Good: consume callback/result/binding data with atomic Redis `GETDEL`, then return a normalized projection.
 - Base: account-link uniqueness races read the winning identity and verify ownership before succeeding.
 - Bad: prefix-match redirect URIs, put tokens in callback URLs, persist provider tokens, expose ciphertext envelopes, or return raw database/provider errors.
+- Bad: invoke TypeORM's stock migration run/revert CLI or print caught migration errors, because SQL parameter logs can disclose plaintext or encrypted secret material.
 
 ### 6. Tests Required
 
-- OIDC: mounted issuer routes, Discovery/JWKS claims, exact redirect rejection, S256 enforcement, code/state consume/replay, approve/deny continuation allowlist, and key rotation.
+- OIDC: mounted issuer routes, Discovery/JWKS claims, exact redirect rejection, S256 enforcement, code/state consume/replay, issuer-owned approve/deny resume allowlist, consent on every request, and key rotation.
 - Storage: Redis consume/revoke/grant indexing; AES key/AAD isolation and tamper detection; client reload generation concurrency.
 - Identity: first login, collision, concurrent binding, last-login invariant, sanitized outcomes, admin permission separation, and result replay.
 - Google protocol regression: assert the exact callback URL passed to `authorizationCodeGrant` contains `code`, `state`, and the provider-returned `iss`, while PKCE verifier, expected state, and expected nonce remain enabled.
 - Migration: cryptographic preflight before DDL, representative up/down on disposable MySQL, preservation/rollback guards.
+- Migration CLI: statically assert run/revert scripts use the safe runner and its catch path cannot serialize TypeORM errors; execute down/up on a disposable database and assert output contains no `query:`, `PARAMETERS`, environment secrets, or database secret values.
+- Token transport: boot the full Nest/Fastify application and complete a standard-client form-encoded token exchange to catch parser registration collisions and missing body forwarding.
 - Environment: repeat protocol checks under Node 22, real providers, and a standard relying-party client.
 - Startup wiring: compile the complete Nest feature-module provider graph using an actual `RedisService` prototype and resolve `ExternalIdentityService`; assert one atomic `getDel` per consume.
 - CORS/listener: test default and boundary ports, invalid port rejection, allowed-origin GET/OPTIONS headers, denied-origin absence of authorization, and a static regression proving the legacy middleware/path exclusions are absent.
@@ -107,4 +117,22 @@ await app.listen(4000);
 app.enableCors(corsOptionsForSafeHouse(safeHouseBase));
 constructor(private readonly oneTimeState: OneTimeStateService) {}
 await app.listen(resolveListenPort(config.get<string>('PORT')));
+```
+
+#### Wrong
+
+```json
+{
+  "migration:run": "typeorm migration:run",
+  "migration:revert": "typeorm migration:revert"
+}
+```
+
+#### Correct
+
+```json
+{
+  "migration:run": "node -r ts-node/register -r tsconfig-paths/register src/database/run-migrations.ts run",
+  "migration:revert": "node -r ts-node/register -r tsconfig-paths/register src/database/run-migrations.ts revert"
+}
 ```
