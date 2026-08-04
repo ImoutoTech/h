@@ -11,7 +11,7 @@ import { AtomicReloader } from './atomic-reloader';
 import { publicJwks, toPublicJwk } from './public-jwks';
 import { Duplex } from 'stream';
 import { ServerResponse } from 'http';
-import { isRegisteredContinuation } from './continuation-url';
+import { isProviderResumeContinuation } from './continuation-url';
 
 @Injectable()
 export class OAuthService {
@@ -101,7 +101,21 @@ export class OAuthService {
             )
           : undefined,
     }));
-    const { Provider } = await nativeImport('oidc-provider');
+    const { Provider, interactionPolicy } = await nativeImport('oidc-provider');
+    const interactionPolicyConfig = interactionPolicy.base();
+    interactionPolicyConfig
+      .get('consent')
+      .checks.add(
+        new interactionPolicy.Check(
+          'consent_required_each_time',
+          'every authorization request requires explicit consent',
+          (ctx: any) =>
+            ctx.oidc.result?.consent
+              ? interactionPolicy.Check.NO_NEED_TO_PROMPT
+              : interactionPolicy.Check.REQUEST_PROMPT,
+        ),
+        0,
+      );
     const provider = new Provider(issuer, {
       adapter: createRedisAdapter(this.cache),
       clients,
@@ -132,6 +146,7 @@ export class OAuthService {
         Interaction: 600,
       },
       interactions: {
+        policy: interactionPolicyConfig,
         url: (_ctx: any, interaction: any) =>
           `/oauth/interaction/${interaction.uid}`,
       },
@@ -245,16 +260,8 @@ export class OAuthService {
     const continuationUrl = String(capture.getHeader('location') || '');
     const setCookie = capture.getHeader('set-cookie');
     capture.detachSocket(socket as any);
-    const app = await this.appRepo.findOneBy({
-      id: String(details.params.client_id),
-    });
-    if (
-      !app ||
-      !isRegisteredContinuation(
-        continuationUrl,
-        app.redirectUris || [app.callback],
-      )
-    ) {
+    const issuer = this.config.get<string>('OIDC_ISSUER', '');
+    if (!isProviderResumeContinuation(continuationUrl, issuer)) {
       throw new BusinessException('授权继续地址无效');
     }
     return {

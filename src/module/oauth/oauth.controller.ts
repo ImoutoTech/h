@@ -66,11 +66,19 @@ export class OidcProtocolController {
     // oidc-provider's callback expects the path relative to its mount point.
     // Nest controllers do not strip their route prefix like koa-mount does.
     const originalUrl = req.raw.url;
+    const previousOriginalUrl = req.raw.originalUrl;
+    const previousBody = req.raw.body;
+    // oidc-provider uses originalUrl to retain the issuer mount path when it
+    // constructs interaction-resume redirects after the request URL is stripped.
+    req.raw.originalUrl = originalUrl;
+    req.raw.body = req.body;
     req.raw.url = originalUrl.replace(/^\/oidc(?=\/|$)/, '') || '/';
     try {
       return await provider.callback()(req.raw, res.raw);
     } finally {
       req.raw.url = originalUrl;
+      req.raw.originalUrl = previousOriginalUrl;
+      req.raw.body = previousBody;
     }
   }
 

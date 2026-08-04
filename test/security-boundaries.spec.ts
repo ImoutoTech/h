@@ -7,7 +7,10 @@ import {
 import { PERMISSION_LIST, ROLE_LIST } from '../src/utils/constants';
 import { publicJwks } from '../src/module/oauth/public-jwks';
 import { consumeJson } from '../src/module/identity/one-time-state';
-import { isRegisteredContinuation } from '../src/module/oauth/continuation-url';
+import {
+  isProviderResumeContinuation,
+  isRegisteredContinuation,
+} from '../src/module/oauth/continuation-url';
 import { safeHouseCallbackUrl } from '../src/module/identity/safe-house-callback';
 
 describe('security boundaries', () => {
@@ -92,6 +95,25 @@ describe('security boundaries', () => {
         'https://client.example/callback/extra?tenant=one&code=abc',
         registered,
       ),
+    ).toBe(false);
+  });
+
+  it('accepts only provider-owned interaction resume continuations', () => {
+    const issuer = 'https://login.example/oidc';
+    expect(
+      isProviderResumeContinuation(
+        'https://login.example/oidc/auth/interaction-id',
+        issuer,
+      ),
+    ).toBe(true);
+    expect(
+      isProviderResumeContinuation(
+        'https://client.example/callback?code=abc',
+        issuer,
+      ),
+    ).toBe(false);
+    expect(
+      isProviderResumeContinuation('https://login.example/oidc/auth/', issuer),
     ).toBe(false);
   });
 

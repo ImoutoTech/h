@@ -32,3 +32,21 @@ export function isRegisteredContinuation(
     return false;
   }
 }
+
+export function isProviderResumeContinuation(value: string, issuer: string) {
+  try {
+    const target = new URL(value);
+    const expected = new URL(issuer);
+    const resumePrefix = `${expected.pathname.replace(/\/$/, '')}/auth/`;
+    return (
+      target.origin === expected.origin &&
+      target.pathname.startsWith(resumePrefix) &&
+      target.pathname.length > resumePrefix.length &&
+      !target.username &&
+      !target.password &&
+      !target.hash
+    );
+  } catch {
+    return false;
+  }
+}

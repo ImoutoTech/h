@@ -25,6 +25,12 @@ describe('OIDC Redis adapter', () => {
     expect((await sessions.find('same')).accountId).toBe('1');
     expect((await codes.find('same')).accountId).toBe('2');
     expect((await sessions.findByUid('u1')).accountId).toBe('1');
+    expect([...redis.values.keys()].every((key) => !key.includes('same'))).toBe(
+      true,
+    );
+    expect([...redis.values.keys()].every((key) => !key.includes('u1'))).toBe(
+      true,
+    );
   });
 
   it('marks authorization material consumed and destroys indexes', async () => {

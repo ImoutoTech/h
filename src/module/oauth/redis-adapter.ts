@@ -1,4 +1,5 @@
 import type { RedisService } from '@reus-able/nestjs';
+import { createHash } from 'crypto';
 
 interface AdapterPayload {
   payload: Record<string, any>;
@@ -6,6 +7,9 @@ interface AdapterPayload {
 }
 
 export function createRedisAdapter(cache: RedisService) {
+  const opaqueKeyPart = (value: string) =>
+    createHash('sha256').update(value).digest('base64url');
+
   return class RedisOidcAdapter {
     readonly prefix: string;
 
@@ -14,11 +18,11 @@ export function createRedisAdapter(cache: RedisService) {
     }
 
     key(id: string) {
-      return `${this.prefix}${id}`;
+      return `${this.prefix}${opaqueKeyPart(id)}`;
     }
 
     grantKey(grantId: string) {
-      return `oidc:grant:${grantId}`;
+      return `oidc:grant:${opaqueKeyPart(grantId)}`;
     }
 
     async upsert(id: string, payload: Record<string, any>, expiresIn: number) {
@@ -29,13 +33,13 @@ export function createRedisAdapter(cache: RedisService) {
       await cache.jsonSet(this.key(id), data, expiresIn || undefined);
       if (payload.uid)
         await cache.jsonSet(
-          `${this.prefix}uid:${payload.uid}`,
+          `${this.prefix}uid:${opaqueKeyPart(payload.uid)}`,
           { id },
           expiresIn,
         );
       if (payload.userCode)
         await cache.jsonSet(
-          `${this.prefix}code:${payload.userCode}`,
+          `${this.prefix}code:${opaqueKeyPart(payload.userCode)}`,
           { id },
           expiresIn,
         );
@@ -59,14 +63,14 @@ export function createRedisAdapter(cache: RedisService) {
 
     async findByUid(uid: string) {
       const index = await cache.jsonGet<{ id: string }>(
-        `${this.prefix}uid:${uid}`,
+        `${this.prefix}uid:${opaqueKeyPart(uid)}`,
       );
       return index ? this.find(index.id) : undefined;
     }
 
     async findByUserCode(userCode: string) {
       const index = await cache.jsonGet<{ id: string }>(
-        `${this.prefix}code:${userCode}`,
+        `${this.prefix}code:${opaqueKeyPart(userCode)}`,
       );
       return index ? this.find(index.id) : undefined;
     }
@@ -74,9 +78,12 @@ export function createRedisAdapter(cache: RedisService) {
     async destroy(id: string) {
       const payload = await this.find(id);
       await cache.del(this.key(id));
-      if (payload?.uid) await cache.del(`${this.prefix}uid:${payload.uid}`);
+      if (payload?.uid)
+        await cache.del(`${this.prefix}uid:${opaqueKeyPart(payload.uid)}`);
       if (payload?.userCode)
-        await cache.del(`${this.prefix}code:${payload.userCode}`);
+        await cache.del(
+          `${this.prefix}code:${opaqueKeyPart(payload.userCode)}`,
+        );
     }
 
     async consume(id: string) {

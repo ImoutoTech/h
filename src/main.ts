@@ -35,6 +35,21 @@ async function bootstrap() {
   app.useGlobalInterceptors(new TransformInterceptor());
   app.useGlobalFilters(new AllExceptionsFilter(), new HttpExceptionFilter());
 
+  // Nest registers Fastify's default form parser during initialization. Replace
+  // it afterwards so oidc-provider receives the original form-encoded payload.
+  await app.init();
+  const fastify = app.getHttpAdapter().getInstance();
+  fastify.removeContentTypeParser('application/x-www-form-urlencoded');
+  fastify.addContentTypeParser(
+    'application/x-www-form-urlencoded',
+    { parseAs: 'string' },
+    (
+      _request: unknown,
+      body: string,
+      done: (error: Error | null, value?: string) => void,
+    ) => done(null, body),
+  );
+
   const port = resolveListenPort(config.get<string>('PORT'));
   await app.listen(port, '0.0.0.0');
 }
