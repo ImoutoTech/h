@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>H OIDC 第三方接入指南</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f8f8;
+      --surface: #ffffff;
+      --text: #182023;
+      --muted: #5c686c;
+      --line: #d8dfe1;
+      --accent: #08736a;
+      --accent-soft: #e5f3f0;
+      --code: #121a1c;
+      --code-text: #eaf2f2;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.65 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+    main { width: min(820px, calc(100% - 32px)); margin: 0 auto; padding: 56px 0 72px; }
+    header { margin-bottom: 40px; }
+    h1 { margin: 0 0 10px; font-size: 36px; line-height: 1.2; letter-spacing: 0; }
+    h2 { margin: 42px 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 22px; letter-spacing: 0; }
+    h3 { margin: 26px 0 10px; font-size: 17px; letter-spacing: 0; }
+    p { margin: 9px 0; }
+    .lead { color: var(--muted); font-size: 17px; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    p code, li code, td code { padding: 2px 5px; border-radius: 3px; background: var(--accent-soft); font-size: 0.9em; }
+    table { width: 100%; margin: 14px 0; border-collapse: collapse; background: var(--surface); }
+    th, td { padding: 10px 12px; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { font-size: 13px; }
+    td:first-child { width: 31%; }
+    .note { margin: 16px 0; padding: 13px 15px; border-left: 3px solid var(--accent); background: var(--accent-soft); }
+    ol, ul { padding-left: 22px; }
+    li { margin: 7px 0; }
+    .code-block { margin: 12px 0 22px; overflow: hidden; border: 1px solid #344144; border-radius: 5px; background: var(--code); }
+    .code-label { padding: 7px 14px; border-bottom: 1px solid #344144; color: #aebdc0; font-size: 12px; }
+    pre { margin: 0; padding: 16px; overflow-x: auto; color: var(--code-text); font: 13px/1.6 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+    @media (prefers-color-scheme: dark) {
+      :root { color-scheme: dark; --bg: #101617; --surface: #172022; --text: #edf4f3; --muted: #aab7b9; --line: #344245; --accent: #72d4c7; --accent-soft: #183532; --code: #090e0f; --code-text: #e6f0ef; }
+    }
+    @media (max-width: 560px) {
+      main { width: min(100% - 24px, 820px); padding-top: 32px; }
+      h1 { font-size: 29px; }
+      table { display: block; overflow-x: auto; }
+      td:first-child { width: auto; }
+      pre { font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>H OIDC 第三方接入指南</h1>
+      <p class="lead">使用 OpenID Connect Authorization Code Flow + S256 PKCE 接入 H 登录中心。示例适用于有 Node.js 后端的 JavaScript / TypeScript 系统。</p>
+    </header>
+
+    <section>
+      <h2>1. 配置字段</h2>
+      <table>
+        <thead><tr><th>字段</th><th>值或说明</th></tr></thead>
+        <tbody>
+          <tr><td><code>OIDC_ISSUER</code></td><td><code>https://h.exia.xyz/oidc</code></td></tr>
+          <tr><td>Discovery URL</td><td><code>https://h.exia.xyz/oidc/.well-known/openid-configuration</code>，由 OIDC 客户端自动访问。</td></tr>
+          <tr><td><code>OIDC_CLIENT_ID</code></td><td>在 H 子应用管理中取得的应用 ID。</td></tr>
+          <tr><td><code>OIDC_REDIRECT_URI</code></td><td>第三方系统自己的 HTTPS 回调地址，必须在 H 中登记并精确匹配。</td></tr>
+          <tr><td><code>SESSION_SECRET</code></td><td>第三方系统自行生成，用于保护自己的 Session，不提交给 H。</td></tr>
+          <tr><td><code>OIDC_CLIENT_SECRET</code></td><td>可选。默认 public client 不配置；仅 confidential client 在服务端兑换 Token 时使用。</td></tr>
+        </tbody>
+      </table>
+      <div class="note"><code>https://sf.imouto.tech</code> 是用户登录和授权确认页面。第三方系统不应将它配置为 Issuer、Token Endpoint 或 Redirect URI。</div>
+
+      <h3>环境变量示例</h3>
+      <div class="code-block"><div class="code-label">.env</div><pre><code>OIDC_ISSUER=https://h.exia.xyz/oidc
+OIDC_CLIENT_ID=your-client-id
+OIDC_REDIRECT_URI=https://app.example.com/auth/callback
+SESSION_SECRET=replace-with-a-random-secret
+
+# 仅 confidential client 配置
+# OIDC_CLIENT_SECRET=your-client-secret</code></pre></div>
+    </section>
+
+    <section>
+      <h2>2. 登录流程</h2>
+      <ol>
+        <li>第三方后端生成一次性的 <code>state</code>、<code>nonce</code> 和 <code>code_verifier</code>，计算 S256 <code>code_challenge</code>。</li>
+        <li>浏览器跳转到 Discovery 返回的 <code>authorization_endpoint</code>，请求 <code>openid profile email</code> scope。</li>
+        <li>用户在 H 登录中心完成登录和授权确认。</li>
+        <li>H 将浏览器重定向到已登记的 Redirect URI，并携带 <code>code</code> 和 <code>state</code>。</li>
+        <li>第三方后端校验 <code>state</code>，使用 <code>code</code> 和 <code>code_verifier</code> 调用 <code>token_endpoint</code>。</li>
+        <li>OIDC 客户端验证 ID Token 的签名、<code>iss</code>、<code>aud</code>、有效期和 <code>nonce</code>。</li>
+        <li>第三方系统使用 ID Token 的 <code>sub</code> 关联用户，并建立自己的登录 Session。</li>
+      </ol>
+      <div class="note">授权码有效期 120 秒且只能使用一次。ID Token 和 Access Token 有效期 600 秒，不签发 Refresh Token。</div>
+    </section>
+
+    <section>
+      <h2>3. TypeScript / JavaScript 示例</h2>
+      <h3>安装依赖</h3>
+      <div class="code-block"><div class="code-label">Terminal</div><pre><code>npm install express express-session openid-client</code></pre></div>
+
+      <h3>最小服务端实现</h3>
+      <p>以下为 public client 的 JavaScript 示例；TypeScript 可直接使用相同 API。</p>
+      <div class="code-block"><div class="code-label">server.mjs</div><pre><code>import express from 'express';
+import session from 'express-session';
+import * as oidc from 'openid-client';
+
+const config = await oidc.discovery(
+  new URL(process.env.OIDC_ISSUER),
+  process.env.OIDC_CLIENT_ID,
+  undefined,
+  oidc.None(),
+);
+
+const app = express();
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+}));
+
+app.get('/auth/login', async (req, res) =&gt; {
+  const verifier = oidc.randomPKCECodeVerifier();
+  const state = oidc.randomState();
+  const nonce = oidc.randomNonce();
+  req.session.oidc = { verifier, state, nonce };
+
+  const url = oidc.buildAuthorizationUrl(config, {
+    redirect_uri: process.env.OIDC_REDIRECT_URI,
+    scope: 'openid profile email',
+    state,
+    nonce,
+    code_challenge: await oidc.calculatePKCECodeChallenge(verifier),
+    code_challenge_method: 'S256',
+  });
+  res.redirect(url.href);
+});
+
+app.get('/auth/callback', async (req, res, next) =&gt; {
+  try {
+    const saved = req.session.oidc;
+    if (!saved) return res.sendStatus(400);
+
+    const callback = new URL(req.originalUrl, process.env.OIDC_REDIRECT_URI);
+    const tokens = await oidc.authorizationCodeGrant(config, callback, {
+      pkceCodeVerifier: saved.verifier,
+      expectedState: saved.state,
+      expectedNonce: saved.nonce,
+    });
+    delete req.session.oidc;
+    req.session.userId = tokens.claims().sub;
+    res.json({ sub: req.session.userId });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.listen(3000);</code></pre></div>
+    </section>
+
+    <section>
+      <h2>4. 接入约束</h2>
+      <ul>
+        <li>必须使用 <code>response_type=code</code> 和 <code>code_challenge_method=S256</code>。</li>
+        <li>scope 仅支持 <code>openid profile email</code>，其中 <code>openid</code> 必填。</li>
+        <li>使用 <code>sub</code> 作为稳定用户标识，不要使用 email 作为主键。</li>
+        <li>Redirect URI 必须完整匹配，不能依赖前缀匹配或通配符。</li>
+        <li>public client 不传 Client Secret；confidential client 仅支持 <code>client_secret_post</code>。</li>
+        <li>不要硬编码 Authorization、Token、UserInfo 或 JWKS 路径，以 Discovery 返回值为准。</li>
+        <li>不要只解码 ID Token；必须使用 OIDC 客户端完成签名和 claims 校验。</li>
+      </ul>
+    </section>
+
+    <footer>H OIDC · Authorization Code + S256 PKCE · Issuer: https://h.exia.xyz/oidc</footer>
+  </main>
+</body>
+</html>
