@@ -12,6 +12,7 @@ import {
   isRegisteredContinuation,
 } from '../src/module/oauth/continuation-url';
 import { safeHouseCallbackUrl } from '../src/module/identity/safe-house-callback';
+import { interactionPageUrl } from '../src/module/oauth/interaction-page-url';
 
 describe('security boundaries', () => {
   it('uses a dedicated client credential key and detects cross-key decryption', () => {
@@ -127,6 +128,12 @@ describe('security boundaries', () => {
     expect(() =>
       safeHouseCallbackUrl('http://safe.example', 'opaque'),
     ).toThrow();
+  });
+
+  it('keeps the browser interaction page outside the OAuth API prefix', () => {
+    expect(interactionPageUrl('https://safe.example', 'uid/with spaces')).toBe(
+      'https://safe.example/authorize/interaction/uid%2Fwith%20spaces',
+    );
   });
 
   it('binds ciphertext AAD to a single client', () => {
