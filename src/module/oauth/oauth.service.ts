@@ -12,6 +12,7 @@ import { publicJwks, toPublicJwk } from './public-jwks';
 import { Duplex } from 'stream';
 import { ServerResponse } from 'http';
 import { isProviderResumeContinuation } from './continuation-url';
+import { oidcCookieOptions } from './oidc-cookie-options';
 
 @Injectable()
 export class OAuthService {
@@ -120,13 +121,9 @@ export class OAuthService {
       adapter: createRedisAdapter(this.cache),
       clients,
       jwks: { keys: [jwk] },
-      // The interaction page is hosted by the frontend origin.  Allow the
-      // browser to send the provider's short-lived session cookie when the
-      // frontend calls the backend API cross-site.
-      cookies: {
-        short: { sameSite: 'none', path: '/' },
-        long: { sameSite: 'none', path: '/' },
-      },
+      // Derive browser-facing cookie security from the public issuer rather
+      // than the proxy's internal HTTP connection.
+      cookies: oidcCookieOptions(issuer),
       // oidc-provider resolves custom routes relative to the issuer pathname.
       routes: { jwks: '/jwks' },
       claims: {
