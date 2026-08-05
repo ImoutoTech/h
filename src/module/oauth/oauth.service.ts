@@ -124,8 +124,8 @@ export class OAuthService {
       // browser to send the provider's short-lived session cookie when the
       // frontend calls the backend API cross-site.
       cookies: {
-        short: { sameSite: 'none' },
-        long: { sameSite: 'none' },
+        short: { sameSite: 'none', path: '/' },
+        long: { sameSite: 'none', path: '/' },
       },
       // oidc-provider resolves custom routes relative to the issuer pathname.
       routes: { jwks: '/jwks' },
