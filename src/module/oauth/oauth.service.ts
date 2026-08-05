@@ -120,6 +120,13 @@ export class OAuthService {
       adapter: createRedisAdapter(this.cache),
       clients,
       jwks: { keys: [jwk] },
+      // The interaction page is hosted by the frontend origin.  Allow the
+      // browser to send the provider's short-lived session cookie when the
+      // frontend calls the backend API cross-site.
+      cookies: {
+        short: { sameSite: 'none' },
+        long: { sameSite: 'none' },
+      },
       // oidc-provider resolves custom routes relative to the issuer pathname.
       routes: { jwks: '/jwks' },
       claims: {
