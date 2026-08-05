@@ -147,8 +147,15 @@ export class OAuthService {
       },
       interactions: {
         policy: interactionPolicyConfig,
-        url: (_ctx: any, interaction: any) =>
-          `/oauth/interaction/${interaction.uid}`,
+        url: (_ctx: any, interaction: any) => {
+          const safeHouseBase = this.config.getOrThrow<string>(
+            'SAFE_HOUSE_PUBLIC_URL',
+          );
+          return new URL(
+            `/oauth/interaction/${encodeURIComponent(interaction.uid)}`,
+            safeHouseBase,
+          ).toString();
+        },
       },
       findAccount: async (_ctx: any, id: string) => {
         const user = await this.userRepo.findOneBy({ id: Number(id) });
