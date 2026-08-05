@@ -211,6 +211,10 @@ export class SubAppService {
       }
     });
 
+    if (!isNil(updateData.callback)) {
+      app.redirectUris = [app.callback];
+    }
+
     if (updateData.status !== undefined) {
       app.meta.status = updateData.status;
     }
