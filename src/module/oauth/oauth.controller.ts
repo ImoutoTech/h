@@ -17,7 +17,6 @@ export class OAuthController {
   constructor(private readonly service: OAuthService) {}
 
   @Get(':uid')
-  @AuthRoles('user')
   get(
     @Param('uid') uid: string,
     @Req() req: any,
