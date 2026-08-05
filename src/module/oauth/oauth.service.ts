@@ -13,6 +13,7 @@ import { Duplex } from 'stream';
 import { ServerResponse } from 'http';
 import { isProviderResumeContinuation } from './continuation-url';
 import { isSecureOidcIssuer, oidcCookieOptions } from './oidc-cookie-options';
+import { interactionPageUrl } from './interaction-page-url';
 
 @Injectable()
 export class OAuthService {
@@ -155,10 +156,7 @@ export class OAuthService {
           const safeHouseBase = this.config.getOrThrow<string>(
             'SAFE_HOUSE_PUBLIC_URL',
           );
-          return new URL(
-            `/oauth/interaction/${encodeURIComponent(interaction.uid)}`,
-            safeHouseBase,
-          ).toString();
+          return interactionPageUrl(safeHouseBase, interaction.uid);
         },
       },
       findAccount: async (_ctx: any, id: string) => {

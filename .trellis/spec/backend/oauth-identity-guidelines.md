@@ -9,7 +9,7 @@ Use this contract whenever changing OIDC endpoints, sub-application credentials,
 ### 2. Signatures
 
 - OIDC issuer base: `${OIDC_ISSUER}` (deployed under `/oidc`).
-- Interaction: `GET|POST /oauth/interaction/:uid`.
+- Interaction page: `${SAFE_HOUSE_PUBLIC_URL}/authorize/interaction/:uid`; interaction API: `GET|POST /oauth/interaction/:uid`.
 - External callback result: provider callback redirects to `${SAFE_HOUSE_PUBLIC_URL}/external/callback?result=<opaque>`; exchange with `GET /external/result/:id`.
 - Identity management: `GET /external/identities/me`, `GET /external/identities/:provider/start`, `POST /external/identities/bind`, `DELETE /external/identities/:id`.
 - Provider administration: `GET /external/admin/providers`, `POST /external/admin/providers/:provider` with permission `oauth-provider-admin`.
