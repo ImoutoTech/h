@@ -1,5 +1,5 @@
 export function oidcCookieOptions(issuer: string) {
-  const secure = new URL(issuer).protocol === 'https:';
+  const secure = isSecureOidcIssuer(issuer);
   const options = {
     path: '/',
     secure,
@@ -10,4 +10,8 @@ export function oidcCookieOptions(issuer: string) {
     short: options,
     long: options,
   };
+}
+
+export function isSecureOidcIssuer(issuer: string) {
+  return new URL(issuer).protocol === 'https:';
 }

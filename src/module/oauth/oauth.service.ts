@@ -12,7 +12,7 @@ import { publicJwks, toPublicJwk } from './public-jwks';
 import { Duplex } from 'stream';
 import { ServerResponse } from 'http';
 import { isProviderResumeContinuation } from './continuation-url';
-import { oidcCookieOptions } from './oidc-cookie-options';
+import { isSecureOidcIssuer, oidcCookieOptions } from './oidc-cookie-options';
 
 @Injectable()
 export class OAuthService {
@@ -178,6 +178,9 @@ export class OAuthService {
         };
       },
     });
+    // oidc-provider is mounted behind the public TLS reverse proxy. Koa must
+    // trust X-Forwarded-Proto so its cookie layer permits Secure cookies.
+    provider.proxy = isSecureOidcIssuer(issuer);
     return provider;
   }
 
