@@ -1,0 +1,3 @@
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"Parent integration review must trace the full cross-repository data flow."}
+{"file":".trellis/tasks/08-10-unified-notification-service/research/mysql-upgrade.md","reason":"Shared database version and rollout decision record."}
+{"file":".trellis/tasks/08-10-unified-notification-service/research/oidc-machine-auth.md","reason":"Shared OAuth machine/admin authorization decision record."}

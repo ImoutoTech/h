@@ -1,0 +1,7 @@
+{"file":".trellis/spec/backend/index.md","reason":"Run the complete H backend quality checklist."}
+{"file":".trellis/spec/backend/database-guidelines.md","reason":"Review migrations, uniqueness, concurrency, and MySQL 5.7 compatibility."}
+{"file":".trellis/spec/backend/oauth-identity-guidelines.md","reason":"Review audience/scope, Client Credentials, admin identity, and key rotation security."}
+{"file":".trellis/spec/backend/error-handling.md","reason":"Verify stable non-leaking API failures."}
+{"file":".trellis/spec/backend/logging-guidelines.md","reason":"Verify no Email, OTP, token, or secret leakage."}
+{"file":".trellis/spec/backend/quality-guidelines.md","reason":"Apply lint, type-check, test, and regression requirements."}
+{"file":".trellis/tasks/08-10-unified-notification-service/research/oidc-machine-auth.md","reason":"Check implementation against fixed-version research risks."}

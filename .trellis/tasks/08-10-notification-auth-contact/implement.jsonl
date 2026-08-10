@@ -1,0 +1,7 @@
+{"file":".trellis/spec/backend/index.md","reason":"H backend pre-development checklist and linked conventions."}
+{"file":".trellis/spec/backend/database-guidelines.md","reason":"TypeORM entities, MySQL 5.7-compatible migrations, constraints, and transaction rules."}
+{"file":".trellis/spec/backend/oauth-identity-guidelines.md","reason":"Existing H OIDC identity, client, key rotation, and authorization contracts."}
+{"file":".trellis/spec/backend/error-handling.md","reason":"Stable Contact/OAuth business error mapping."}
+{"file":".trellis/spec/backend/logging-guidelines.md","reason":"Email, OTP, client identity, and token-safe logging."}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"Trace DTO, service, entity, migration, and OAuth provider data flow end to end."}
+{"file":".trellis/tasks/08-10-unified-notification-service/research/oidc-machine-auth.md","reason":"Pinned oidc-provider capability research and current-code gaps."}

@@ -1,0 +1,4 @@
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"Verify both end-to-end flows and ownership boundaries across repositories."}
+{"file":".trellis/spec/backend/quality-guidelines.md","reason":"Require both child quality gates before parent acceptance."}
+{"file":".trellis/tasks/08-10-unified-notification-service/research/mysql-upgrade.md","reason":"Verify deployment remains independent of the legacy 5.7 upgrade."}
+{"file":".trellis/tasks/08-10-unified-notification-service/research/oidc-machine-auth.md","reason":"Verify token contracts and fixed-version risks during integration review."}

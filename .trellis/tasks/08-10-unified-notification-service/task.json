@@ -1,0 +1,35 @@
+{
+  "id": "unified-notification-service",
+  "name": "unified-notification-service",
+  "title": "统一通知服务设计",
+  "description": "",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "季悠然",
+  "assignee": "季悠然",
+  "createdAt": "2026-08-10",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "master",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "08-10-notification-auth-contact"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "跨仓库父任务；notification-service 的实现状态由其仓库内 08-10-notification-service-mvp 任务管理。",
+  "meta": {
+    "externalTasks": [
+      {
+        "repository": "/Users/reuszeng/Code/Projects/notification-service",
+        "task": "08-10-notification-service-mvp"
+      }
+    ]
+  }
+}
