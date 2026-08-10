@@ -14,6 +14,7 @@ import { ServerResponse } from 'http';
 import { isProviderResumeContinuation } from './continuation-url';
 import { isSecureOidcIssuer, oidcCookieOptions } from './oidc-cookie-options';
 import { interactionPageUrl } from './interaction-page-url';
+import { oidcAccountClaims } from './oidc-account-claims';
 
 @Injectable()
 export class OAuthService {
@@ -164,15 +165,8 @@ export class OAuthService {
         if (!user) return undefined;
         return {
           accountId: String(user.id),
-          claims: async (_use: string, scope: string) => ({
-            sub: String(user.id),
-            ...(scope.includes('profile')
-              ? { nickname: user.nickname, picture: user.avatar }
-              : {}),
-            ...(scope.includes('email')
-              ? { email: user.email, email_verified: true }
-              : {}),
-          }),
+          claims: async (_use: string, scope: string) =>
+            oidcAccountClaims(user, scope),
         };
       },
     });

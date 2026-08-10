@@ -6,3 +6,4 @@ export * from './ProviderConfig';
 export * from './SubAppSecret';
 export * from './Role';
 export * from './Permission';
+export * from './EmailVerificationChallenge';

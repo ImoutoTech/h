@@ -5,7 +5,7 @@ export default defineConfig({
   test: {
     // Several integration regressions boot Nest/ts-node child processes. Give
     // parallel cold starts enough headroom on CI and busy development hosts.
-    testTimeout: 15_000,
+    testTimeout: 30_000,
   },
   resolve: {
     alias: {

@@ -15,10 +15,16 @@ Use this contract whenever changing OIDC endpoints, sub-application credentials,
 - Provider administration: `GET /external/admin/providers`, `POST /external/admin/providers/:provider` with permission `oauth-provider-admin`.
 - Database uniqueness: `(provider, provider_user_id)` identifies an external identity; redirect URI comparison is exact.
 - Migration commands: `pnpm migration:run` and `pnpm migration:revert` invoke `src/database/run-migrations.ts`; `migration:show` remains read-only.
+- Email ownership endpoints: public `POST /user/email-verification/register` and `POST /user/email-verification/:challengeId/verify`; authenticated `POST /user/email-verification/change-email` and `PUT /user/:id/email`. Registration requires `emailVerificationChallengeId`.
 
 ### 3. Contracts
 
 - OIDC supports only Authorization Code, `S256` PKCE, and `openid profile email`; no refresh token or offline access.
+- OIDC `email_verified` is derived only from `users.email_verified_at`; never hardcode it or infer it from the presence of an address.
+- Existing users are backfilled at the migration's fixed timestamp with source `legacy_migration`. New registration and email changes use source `email_otp`, and the user mutation plus challenge consumption must commit in one transaction.
+- Email OTPs are six-digit CSPRNG values. Plaintext exists only while submitting `account.email.verify` to notification-service; persistence uses a server-peppered, challenge-bound HMAC and logs use only challenge/user identifiers.
+- Email challenges bind purpose, normalized address, and (for changes) user id. Verification and consumption use pessimistic row locks; the nullable unique active key closes concurrent first-request cooldown races, and consumption is single-use.
+- Required email verification deployment configuration includes `EMAIL_VERIFICATION_PEPPER`, `NOTIFICATION_API_URL`, `NOTIFICATION_CLIENT_ID`, and `NOTIFICATION_CLIENT_SECRET`; TTL, cooldown, and maximum attempts have positive-integer defaults.
 - Every authorization request requires a fresh explicit consent interaction, even when an OIDC session or grant already exists.
 - Validate the URL returned by `interactionFinished` as an issuer-owned `/oidc/auth/:id` resume URL. The provider performs the subsequent exact registered-client callback validation.
 - Derive OIDC Redis key suffixes from a one-way digest of codes, tokens, session IDs, UIDs, and grant IDs so infrastructure key logging cannot disclose bearer material.
@@ -49,6 +55,7 @@ Use this contract whenever changing OIDC endpoints, sub-application credentials,
 - Allowed safe-house origin -> credentialed CORS headers and authorized preflight `204`; another browser origin -> no CORS authorization; an Origin-less protocol/server client remains allowed.
 - Installed `RedisService` without atomic `getDel` capability -> fail closed; never degrade one-time state to separate `GET` plus `DEL`.
 - Migration failure -> fixed non-sensitive error text and non-zero exit status; never log the TypeORM error object, query, or parameters.
+- Missing, expired, invalidated, exhausted, unverified, mismatched, or consumed email challenges fail without changing the user's primary email. Generic user update requests containing `email` are rejected.
 
 ### 5. Good/Base/Bad Cases
 
@@ -66,6 +73,7 @@ Use this contract whenever changing OIDC endpoints, sub-application credentials,
 - Identity: unbound login has no database/session side effects, existing-identity login, authenticated binding, concurrent binding/ownership races, last-login invariant, sanitized outcomes, admin permission separation, and result replay.
 - Google protocol regression: assert the exact callback URL passed to `authorizationCodeGrant` contains `code`, `state`, and the provider-returned `iss`, while PKCE verifier, expected state, and expected nonce remain enabled.
 - Migration: cryptographic preflight before DDL, representative up/down on disposable MySQL, preservation/rollback guards.
+- Email ownership: code format/digest isolation, cooldown, expiry, failure ceiling, notification failure invalidation, unverified registration, direct-update bypass, wrong purpose/user/address, replay and concurrent consumption, fixed legacy backfill, and verified/unverified OIDC claims.
 - Migration CLI: statically assert run/revert scripts use the safe runner and its catch path cannot serialize TypeORM errors; execute down/up on a disposable database and assert output contains no `query:`, `PARAMETERS`, environment secrets, or database secret values.
 - Token transport: boot the full Nest/Fastify application and complete a standard-client form-encoded token exchange to catch parser registration collisions and missing body forwarding.
 - Environment: repeat protocol checks under Node 22, real providers, and a standard relying-party client.
