@@ -85,3 +85,24 @@
 ### Next Steps
 
 - 在具备真实 Provider 凭据与集成数据库的环境中补充 Google/GitHub 浏览器冒烟验证。
+
+
+## Session 4: 统一通知服务架构规划
+
+**Date**: 2026-08-10
+**Task**: 统一通知服务架构规划
+**Branch**: `master`
+
+### Summary
+
+完成跨仓库通知服务 PRD、技术设计和实施计划，拆分 H 认证/Contact API 子任务与外部 notification-service MVP 任务，记录 MySQL 8.4 和 OIDC 机器认证研究；任务保持 planning。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `76cd9ff` | (see git log) |
+
+### Status
+
+[OK] **Completed**
