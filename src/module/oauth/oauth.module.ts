@@ -4,7 +4,15 @@ import { OAuthController, OidcProtocolController } from './oauth.controller';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { SubApp, SubAppMeta, User, SubAppSecret } from '@/entity';
+import {
+  Permission,
+  Role,
+  SubApp,
+  SubAppMeta,
+  SubAppResourceGrant,
+  User,
+  SubAppSecret,
+} from '@/entity';
 import { ClientSecretService } from './client-secret.service';
 
 @Module({
@@ -13,7 +21,15 @@ import { ClientSecretService } from './client-secret.service';
   exports: [OAuthService, ClientSecretService],
   imports: [
     ConfigModule,
-    TypeOrmModule.forFeature([SubApp, User, SubAppMeta, SubAppSecret]),
+    TypeOrmModule.forFeature([
+      SubApp,
+      User,
+      SubAppMeta,
+      SubAppSecret,
+      SubAppResourceGrant,
+      Role,
+      Permission,
+    ]),
   ],
 })
 export class OauthModule {}

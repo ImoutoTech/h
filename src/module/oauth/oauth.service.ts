@@ -15,6 +15,13 @@ import { isProviderResumeContinuation } from './continuation-url';
 import { isSecureOidcIssuer, oidcCookieOptions } from './oidc-cookie-options';
 import { interactionPageUrl } from './interaction-page-url';
 import { oidcAccountClaims } from './oidc-account-claims';
+import {
+  isClientCredentialsRequest,
+  normalizedScopes,
+  resourceNameFromIndicator,
+  RESOURCE_SCOPES,
+  RESOURCE_SERVERS,
+} from './resource-servers';
 
 @Injectable()
 export class OAuthService {
@@ -38,7 +45,7 @@ export class OAuthService {
 
   async initialize() {
     const apps = await this.appRepo.find({
-      relations: { secrets: true },
+      relations: { secrets: true, resourceGrants: true },
       order: { id: 'ASC' },
     });
     const fingerprint = JSON.stringify(
@@ -46,6 +53,11 @@ export class OAuthService {
         id: app.id,
         redirectUris: app.redirectUris,
         clientType: app.clientType,
+        resourceGrants: app.resourceGrants
+          ?.map(({ resource, scope }) => [resource, scope])
+          .sort(([resourceA, scopeA], [resourceB, scopeB]) =>
+            `${resourceA}:${scopeA}`.localeCompare(`${resourceB}:${scopeB}`),
+          ),
         secrets: app.secrets
           ?.map((secret) => [
             secret.id,
@@ -91,7 +103,10 @@ export class OAuthService {
       client_id: app.id,
       redirect_uris: app.redirectUris || [app.callback],
       response_types: ['code'],
-      grant_types: ['authorization_code'],
+      grant_types:
+        app.clientType === 'confidential' && app.resourceGrants?.length
+          ? ['authorization_code', 'client_credentials']
+          : ['authorization_code'],
       token_endpoint_auth_method:
         app.clientType === 'confidential' ? 'client_secret_post' : 'none',
       client_secret:
@@ -104,7 +119,9 @@ export class OAuthService {
             )
           : undefined,
     }));
-    const { Provider, interactionPolicy } = await nativeImport('oidc-provider');
+    const appsById = new Map(apps.map((app) => [app.id, app]));
+    const { Provider, interactionPolicy, errors } =
+      await nativeImport('oidc-provider');
     const interactionPolicyConfig = interactionPolicy.base();
     interactionPolicyConfig
       .get('consent')
@@ -134,7 +151,7 @@ export class OAuthService {
         email: ['email', 'email_verified'],
       },
       conformIdTokenClaims: false,
-      grantTypes: ['authorization_code'],
+      grantTypes: ['authorization_code', 'client_credentials'],
       responseTypes: ['code'],
       features: {
         devInteractions: { enabled: false },
@@ -142,9 +159,71 @@ export class OAuthService {
         revocation: { enabled: false },
         introspection: { enabled: false },
         userinfo: { enabled: true },
+        clientCredentials: { enabled: true },
+        resourceIndicators: {
+          enabled: true,
+          getResourceServerInfo: async (
+            ctx: any,
+            resource: string,
+            client: any,
+          ) => {
+            const resourceName = resourceNameFromIndicator(resource);
+            if (!resourceName)
+              throw new errors.InvalidTarget('resource is not supported');
+            if (
+              resourceName === 'notification-admin' &&
+              isClientCredentialsRequest(ctx)
+            )
+              throw new errors.InvalidTarget(
+                'notification-admin requires an end-user grant',
+              );
+            const clientId = client?.clientId || ctx.oidc?.client?.clientId;
+            const app = appsById.get(clientId);
+            if (!app) throw new errors.InvalidTarget('resource is not granted');
+            const configured = new Set(
+              app.resourceGrants
+                ?.filter((grant) => grant.resource === resourceName)
+                .map((grant) => grant.scope) || [],
+            );
+            let scopes = RESOURCE_SERVERS[resourceName].scopes.filter((scope) =>
+              configured.has(scope),
+            );
+            if (resourceName === 'notification-admin') {
+              const accountId =
+                ctx.oidc?.account?.accountId || ctx.oidc?.session?.accountId;
+              if (accountId) {
+                const user = await this.userRepo.findOne({
+                  where: { id: Number(accountId) },
+                  relations: { roles: { permissions: true } },
+                });
+                const permissions = new Set(
+                  user?.roles?.flatMap((role) =>
+                    role.permissions.map((permission) => permission.code),
+                  ) || [],
+                );
+                scopes = scopes.filter(
+                  (scope) =>
+                    permissions.has(scope) ||
+                    permissions.has(`notification-admin:${scope}`),
+                );
+              }
+            }
+            if (!scopes.length)
+              throw new errors.InvalidTarget('resource is not granted');
+            return {
+              scope: scopes.join(' '),
+              audience: RESOURCE_SERVERS[resourceName].audience,
+              accessTokenFormat: 'jwt',
+              accessTokenTTL: RESOURCE_SERVERS[resourceName].ttl,
+            };
+          },
+        },
       },
       pkce: { required: () => true, methods: ['S256'] },
-      scopes: ['openid', 'profile', 'email'],
+      scopes: ['openid', 'profile', 'email', ...RESOURCE_SCOPES],
+      extraTokenClaims: async (ctx: any) => ({
+        client_id: ctx.oidc?.client?.clientId,
+      }),
       ttl: {
         AuthorizationCode: 120,
         AccessToken: 600,
@@ -191,10 +270,10 @@ export class OAuthService {
       userinfo_endpoint: provider.urlFor('userinfo'),
       jwks_uri: provider.urlFor('jwks'),
       response_types_supported: ['code'],
-      grant_types_supported: ['authorization_code'],
+      grant_types_supported: ['authorization_code', 'client_credentials'],
       subject_types_supported: ['public'],
       id_token_signing_alg_values_supported: ['RS256'],
-      scopes_supported: ['openid', 'profile', 'email'],
+      scopes_supported: ['openid', 'profile', 'email', ...RESOURCE_SCOPES],
       claims_supported: [
         'sub',
         'nickname',
@@ -204,6 +283,7 @@ export class OAuthService {
       ],
       code_challenge_methods_supported: ['S256'],
       token_endpoint_auth_methods_supported: ['none', 'client_secret_post'],
+      resource_indicators_supported: true,
     };
   }
 
@@ -240,7 +320,47 @@ export class OAuthService {
         accountId: String(userId),
         clientId: details.params.client_id,
       });
-      grant.addOIDCScope(details.params.scope);
+      grant.addOIDCScope(
+        normalizedScopes(details.params.scope)
+          .filter((scope) => ['openid', 'profile', 'email'].includes(scope))
+          .join(' '),
+      );
+      const resources = Array.isArray(details.params.resource)
+        ? details.params.resource
+        : details.params.resource
+          ? [details.params.resource]
+          : [];
+      for (const resource of resources) {
+        const resourceName = resourceNameFromIndicator(String(resource));
+        if (!resourceName) continue;
+        const app = await this.appRepo.findOne({
+          where: { id: details.params.client_id },
+          relations: { resourceGrants: true },
+        });
+        if (!app) continue;
+        let scopes = normalizedScopes(details.params.scope).filter((scope) =>
+          app.resourceGrants.some(
+            (item) => item.resource === resourceName && item.scope === scope,
+          ),
+        );
+        if (resourceName === 'notification-admin') {
+          const user = await this.userRepo.findOne({
+            where: { id: userId },
+            relations: { roles: { permissions: true } },
+          });
+          const permissions = new Set(
+            user?.roles?.flatMap((role) =>
+              role.permissions.map((permission) => permission.code),
+            ) || [],
+          );
+          scopes = scopes.filter(
+            (scope) =>
+              permissions.has(scope) ||
+              permissions.has(`notification-admin:${scope}`),
+          );
+        }
+        if (scopes.length) grant.addResourceScope(resource, scopes.join(' '));
+      }
       grantId = await grant.save();
     }
     const result = approved

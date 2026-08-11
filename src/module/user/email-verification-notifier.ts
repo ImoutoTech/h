@@ -38,7 +38,7 @@ export class EmailVerificationNotifier {
         'Idempotency-Key': input.challengeId,
       },
       body: JSON.stringify({
-        templateKey: 'account.email.verify',
+        template: 'account.email.verify',
         recipient: {
           kind: 'address',
           channel: 'email',
@@ -46,7 +46,6 @@ export class EmailVerificationNotifier {
         },
         variables: { code: input.code },
         expiresAt: input.expiresAt.toISOString(),
-        idempotencyKey: input.challengeId,
       }),
     });
     if (response.status !== 202)
@@ -73,7 +72,7 @@ export class EmailVerificationNotifier {
       grant_type: 'client_credentials',
       client_id: clientId,
       client_secret: clientSecret,
-      resource: 'notification-api',
+      resource: 'urn:h:resource:notification-api',
       scope: 'notifications:send',
     });
     const response = await fetch(

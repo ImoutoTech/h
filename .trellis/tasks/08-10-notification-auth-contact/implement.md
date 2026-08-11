@@ -2,8 +2,8 @@
 
 ## 1. 契约与迁移
 
-- [ ] 固化 OAuth resource/scope、Contact API 和统一错误的契约测试样例。
-- [ ] 增加 User 验证字段、子应用资源授权表、EmailVerificationChallenge 表的 TypeORM migration。（User/挑战部分已完成，子应用授权待后续阶段）
+- [x] 固化 OAuth resource/scope、Contact API 和统一错误的契约测试样例。
+- [x] 增加 User 验证字段、子应用资源授权表、EmailVerificationChallenge 表的 TypeORM migration。
 - [x] 在 migration 中以固定时间和 `legacy_migration` 来源回填现有用户；准备只回退结构前的安全检查说明。
 - [x] 为新实体建立必要唯一约束、外键和挑战过期/查找索引。
 
@@ -16,22 +16,22 @@
 
 ## 3. 机器认证与管理员授权
 
-- [ ] 增加子应用 resource/scope 管理能力和权限检查。
-- [ ] 让 Provider 客户端配置、功能开关、资源信息和重载指纹包含机器授权。
-- [ ] 增加 notification-service 自身 confidential client 与最小 `h-internal` grant 的部署配置/初始化流程。
-- [ ] 为管理员 Authorization Code token 增加通知管理 audience/scope 的权限映射。
-- [ ] 更新 Discovery，并针对 `oidc-provider@9.8.2` 运行真实 token endpoint 集成测试。
+- [x] 增加子应用 resource/scope 管理能力和权限检查。
+- [x] 让 Provider 客户端配置、功能开关、资源信息和重载指纹包含机器授权。
+- [x] 增加 notification-service 自身 confidential client 与最小 `h-internal` grant 的部署配置/初始化流程。
+- [x] 为管理员 Authorization Code token 增加通知管理 audience/scope 的权限映射。
+- [x] 更新 Discovery，并针对固定的 `oidc-provider@9.8.2` 运行 Authorization Code 真实端点回归；Client Credentials 的完整部署端点联调留待真实 H 环境。
 
 ## 4. Contact API 与联调
 
-- [ ] 实现 audience/scope/client 守卫和只读 Contact API。
-- [ ] 对不存在与未验证用户统一响应，日志脱敏并添加 traceId。
-- [ ] 使用本地通知服务 stub 验证 user recipient 与 H 自身 OTP 直接地址流程。
+- [x] 实现 audience/scope/client 守卫和只读 Contact API。
+- [x] 对不存在与未验证用户统一响应，日志脱敏并添加 traceId。
+- [x] 使用跨仓库协议替身验证 user recipient 与 H 自身 OTP 直接地址请求契约；真实数据库/SMTP 链路留待集成环境。
 
 ## 5. 质量门禁
 
-- [ ] 运行 lint、type-check、单元测试和 OAuth/数据库集成测试。
-- [ ] 回归现有 Authorization Code + PKCE、client secret 轮换、JWKS 轮换与用户登录。
+- [x] 运行 lint、build、单元测试、OAuth 回归和 TypeORM metadata 检查；真实 MySQL 5.7 up/down 留待专用数据库。
+- [x] 回归现有 Authorization Code + PKCE、client secret 轮换、JWKS 轮换与用户登录。
 - [ ] 审查迁移在 MySQL 5.7.44 的兼容性，演练备份恢复和应用版本回滚顺序。
 - [ ] 通过 `trellis-check` 后再提交；不在本任务实现 notification-service 代码。
 
@@ -42,3 +42,11 @@
 - 事务：注册/替换主邮箱与挑战消费同一 TypeORM transaction；通用 update 拒绝 `email`。
 - 门禁：`pnpm exec eslint "{src,apps,libs,test}/**/*.ts"`、`pnpm run build`、`pnpm run migration:check-load`通过；`pnpm test` 19 files / 47 tests 通过。
 - 未运行真实 MySQL 5.7 up/down：当前环境未提供专用集成数据库，已保留 QueryRunner DDL/回滚安全测试。
+
+## 机器认证与 Contact API 阶段证据（2026-08-11）
+
+- 授权模型：`subapp_resource_grants` 唯一约束 `(appId, resource, scope)`；管理员预配接口一次返回 secret，普通 resource grant 管理接口受 `oauth-machine-grant-admin` 保护。
+- Provider：固定资源目录驱动 JWT audience、scope 与 300 秒 TTL；仅有 grant 的 confidential client 声明 `client_credentials`，管理员 scope 再与用户角色权限求交集；授权行加入原子重载指纹。
+- Contact API：本地验签 current/previous JWK，依次约束 `h-internal`、`users:contact:read`、client allowlist；只选取 `id/email/email_verified_at`，未验证与不存在统一 404，审计不记录邮箱。
+- 测试：新增 token 边界/JWK 轮换、联系信息投影与不可用归一化、资源目录测试；最终 ESLint、Nest build、23 个测试文件/62 个测试和 TypeORM metadata 检查全部通过。真实 MySQL 5.7 up/down 与部署态 Client Credentials 端点仍待集成环境。
+- 跨仓库修正：H 验证码通知客户端使用 RFC 8707 `urn:h:resource:notification-api`，提交体使用 `template`，幂等键只通过 `Idempotency-Key` header 传递，与通知服务 v1 契约一致。

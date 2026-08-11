@@ -60,7 +60,7 @@ describe('email verification notification client', () => {
         'Idempotency-Key': input.challengeId,
       });
       expect(JSON.parse(String(options.body))).toEqual({
-        templateKey: 'account.email.verify',
+        template: 'account.email.verify',
         recipient: {
           kind: 'address',
           channel: 'email',
@@ -68,9 +68,12 @@ describe('email verification notification client', () => {
         },
         variables: { code: input.code },
         expiresAt: input.expiresAt.toISOString(),
-        idempotencyKey: input.challengeId,
       });
     }
+    const tokenRequest = fetchMock.mock.calls[0]?.[1];
+    expect(String(tokenRequest?.body)).toContain(
+      'resource=urn%3Ah%3Aresource%3Anotification-api',
+    );
   });
 
   it('returns a fixed error without disclosing the OTP', async () => {
