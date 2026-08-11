@@ -101,6 +101,7 @@ describe('email verification notification client', () => {
       })
       .catch((reason: Error) => reason);
     expect(error).toBeInstanceOf(Error);
+    if (!(error instanceof Error)) throw new Error('expected notifier failure');
     expect(error.message).toBe('Email verification notification was rejected');
     expect(error.message).not.toContain('123456');
   });

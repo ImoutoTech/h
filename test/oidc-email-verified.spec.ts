@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { User } from '../src/entity/User';
 import { oidcAccountClaims } from '../src/module/oauth/oidc-account-claims';
 
 describe('OIDC email ownership claim', () => {
@@ -9,13 +10,13 @@ describe('OIDC email ownership claim', () => {
       avatar: null,
       email: 'owner@example.com',
       emailVerifiedAt: null,
-    } as never;
-    expect(oidcAccountClaims(user, 'openid email')).toMatchObject({
+    };
+    expect(oidcAccountClaims(user as User, 'openid email')).toMatchObject({
       email: 'owner@example.com',
       email_verified: false,
     });
     user.emailVerifiedAt = new Date('2026-08-10T00:00:00.000Z');
-    expect(oidcAccountClaims(user, 'openid email')).toMatchObject({
+    expect(oidcAccountClaims(user as User, 'openid email')).toMatchObject({
       email_verified: true,
     });
   });

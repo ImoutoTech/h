@@ -1,10 +1,13 @@
-export const ENV_LIST = [
-  '.env.production.local',
-  '.env.development.local',
-  '.env.production',
-  '.env.development',
-  '.env',
-];
+// dotenv/Nest preserve values already present in process.env, and the first
+// file containing a key wins. Never let a production process inspect the
+// developer-local file: it can contain local signing and client credentials.
+export function environmentFiles(nodeEnv = process.env.NODE_ENV): string[] {
+  return nodeEnv === 'production'
+    ? ['.env.production.local', '.env.production', '.env']
+    : ['.env.development.local', '.env.development', '.env'];
+}
+
+export const ENV_LIST = environmentFiles();
 
 export const REDIS_CLIENT = 'h-redis-client';
 

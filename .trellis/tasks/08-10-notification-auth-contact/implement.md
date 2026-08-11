@@ -50,3 +50,10 @@
 - Contact API：本地验签 current/previous JWK，依次约束 `h-internal`、`users:contact:read`、client allowlist；只选取 `id/email/email_verified_at`，未验证与不存在统一 404，审计不记录邮箱。
 - 测试：新增 token 边界/JWK 轮换、联系信息投影与不可用归一化、资源目录测试；最终 ESLint、Nest build、23 个测试文件/62 个测试和 TypeORM metadata 检查全部通过。真实 MySQL 5.7 up/down 与部署态 Client Credentials 端点仍待集成环境。
 - 跨仓库修正：H 验证码通知客户端使用 RFC 8707 `urn:h:resource:notification-api`，提交体使用 `template`，幂等键只通过 `Idempotency-Key` header 传递，与通知服务 v1 契约一致。
+
+## H 部署就绪证据（2026-08-11）
+
+- 扩充受版本控制的 `.env` 配置模板，覆盖数据库、Redis、OIDC 当前/上一把密钥、独立 envelope key、Email 验证参数、H 发信客户端和 Contact API client allowlist；只含占位符，真实部署值由操作员替换或注入且不得提交。
+- 新增 `pnpm local:start`：从受版本控制的 `.env` 模板加载配置但不覆盖进程环境，拒绝生产模式、schema synchronize、占位符、错误 Node 版本/URL/JWK/envelope key/验证参数；默认检查 metadata、展示并执行 migration 后启动，支持 `--check` 和 `--skip-migrations`。
+- 新增 H 通知认证部署 runbook，明确 Node/MySQL/Redis 前置条件、secret 生成与归属、最小 client grant、备份与 migration 顺序、H/notification-service 启动顺序、health/OIDC/Contact/OTP 检查，以及不能用普通 down migration 回滚新验证事实的边界。
+- 验证：`git diff --check`、本地脚本 `--help`、直接调用 ESLint、Nest build 和 TypeORM metadata 检查通过；授权 localhost 监听后 Vitest 23 个测试文件 / 62 个测试全部通过。pnpm shim 因受限网络无法验证 registry 签名，故质量命令改用已安装的 `node_modules/.bin` 二进制。
