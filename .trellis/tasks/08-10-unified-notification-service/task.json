@@ -23,8 +23,13 @@
   ],
   "parent": null,
   "relatedFiles": [],
-  "notes": "跨仓库父任务；notification-service 的实现状态由其仓库内 08-10-notification-service-mvp 任务管理。",
+  "notes": "2026-08-12 已暂停并放弃当前重型统一消息中心方案，后续将新建任务重新设计；现有实现仅保留在参考分支，不合入 master。",
   "meta": {
+    "disposition": "abandoned_current_approach",
+    "pausedAt": "2026-08-12",
+    "reason": "当前方案实现与运维复杂度过高，产品方向需要重新设计",
+    "referenceBranch": "codex/notification-auth-contact",
+    "referenceCommit": "586921c",
     "externalTasks": [
       {
         "repository": "/Users/reuszeng/Code/Projects/notification-service",
