@@ -1,0 +1,11 @@
+{"file":".trellis/spec/backend/directory-structure.md","reason":"Follow H Nest module, entity, DTO and import layout."}
+{"file":".trellis/spec/backend/database-guidelines.md","reason":"Follow TypeORM entity, relation and persistence conventions; reconcile its stale migration note with current migration scripts."}
+{"file":".trellis/spec/backend/error-handling.md","reason":"Use validated DTOs, thin controllers, ownership checks and sanitized BusinessException responses."}
+{"file":".trellis/spec/backend/logging-guidelines.md","reason":"Keep notification content, addresses and all credentials out of logs."}
+{"file":".trellis/spec/backend/quality-guidelines.md","reason":"Apply H build/lint and controller/service quality requirements."}
+{"file":".trellis/tasks/08-12-unified-notification-service/prd.md","reason":"Implement the approved product scope and acceptance criteria."}
+{"file":".trellis/tasks/08-12-unified-notification-service/design.md","reason":"Implement the interfaces, persistence, dispatch and cross-repository design."}
+{"file":"../safe-house/.trellis/spec/frontend/directory-structure.md","reason":"Place Safe House views, components, composables, APIs and types in established layers."}
+{"file":"../safe-house/.trellis/spec/frontend/component-guidelines.md","reason":"Build focused typed Vue forms/components with Naive UI patterns."}
+{"file":"../safe-house/.trellis/spec/frontend/hook-guidelines.md","reason":"Keep request state and actions in Alova composables."}
+{"file":"../safe-house/.trellis/spec/frontend/type-safety.md","reason":"Use typed transport, form and component contracts."}
