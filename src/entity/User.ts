@@ -24,8 +24,6 @@ export interface UserExportData {
   updated_at: Date;
 }
 
-export type EmailVerificationSource = 'legacy_migration' | 'email_otp';
-
 @Entity({
   name: 'users',
 })
@@ -51,22 +49,6 @@ export class User {
     unique: true,
   })
   email: string;
-
-  @Column({
-    name: 'email_verified_at',
-    type: 'datetime',
-    precision: 6,
-    nullable: true,
-  })
-  emailVerifiedAt: Date;
-
-  @Column({
-    name: 'email_verification_source',
-    type: 'varchar',
-    length: 32,
-    nullable: true,
-  })
-  emailVerificationSource: EmailVerificationSource;
 
   @Column({
     nullable: true,
