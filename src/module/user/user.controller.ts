@@ -10,14 +10,19 @@ import {
   ParseIntPipe,
   DefaultValuePipe,
   HttpCode,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { Md5 } from 'ts-md5';
 import { UserService } from './user.service';
+import { EmailVerificationService } from './email-verification.service';
 import {
   CreateUserDto,
   UpdateUserDto,
   LoginUserDto,
   UpdatePasswordDto,
+  RequestEmailVerificationDto,
+  VerifyEmailVerificationDto,
+  ChangeEmailDto,
 } from '@/dto';
 import { AuthRoles, PermissionGuard, UserParams } from '@reus-able/nestjs';
 import { type UserJwtPayload } from '@reus-able/types';
@@ -27,7 +32,10 @@ import { type UserJwtPayload } from '@reus-able/types';
   version: [VERSION_NEUTRAL, '1'],
 })
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly emailVerification: EmailVerificationService,
+  ) {}
 
   @Post('/register')
   @AuthRoles()
@@ -38,6 +46,30 @@ export class UserController {
       regData.password = Md5.hashStr(regData.password);
     }
     return this.userService.create(regData);
+  }
+
+  @Post('/email-verification/register')
+  @AuthRoles()
+  requestRegistrationVerification(@Body() body: RequestEmailVerificationDto) {
+    return this.emailVerification.requestRegistration(body.email);
+  }
+
+  @Post('/email-verification/change-email')
+  @AuthRoles('user')
+  requestChangeEmailVerification(
+    @UserParams() user: UserJwtPayload,
+    @Body() body: RequestEmailVerificationDto,
+  ) {
+    return this.emailVerification.requestChangeEmail(user.id, body.email);
+  }
+
+  @Post('/email-verification/:challengeId/verify')
+  @AuthRoles()
+  verifyEmail(
+    @Param('challengeId', new ParseUUIDPipe()) challengeId: string,
+    @Body() body: VerifyEmailVerificationDto,
+  ) {
+    return this.emailVerification.verify(challengeId, body.code);
   }
 
   @Post('/login')
@@ -94,6 +126,15 @@ export class UserController {
     @Body() updateUserDto: UpdateUserDto,
   ) {
     return this.userService.update(user.id, updateUserDto);
+  }
+
+  @Put(':id/email')
+  @PermissionGuard('gnhNAwmj')
+  changeEmail(
+    @UserParams() user: UserJwtPayload,
+    @Body() body: ChangeEmailDto,
+  ) {
+    return this.userService.changeEmail(user.id, body.challengeId);
   }
 
   @Put(':id/password')

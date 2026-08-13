@@ -12,7 +12,12 @@ import {
   Put,
 } from '@nestjs/common';
 import { SubAppService } from './subapp.service';
-import { CreateSubAppDto, UpdateSubAppDto } from '@/dto';
+import {
+  CreateSubAppDto,
+  ProvisionConfidentialClientDto,
+  SetResourceGrantsDto,
+  UpdateSubAppDto,
+} from '@/dto';
 import { AuthRoles, UserParams, PermissionGuard } from '@reus-able/nestjs';
 import { UserJwtPayload } from '@reus-able/types';
 
@@ -51,6 +56,15 @@ export class SubAppController {
     @UserParams() user: UserJwtPayload,
   ) {
     return this.subappService.findUserApp(user.id, page, size, search);
+  }
+
+  @Post('admin/confidential-clients')
+  @PermissionGuard('oauth-machine-grant-admin')
+  provisionConfidentialClient(
+    @Body() body: ProvisionConfidentialClientDto,
+    @UserParams() user: UserJwtPayload,
+  ) {
+    return this.subappService.provisionConfidentialClient(body, user.id);
   }
 
   @Get(':id')
@@ -110,5 +124,20 @@ export class SubAppController {
     @UserParams() user: UserJwtPayload,
   ) {
     return this.subappService.delAppSecret(app, +id, user.id);
+  }
+
+  @Get(':id/resource-grants')
+  @PermissionGuard('oauth-machine-grant-admin')
+  getResourceGrants(@Param('id') id: string) {
+    return this.subappService.getResourceGrants(id);
+  }
+
+  @Put(':id/resource-grants')
+  @PermissionGuard('oauth-machine-grant-admin')
+  setResourceGrants(
+    @Param('id') id: string,
+    @Body() body: SetResourceGrantsDto,
+  ) {
+    return this.subappService.setResourceGrants(id, body);
   }
 }

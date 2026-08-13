@@ -34,6 +34,20 @@ $ pnpm install
 
 ## Running the app
 
+Notification authentication, verified-email, migration, and rollback setup is
+documented in [the deployment runbook](docs/notification-auth-deployment.md).
+For local development, keep machine-specific values in the ignored
+`.env.development.local`; they override defaults and placeholders in the tracked
+`.env` template. The configuration helper securely generates any missing
+H-owned cryptographic values while preserving existing and operator-owned
+settings. Never commit real secrets:
+
+```bash
+$ pnpm local:configure
+$ pnpm local:start -- --check
+$ pnpm local:start
+```
+
 ```bash
 # development
 $ pnpm run start

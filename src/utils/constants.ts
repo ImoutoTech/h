@@ -1,10 +1,13 @@
-export const ENV_LIST = [
-  '.env.production.local',
-  '.env.development.local',
-  '.env.production',
-  '.env.development',
-  '.env',
-];
+// dotenv/Nest preserve values already present in process.env, and the first
+// file containing a key wins. Never let a production process inspect the
+// developer-local file: it can contain local signing and client credentials.
+export function environmentFiles(nodeEnv = process.env.NODE_ENV): string[] {
+  return nodeEnv === 'production'
+    ? ['.env.production.local', '.env.production', '.env']
+    : ['.env.development.local', '.env.development', '.env'];
+}
+
+export const ENV_LIST = environmentFiles();
 
 export const REDIS_CLIENT = 'h-redis-client';
 
@@ -105,6 +108,26 @@ export const PERMISSION_LIST = [
     name: '管理外部登录提供方',
     description: '查看和修改 GitHub、Google 登录配置',
     code: 'oauth-provider-admin',
+  },
+  {
+    name: '管理 OAuth 机器授权',
+    description: '预配 confidential client 并维护 resource/scope 授权',
+    code: 'oauth-machine-grant-admin',
+  },
+  {
+    name: '读取通知',
+    description: '读取通知管理资源',
+    code: 'notifications:read',
+  },
+  {
+    name: '发送通知',
+    description: '发送通知管理资源',
+    code: 'notifications:send',
+  },
+  {
+    name: '管理通知',
+    description: '管理通知配置与状态',
+    code: 'notifications:manage',
   },
 ];
 

@@ -11,6 +11,7 @@ import { SubappModule } from './module/subapp/subapp.module';
 import { OauthModule } from './module/oauth/oauth.module';
 import { SystemModule } from './module/system/system.module';
 import { IdentityModule } from './module/identity/identity.module';
+import { InternalModule } from './module/internal/internal.module';
 
 import {
   LoggerModule,
@@ -48,6 +49,7 @@ import {
     OauthModule,
     SystemModule,
     IdentityModule,
+    InternalModule,
   ],
   controllers: [AppController],
   providers: [

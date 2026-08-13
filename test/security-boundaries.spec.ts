@@ -56,6 +56,23 @@ describe('security boundaries', () => {
     expect(ROLE_LIST[1].permissions).not.toContain('oauth-provider-admin');
   });
 
+  it('seeds machine and notification administration only into the administrator role', () => {
+    const adminCodes = [
+      'oauth-machine-grant-admin',
+      'notifications:read',
+      'notifications:send',
+      'notifications:manage',
+    ];
+    expect(PERMISSION_LIST.map((item) => item.code)).toEqual(
+      expect.arrayContaining(adminCodes),
+    );
+    expect(ROLE_LIST[0].permissions).toEqual(
+      expect.arrayContaining(adminCodes),
+    );
+    for (const code of adminCodes)
+      expect(ROLE_LIST[1].permissions).not.toContain(code);
+  });
+
   it('atomically consumes external state and rejects replay', async () => {
     let value: string | null = JSON.stringify({ provider: 'github' });
     const client = {

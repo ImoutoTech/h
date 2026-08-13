@@ -22,4 +22,34 @@ Before cutover, back up MySQL and Redis, validate every existing callback, confi
 
 Publish a new current public JWK alongside the previous public JWK for at least the maximum token lifetime during signing-key rotation. Private signing keys stay deployment-managed and are not exposed through admin APIs.
 
+## Machine clients and notification contacts
+
+Machine access is granted per `(client, resource, scope)`. An administrator with
+`oauth-machine-grant-admin` can provision a confidential client through
+`POST /app/admin/confidential-clients`; the response contains its secret exactly
+once. Existing confidential clients can be managed through
+`GET|PUT /app/:id/resource-grants`. Public clients are never configured with the
+Client Credentials grant.
+
+Provision notification-service with only the `h-internal` resource and
+`users:contact:read` scope. Configure H with `NOTIFICATION_CONTACT_CLIENT_IDS`
+as a comma-separated allowlist (or `NOTIFICATION_CLIENT_ID` for a single client).
+The service then requests a five-minute token using
+`resource=urn:h:resource:h-internal` and calls
+`GET /internal/v1/users/:id/notification-contacts/email`. Resource indicators
+are stable RFC 8707 URNs; the resulting JWT audience remains `h-internal`.
+
+The fixed resource catalog is:
+
+- `notification-api`: `notifications:send`, `notifications:read`
+- `h-internal`: `users:contact:read`
+- `notification-admin`: `notifications:read`, `notifications:send`,
+  `notifications:manage`
+
+For an Authorization Code request targeting `notification-admin`, the client
+grant and the signed-in user's permission codes are intersected. Permission
+codes may be the scope itself or `notification-admin:<scope>`.
+`notification-admin` is rejected for Client Credentials tokens even when the
+client has catalog grants; it always requires an end-user authorization grant.
+
 Do not run `migration:revert` after external-only users or identity/configuration records are created. Restore the backup or ship a forward corrective migration instead.

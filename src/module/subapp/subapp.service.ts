@@ -2,13 +2,19 @@ import { Injectable, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Like, type Repository } from 'typeorm';
 import * as jwt from 'jsonwebtoken';
-import { CreateSubAppDto, UpdateSubAppDto } from '@/dto';
+import {
+  CreateSubAppDto,
+  ProvisionConfidentialClientDto,
+  SetResourceGrantsDto,
+  UpdateSubAppDto,
+} from '@/dto';
 import {
   User,
   SubAppMeta,
   SubApp,
   type SubAppExportData,
   SubAppSecret,
+  SubAppResourceGrant,
 } from '@/entity';
 import { ConfigService } from '@nestjs/config';
 import { paginate } from 'nestjs-typeorm-paginate';
@@ -17,6 +23,7 @@ import { isNil } from 'lodash';
 import { HLOGGER_TOKEN, HLogger, RedisService } from '@reus-able/nestjs';
 import { generateRandomString } from '@/utils';
 import { ClientSecretService } from '../oauth/client-secret.service';
+import { isResourceName, RESOURCE_SERVERS } from '../oauth/resource-servers';
 
 @Injectable()
 export class SubAppService {
@@ -31,6 +38,9 @@ export class SubAppService {
 
   @InjectRepository(SubAppSecret)
   private scRepo: Repository<SubAppSecret>;
+
+  @InjectRepository(SubAppResourceGrant)
+  private grantRepo: Repository<SubAppResourceGrant>;
 
   @InjectRepository(User)
   private userRepo: Repository<User>;
@@ -347,5 +357,103 @@ export class SubAppService {
     this.log(`用户#${owner}删除子应用#${app}的秘钥#${id}`);
 
     return null;
+  }
+
+  async getResourceGrants(id: string) {
+    const app = await this.appRepo.findOneBy({ id });
+    if (!app) throw new BusinessException('子应用不存在');
+    const grants = await this.grantRepo.find({
+      where: { app: { id } },
+      relations: { app: true },
+      order: { resource: 'ASC', scope: 'ASC' },
+    });
+    return grants.map(({ resource, scope }) => ({ resource, scope }));
+  }
+
+  async setResourceGrants(id: string, body: SetResourceGrantsDto) {
+    const app = await this.appRepo.findOneBy({ id });
+    if (!app) throw new BusinessException('子应用不存在');
+    if (app.clientType !== 'confidential')
+      throw new BusinessException('只有 confidential 子应用可以配置机器授权');
+
+    const rows = this.validateGrantRows(app, body.grants);
+
+    await this.dataSource.transaction(async (manager) => {
+      await manager.getRepository(SubAppResourceGrant).delete({ app: { id } });
+      if (rows.length)
+        await manager.getRepository(SubAppResourceGrant).save(rows);
+    });
+    this.log(`管理员更新子应用#${id}的机器授权，共${rows.length}条`);
+    return rows.map(({ resource, scope }) => ({ resource, scope }));
+  }
+
+  async provisionConfidentialClient(
+    body: ProvisionConfidentialClientDto,
+    ownerId: number,
+  ) {
+    const owner = await this.userRepo.findOneBy({ id: ownerId });
+    if (!owner) throw new BusinessException('用户不存在');
+    const plaintext = generateRandomString(32);
+    const result = await this.dataSource.transaction(async (manager) => {
+      const meta = await manager
+        .getRepository(SubAppMeta)
+        .save(manager.getRepository(SubAppMeta).create());
+      const appRepo = manager.getRepository(SubApp);
+      const app = await appRepo.save(
+        appRepo.create({
+          name: body.name,
+          callback: body.callback,
+          description: body.description,
+          redirectUris: [body.callback],
+          clientType: 'confidential',
+          owner,
+          meta,
+        }),
+      );
+      const envelope = this.clientSecrets.encrypt(plaintext, app.id);
+      await manager.getRepository(SubAppSecret).save(
+        manager.getRepository(SubAppSecret).create({
+          app,
+          value: null,
+          secretCiphertext: envelope.ciphertext,
+          secretIv: envelope.iv,
+          secretTag: envelope.tag,
+          secretHint: envelope.hint,
+          keyVersion: envelope.keyVersion,
+          status: true,
+        }),
+      );
+      const grants = this.validateGrantRows(app, body.grants);
+      if (grants.length)
+        await manager.getRepository(SubAppResourceGrant).save(grants);
+      return { app, grants };
+    });
+    this.log(`管理员预配 confidential 子应用#${result.app.id}`);
+    return {
+      clientId: result.app.id,
+      clientSecret: plaintext,
+      grants: result.grants.map(({ resource, scope }) => ({ resource, scope })),
+    };
+  }
+
+  private validateGrantRows(
+    app: SubApp,
+    grants: SetResourceGrantsDto['grants'],
+  ) {
+    const rows = grants.flatMap((grant) => {
+      if (!isResourceName(grant.resource))
+        throw new BusinessException('不支持的 OAuth resource');
+      const allowed = new Set<string>(RESOURCE_SERVERS[grant.resource].scopes);
+      return Array.from(new Set(grant.scopes)).map((scope) => {
+        if (!allowed.has(scope))
+          throw new BusinessException('OAuth scope 与 resource 不匹配');
+        return this.grantRepo.create({ app, resource: grant.resource, scope });
+      });
+    });
+    return Array.from(
+      new Map(
+        rows.map((row) => [`${row.resource}\0${row.scope}`, row]),
+      ).values(),
+    );
   }
 }
