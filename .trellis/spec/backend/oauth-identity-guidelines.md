@@ -15,16 +15,10 @@ Use this contract whenever changing OIDC endpoints, sub-application credentials,
 - Provider administration: `GET /external/admin/providers`, `POST /external/admin/providers/:provider` with permission `oauth-provider-admin`.
 - Database uniqueness: `(provider, provider_user_id)` identifies an external identity; redirect URI comparison is exact.
 - Migration commands: `pnpm migration:run` and `pnpm migration:revert` invoke `src/database/run-migrations.ts`; `migration:show` remains read-only.
-- Email ownership endpoints: public `POST /user/email-verification/register` and `POST /user/email-verification/:challengeId/verify`; authenticated `POST /user/email-verification/change-email` and `PUT /user/:id/email`. Registration requires `emailVerificationChallengeId`.
 
 ### 3. Contracts
 
 - OIDC supports only Authorization Code, `S256` PKCE, and `openid profile email`; no refresh token or offline access.
-- OIDC `email_verified` is derived only from `users.email_verified_at`; never hardcode it or infer it from the presence of an address.
-- Existing users are backfilled at the migration's fixed timestamp with source `legacy_migration`. New registration and email changes use source `email_otp`, and the user mutation plus challenge consumption must commit in one transaction.
-- Email OTPs are six-digit CSPRNG values. Plaintext exists only while submitting `account.email.verify` to notification-service; persistence uses a server-peppered, challenge-bound HMAC and logs use only challenge/user identifiers.
-- Email challenges bind purpose, normalized address, and (for changes) user id. Verification and consumption use pessimistic row locks; the nullable unique active key closes concurrent first-request cooldown races, and consumption is single-use.
-- Required email verification deployment configuration includes `EMAIL_VERIFICATION_PEPPER`, `NOTIFICATION_API_URL`, `NOTIFICATION_CLIENT_ID`, and `NOTIFICATION_CLIENT_SECRET`; TTL, cooldown, and maximum attempts have positive-integer defaults.
 - Every authorization request requires a fresh explicit consent interaction, even when an OIDC session or grant already exists.
 - Validate the URL returned by `interactionFinished` as an issuer-owned `/oidc/auth/:id` resume URL. The provider performs the subsequent exact registered-client callback validation.
 - Derive OIDC Redis key suffixes from a one-way digest of codes, tokens, session IDs, UIDs, and grant IDs so infrastructure key logging cannot disclose bearer material.
@@ -55,7 +49,6 @@ Use this contract whenever changing OIDC endpoints, sub-application credentials,
 - Allowed safe-house origin -> credentialed CORS headers and authorized preflight `204`; another browser origin -> no CORS authorization; an Origin-less protocol/server client remains allowed.
 - Installed `RedisService` without atomic `getDel` capability -> fail closed; never degrade one-time state to separate `GET` plus `DEL`.
 - Migration failure -> fixed non-sensitive error text and non-zero exit status; never log the TypeORM error object, query, or parameters.
-- Missing, expired, invalidated, exhausted, unverified, mismatched, or consumed email challenges fail without changing the user's primary email. Generic user update requests containing `email` are rejected.
 
 ### 5. Good/Base/Bad Cases
 
@@ -73,7 +66,6 @@ Use this contract whenever changing OIDC endpoints, sub-application credentials,
 - Identity: unbound login has no database/session side effects, existing-identity login, authenticated binding, concurrent binding/ownership races, last-login invariant, sanitized outcomes, admin permission separation, and result replay.
 - Google protocol regression: assert the exact callback URL passed to `authorizationCodeGrant` contains `code`, `state`, and the provider-returned `iss`, while PKCE verifier, expected state, and expected nonce remain enabled.
 - Migration: cryptographic preflight before DDL, representative up/down on disposable MySQL, preservation/rollback guards.
-- Email ownership: code format/digest isolation, cooldown, expiry, failure ceiling, notification failure invalidation, unverified registration, direct-update bypass, wrong purpose/user/address, replay and concurrent consumption, fixed legacy backfill, and verified/unverified OIDC claims.
 - Migration CLI: statically assert run/revert scripts use the safe runner and its catch path cannot serialize TypeORM errors; execute down/up on a disposable database and assert output contains no `query:`, `PARAMETERS`, environment secrets, or database secret values.
 - Token transport: boot the full Nest/Fastify application and complete a standard-client form-encoded token exchange to catch parser registration collisions and missing body forwarding.
 - Environment: repeat protocol checks under Node 22, real providers, and a standard relying-party client.
@@ -163,61 +155,4 @@ await app.listen(resolveListenPort(config.get<string>('PORT')));
   "migration:run": "node -r ts-node/register -r tsconfig-paths/register src/database/run-migrations.ts run",
   "migration:revert": "node -r ts-node/register -r tsconfig-paths/register src/database/run-migrations.ts revert"
 }
-```
-
-## Scenario: Notification resource tokens and verified contacts
-
-### 1. Scope / Trigger
-
-Use this contract when adding OAuth resources/scopes, provisioning confidential service clients, issuing machine tokens, mapping notification administrator permissions, or exposing verified notification contacts.
-
-### 2. Signatures
-
-- Resource indicators are RFC 8707 URNs: `urn:h:resource:notification-api`, `urn:h:resource:h-internal`, and `urn:h:resource:notification-admin`; JWT `aud` remains the corresponding short resource name.
-- Grant rows are unique by `(appId, resource, scope)` in `subapp_resource_grants` and cascade when the application is deleted.
-- Contact API: `GET /internal/v1/users/:id/notification-contacts/email`.
-- H submits verification mail with `POST /v1/notifications`, body field `template`, and `Idempotency-Key: <challengeId>` header.
-
-### 3. Contracts
-
-- Only confidential clients with persisted resource grants advertise `client_credentials`; machine access tokens are RS256 JWTs with `iss`, short-name `aud`, `exp`, `client_id`, minimal `scope`, and a 300-second TTL.
-- `notification-admin` is user-only: Authorization Code scopes equal the intersection of client grants and the authenticated user's role permissions; Client Credentials requests for it fail closed.
-- Contact tokens require `aud=h-internal`, `users:contact:read`, and a configured client allowlist. Current and previous signing public keys are accepted during rotation.
-- A verified contact response is `{ userId: number, address: string, verifiedAt: ISO timestamp }`. Missing and unverified users share `404 { error: 'notification_contact_unavailable' }`.
-- Required Contact configuration is `OIDC_ISSUER`, current signing JWK, optional previous public JWK, plus `NOTIFICATION_CONTACT_CLIENT_IDS` (or the single-client compatibility key `NOTIFICATION_CLIENT_ID`).
-
-### 4. Validation & Error Matrix
-
-- Missing or invalid bearer JWT -> `401 notification_contact_unauthorized`.
-- Wrong audience, missing scope, or non-allowlisted `client_id` -> `403` with the stable boundary category and no contact disclosure.
-- Missing/unverified user -> identical `404 notification_contact_unavailable`.
-- Public client, unknown resource URN, ungranted scope, or machine request for `notification-admin` -> OAuth protocol rejection; never broaden the requested grant.
-
-### 5. Good/Base/Bad Cases
-
-- Good: persist normalized grants, request the URN resource, issue the short audience, and derive `appId` from signed `client_id`.
-- Base: key rotation accepts current and previous public keys while new tokens use only the current private key.
-- Bad: accept symbolic `resource=notification-api`, static bearer tokens, body-supplied application identity, direct unverified email lookup, or machine administrator scopes.
-
-### 6. Tests Required
-
-- Resource directory/URN mapping, grant normalization, provider reload fingerprint, Client Credentials eligibility, token TTL/audience/scope/client claim, and administrator permission intersection.
-- Contact current/previous-key verification, audience/scope/client rejection, stable unavailable response, selected database columns, and logs without email/token content.
-- Cross-repository contract: verification requests use `template`, header-only idempotency, RFC 8707 resource URN, and the notification service consumes `{ userId, address, verifiedAt }`.
-
-### 7. Wrong vs Correct
-
-#### Wrong
-
-```typescript
-resource: 'notification-api';
-body: { templateKey, idempotencyKey };
-```
-
-#### Correct
-
-```typescript
-resource: 'urn:h:resource:notification-api';
-headers: { 'Idempotency-Key': challengeId };
-body: { template: 'account.email.verify', recipient, variables, expiresAt };
 ```

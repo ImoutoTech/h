@@ -3,7 +3,7 @@
   "name": "notification-auth-contact",
   "title": "H 通知认证与联系信息接口",
   "description": "为通知服务扩展 OAuth Client Credentials/JWT resource token、管理员权限 token 与受保护 Contact API。",
-  "status": "in_progress",
+  "status": "planning",
   "dev_type": null,
   "scope": null,
   "package": null,

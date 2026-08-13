@@ -12,7 +12,7 @@ import { User, UserExportData } from '@/entity';
 
 import { isNil } from 'lodash';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, type Repository, Like } from 'typeorm';
+import { type Repository, Like } from 'typeorm';
 import { paginate } from 'nestjs-typeorm-paginate';
 import { UserJwtPayload } from '@reus-able/types';
 import {
@@ -22,8 +22,6 @@ import {
   RedisService,
 } from '@reus-able/nestjs';
 import { AuthPermissionService } from '../system/permission.service';
-import { EmailVerificationService } from './email-verification.service';
-import { normalizeEmail } from './email-verification-code';
 
 @Injectable()
 export class UserService {
@@ -35,12 +33,6 @@ export class UserService {
 
   @Inject(RedisService)
   private cache: RedisService;
-
-  @Inject(DataSource)
-  private dataSource: DataSource;
-
-  @Inject(EmailVerificationService)
-  private emailVerification: EmailVerificationService;
 
   constructor(
     private configService: ConfigService,
@@ -56,37 +48,26 @@ export class UserService {
   }
 
   async create(param: CreateUserDto) {
-    const normalizedEmail = normalizeEmail(param.email);
-    let user: User;
-    try {
-      user = await this.dataSource.transaction(async (manager) => {
-        const users = manager.getRepository(User);
-        if (!isNil(await users.findOneBy({ email: normalizedEmail })))
-          throw new BusinessException('邮箱已被注册');
-        const challenge = await this.emailVerification.consume(
-          manager,
-          param.emailVerificationChallengeId,
-          { purpose: 'register', normalizedEmail },
-        );
-        const created = users.create({
-          email: normalizedEmail,
-          emailVerifiedAt: challenge.verifiedAt,
-          emailVerificationSource: 'email_otp',
-          nickname: param.nickname,
-          password: bcrypt.hashSync(
-            param.password,
-            +this.configService.get('PWD_SALT_ROUND', 10),
-          ),
-        });
-        return users.save(created);
-      });
-    } catch (reason) {
-      if (reason instanceof BusinessException) throw reason;
-      if (this.isDuplicate(reason)) throw new BusinessException('邮箱已被注册');
-      throw reason;
+    if (!isNil(await this.userRepo.findOneBy({ email: param.email }))) {
+      this.warn(`用户(email: ${param.email})已存在`);
+      throw new BusinessException('邮箱已被注册');
     }
 
-    this.log(`创建用户#${user.id}成功`);
+    const user = new User();
+    user.email = param.email;
+    user.nickname = param.nickname;
+    user.password = bcrypt.hashSync(
+      param.password,
+      +this.configService.get('PWD_SALT_ROUND', 10),
+    );
+
+    try {
+      await this.userRepo.save(user);
+    } catch (e) {
+      throw new BusinessException(e.message);
+    }
+
+    this.log(`创建用户 ${JSON.stringify(user.getData())} 成功`);
     await this.cache.jsonSet(`user-${user.id}`, user.getData());
     return user.getData();
   }
@@ -132,12 +113,12 @@ export class UserService {
       relations: ['roles'],
     });
     if (isNil(user)) {
-      this.warn('未知邮箱的登录尝试');
+      this.warn(`不存在的用户${param.email}尝试登录`);
       throw new BusinessException('用户不存在');
     }
 
     if (!user.checkPassword(param.password)) {
-      this.warn(`用户#${user.id}登录时密码错误`);
+      this.warn(`用户${param.email}登录时密码错误`);
       throw new BusinessException('密码错误');
     }
 
@@ -174,7 +155,7 @@ export class UserService {
       },
     );
 
-    this.log(`用户#${user.id}登录成功`);
+    this.log(`用户${user.email}登录成功`);
     return {
       token: `Bearer ${token}`,
       refresh: `Bearer ${refresh}`,
@@ -204,9 +185,7 @@ export class UserService {
   }
 
   async update(id: number, userNewData: UpdateUserDto) {
-    if (Object.prototype.hasOwnProperty.call(userNewData, 'email'))
-      throw new BusinessException('请通过邮箱验证流程修改邮箱');
-    const editableProperties = ['avatar', 'nickname'] as const;
+    const editableProperties = ['avatar', 'nickname', 'email'] as const;
     const editedProperties: string[] = [];
     const user = await this.userRepo.findOneBy({ id });
 
@@ -227,44 +206,6 @@ export class UserService {
 
     await this.cache.jsonSet(`user-${user.id}`, user.getData());
 
-    return user.getData();
-  }
-
-  async changeEmail(id: number, challengeId: string) {
-    let user: User;
-    try {
-      user = await this.dataSource.transaction(async (manager) => {
-        const users = manager.getRepository(User);
-        const current = await users.findOne({
-          where: { id },
-          lock: { mode: 'pessimistic_write' },
-        });
-        if (!current) throw new BusinessException('用户不存在');
-        const challenge = await this.emailVerification.consume(
-          manager,
-          challengeId,
-          {
-            purpose: 'change_email',
-            userId: id,
-          },
-        );
-        const owner = await users.findOneBy({
-          email: challenge.normalizedEmail,
-        });
-        if (owner && owner.id !== id)
-          throw new BusinessException('邮箱已被注册');
-        current.email = challenge.normalizedEmail;
-        current.emailVerifiedAt = challenge.verifiedAt;
-        current.emailVerificationSource = 'email_otp';
-        return users.save(current);
-      });
-    } catch (reason) {
-      if (reason instanceof BusinessException) throw reason;
-      if (this.isDuplicate(reason)) throw new BusinessException('邮箱已被注册');
-      throw reason;
-    }
-    await this.cache.jsonSet(`user-${user.id}`, user.getData());
-    this.log(`用户#${user.id}修改已验证邮箱成功`);
     return user.getData();
   }
 
@@ -308,12 +249,5 @@ export class UserService {
     this.log(`用户#${id}获取自身权限完成`);
 
     return permissions;
-  }
-
-  private isDuplicate(reason: any) {
-    return (
-      reason?.code === 'ER_DUP_ENTRY' ||
-      reason?.driverError?.code === 'ER_DUP_ENTRY'
-    );
   }
 }

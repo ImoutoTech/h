@@ -4,7 +4,5 @@ export * from './User';
 export * from './ExternalIdentity';
 export * from './ProviderConfig';
 export * from './SubAppSecret';
-export * from './SubAppResourceGrant';
 export * from './Role';
 export * from './Permission';
-export * from './EmailVerificationChallenge';

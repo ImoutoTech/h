@@ -14,7 +14,6 @@ import {
 import { User } from '@/entity/User';
 import { SubAppMeta, SubAppMetaExportData } from './SubAppMeta';
 import { SubAppSecret } from './SubAppSecret';
-import { SubAppResourceGrant } from './SubAppResourceGrant';
 
 export interface SubAppExportData {
   name: string;
@@ -77,11 +76,6 @@ export class SubApp {
     cascade: true,
   })
   secrets: SubAppSecret[];
-
-  @OneToMany(() => SubAppResourceGrant, (grant) => grant.app, {
-    cascade: true,
-  })
-  resourceGrants: SubAppResourceGrant[];
 
   @OneToOne(() => SubAppMeta, (m) => m.app, {
     cascade: true,
