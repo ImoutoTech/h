@@ -106,3 +106,27 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 5: 完成轻量化统一消息通知服务
+
+**Date**: 2026-08-13
+**Task**: 完成轻量化统一消息通知服务
+**Branch**: `codex/unified-notification-service`
+
+### Summary
+
+完成 H 通知服务与 Safe House 管理界面，实现数据库 SMTP 配置、模板/受控直传、用户和手动收件人、子应用通知 Key、策略与异步投递；修复业务错误 HTTP 映射和 Nodemailer CommonJS 加载问题，并通过 83 项测试及腾讯企业 SMTP 真实投递验收。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `d5b9d78` | (see git log) |
+| `bc403e7` | (see git log) |
+| `c70fd05` | (see git log) |
+| `4857ddb` | (see git log) |
+
+### Status
+
+[OK] **Completed**
