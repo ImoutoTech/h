@@ -106,6 +106,21 @@ export const PERMISSION_LIST = [
     description: '查看和修改 GitHub、Google 登录配置',
     code: 'oauth-provider-admin',
   },
+  {
+    name: '管理通知渠道',
+    description: '查看和修改平台 Email SMTP 通知渠道',
+    code: 'notification-channel-admin',
+  },
+  {
+    name: '管理消息模板',
+    description: '查看和修改消息通知模板',
+    code: 'notification-template-admin',
+  },
+  {
+    name: '管理应用通知权限',
+    description: '查看和修改子应用通知策略与模板授权',
+    code: 'notification-policy-admin',
+  },
 ];
 
 export const PERMISSION_CODE_MAP = PERMISSION_LIST.reduce((acc, curr) => {
