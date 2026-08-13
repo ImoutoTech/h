@@ -1,3 +1,4 @@
+import { HttpStatus } from '@nestjs/common';
 import { BusinessException } from '@reus-able/nestjs';
 
 export type NotificationErrorCode =
@@ -31,6 +32,26 @@ const messages: Record<NotificationErrorCode, string> = {
   notification_not_found: '通知不存在',
 };
 
+const statuses: Record<NotificationErrorCode, HttpStatus> = {
+  notification_invalid_key: HttpStatus.UNAUTHORIZED,
+  notification_disabled_key: HttpStatus.UNAUTHORIZED,
+  notification_insufficient_capability: HttpStatus.FORBIDDEN,
+  notification_template_missing: HttpStatus.NOT_FOUND,
+  notification_template_disabled: HttpStatus.CONFLICT,
+  notification_template_forbidden: HttpStatus.FORBIDDEN,
+  notification_invalid_variables: HttpStatus.BAD_REQUEST,
+  notification_invalid_recipient: HttpStatus.BAD_REQUEST,
+  notification_too_many_recipients: HttpStatus.BAD_REQUEST,
+  notification_rate_limited: HttpStatus.TOO_MANY_REQUESTS,
+  notification_idempotency_conflict: HttpStatus.CONFLICT,
+  notification_channel_unavailable: HttpStatus.SERVICE_UNAVAILABLE,
+  notification_not_found: HttpStatus.NOT_FOUND,
+};
+
 export function notificationError(code: NotificationErrorCode): never {
-  throw new BusinessException({ code, message: messages[code] } as any);
+  throw new BusinessException({
+    code,
+    message: messages[code],
+    httpCode: statuses[code],
+  } as any);
 }
