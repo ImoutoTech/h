@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import sanitizeHtml from 'sanitize-html';
+import * as sanitizeHtmlModule from 'sanitize-html';
 import { notificationError } from './notification-error';
+
+const sanitizeHtml =
+  typeof sanitizeHtmlModule === 'function'
+    ? sanitizeHtmlModule
+    : (sanitizeHtmlModule as { default: typeof sanitizeHtmlModule }).default;
 
 const TOKEN = /{{\s*([A-Za-z_][A-Za-z0-9_]*)\s*}}/g;
 const OPEN_TOKEN = /{{|}}/;
