@@ -1,0 +1,2 @@
+{"file":".trellis/spec/backend/notification-guidelines.md","reason":"Preserve notification HTML sanitization, variable escaping, and adapter-independent rendering contracts while fixing the runtime import."}
+{"file":".trellis/spec/backend/quality-guidelines.md","reason":"Follow backend regression-test and quality-gate requirements for the production-runtime hotfix."}

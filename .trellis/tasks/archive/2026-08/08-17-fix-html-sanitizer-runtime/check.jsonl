@@ -1,0 +1,2 @@
+{"file":".trellis/spec/backend/notification-guidelines.md","reason":"Verify HTML rendering and sanitization security semantics remain unchanged after the CommonJS fix."}
+{"file":".trellis/spec/backend/quality-guidelines.md","reason":"Review the regression seam and execute required lint, build, test, and diff checks."}

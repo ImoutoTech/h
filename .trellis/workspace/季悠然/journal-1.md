@@ -130,3 +130,24 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 6: 修复 HTML 通知清洗运行时错误
+
+**Date**: 2026-08-17
+**Task**: 修复 HTML 通知清洗运行时错误
+**Branch**: `codex/unified-notification-service`
+
+### Summary
+
+修复 sanitize-html 在 Nest CommonJS 生产构建中的默认导入错误，增加编译产物回归测试，验证 HTML 转义与清洗安全策略，并将 CommonJS 依赖边界检查写入后端质量规范。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `023ba30` | (see git log) |
+
+### Status
+
+[OK] **Completed**
