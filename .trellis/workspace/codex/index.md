@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 1
-- **Last Active**: 2026-08-04
+- **Total Sessions**: 2
+- **Last Active**: 2026-08-20
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~29 | Active |
+| `journal-1.md` | ~50 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 2 | 2026-08-20 | 放宽邮件 HTML 样式过滤 | `8cafdfe` | `master` |
 | 1 | 2026-08-04 | 子应用页展示 SSO 接入说明 | `1b6f9ab`, `66f34e9` | `codex/oauth-login-center` |
 <!-- @@@/auto:session-history -->
 

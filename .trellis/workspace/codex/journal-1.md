@@ -27,3 +27,24 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 2: 放宽邮件 HTML 样式过滤
+
+**Date**: 2026-08-20
+**Task**: 放宽邮件 HTML 样式过滤
+**Branch**: `master`
+
+### Summary
+
+保留可信邮件模板的完整 CSS 与常见展示属性，同时继续清除主动 HTML、事件属性和危险 URL，并补充安全回归测试。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `8cafdfe` | (see git log) |
+
+### Status
+
+[OK] **Completed**
