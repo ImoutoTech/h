@@ -17,6 +17,9 @@
 ### 3. Contracts
 
 - Content is discriminated: `{kind:'template',templateKey,variables}` or `{kind:'content',subject,text,html?}`; never both.
+- HTML variables are escaped before sanitization. Template HTML and capability-gated direct HTML use the same sanitizer before the encrypted queue snapshot is created.
+- Template admins and applications granted `directContent` are trusted CSS authors: `<style>`, media queries, inline `style`, and email presentation attributes are preserved without a CSS property/value allowlist. This intentionally accepts remote tracking and visual-spoofing risk; CSS is not an executable-content security boundary.
+- HTML active content remains blocked: executable/embedded/form tags, external stylesheet links, refresh metadata, event attributes, and `srcdoc` are removed. URL-bearing HTML attributes and each `srcset` candidate must use the configured safe schemes; adding a new URL attribute also requires adding it to scheme enforcement.
 - At most 20 normalized recipients; any invalid recipient rejects the whole acceptance transaction.
 - Optional idempotency is scoped by `(appId,idempotencyKey)` for seven days; same canonical hash returns the original ID, different hash conflicts.
 - `NOTIFICATION_SECRET_KEY` and its version protect SMTP passwords, recipient addresses, and rendered snapshots with AES-256-GCM plus purpose/record-bound AAD.
@@ -31,6 +34,9 @@
 | invalid/disabled/deleted Notification Key | reject before policy/data access |
 | manual address/direct content without app capability | insufficient capability |
 | missing/extra template variable or disabled/ungranted template | stable template/variable error |
+| HTML variable contains tags or attribute delimiters | escape as text before sanitization; never create markup |
+| active HTML tag/attribute or unsafe URL scheme | remove it while retaining safe display content |
+| arbitrary CSS in trusted template/direct content | preserve it unchanged |
 | more than 20 recipients or any invalid target | reject whole request, create no rows |
 | same idempotency key, different request hash | conflict |
 | Redis unavailable during external acceptance | fail closed; do not bypass rate limits |
@@ -41,7 +47,10 @@
 ### 5. Good / Base / Bad Cases
 
 - Good: authorized template request resolves all recipients, sanitizes/renders once, encrypts snapshots, and inserts root plus deliveries in one transaction.
+- Good: preserve complete email CSS while applying explicit safe tag/attribute lists and scheme checks to HTML execution surfaces.
 - Base: no idempotency key creates a new notification for each call and documents duplicate risk.
+- Bad: add `style` to attributes but leave style parsing enabled, which silently removes nonstandard email-client CSS.
+- Bad: allow a presentation URL attribute such as `background` without adding it to `allowedSchemesAppliedToAttributes`.
 - Bad: logging DTOs, addresses, variables, API Keys, SMTP passwords or decrypted snapshots.
 - Bad: using two independent Redis increments for request and recipient limits; use one Lua operation so accounting is atomic.
 - Bad: relying only on HTTP DTO validation; H internal callers must pass the same application-boundary size/shape checks.
@@ -55,6 +64,9 @@
 - Lease-owner CAS, expired-lease recovery, pre-send 24-hour expiry, atomic root aggregation and partial failure.
 - Cleanup proves purge does not extend seven-day retention.
 - Permission tests prove policy admins receive only `{id,name}` apps and `{id,key,name,enabled}` template options.
+- HTML tests prove `<style>`, media queries, arbitrary inline CSS and common email layout attributes survive for both templates and direct content.
+- HTML security tests prove escaped interpolation cannot break into attribute context; active tags, event attributes, `srcdoc`, encoded/control-character unsafe schemes, unsafe `background`, and unsafe `srcset` candidates are removed.
+- The compiled CommonJS smoke test must call the real sanitizer boundary, not only the source-module test transform.
 
 ### 7. Wrong vs Correct
 
@@ -72,4 +84,17 @@ await deliveries.update(
   { id: delivery.id, status: 'processing', leaseOwner: workerToken },
   { status: 'sent', leaseOwner: null, leaseExpiresAt: null },
 );
+```
+
+For HTML sanitization, do not treat CSS and executable HTML as the same trust boundary:
+
+```typescript
+// Wrong: breaks real email CSS while missing URL attributes added later.
+allowedAttributes: { '*': ['class'] };
+
+// Correct: trusted CSS remains intact; active tags/attributes stay off the
+// allowlist and every URL-bearing HTML attribute receives scheme checks.
+allowedAttributes: { '*': ['class', 'style'], table: ['background'] };
+allowedSchemesAppliedToAttributes: ['href', 'src', 'cite', 'background'];
+parseStyleAttributes: false;
 ```
