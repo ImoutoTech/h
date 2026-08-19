@@ -151,3 +151,26 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 7: SSO 邮箱认证
+
+**Date**: 2026-08-19
+**Task**: SSO 邮箱认证
+**Branch**: `master`
+
+### Summary
+
+实现 H 与 Safe House 的注册、邮箱换绑和密码修改邮箱 OTP 认证；接入内置通知模块，兼容旧数据库字段并完成本地 migration、前后端验收与全量检查。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `aaf4ca2` | (see git log) |
+| `67e6254` | (see git log) |
+| `43827be` | (see git log) |
+
+### Status
+
+[OK] **Completed**
