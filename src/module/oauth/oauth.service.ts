@@ -170,7 +170,10 @@ export class OAuthService {
               ? { nickname: user.nickname, picture: user.avatar }
               : {}),
             ...(scope.includes('email')
-              ? { email: user.email, email_verified: true }
+              ? {
+                  email: user.email,
+                  email_verified: Boolean(user.emailVerifiedAt),
+                }
               : {}),
           }),
         };

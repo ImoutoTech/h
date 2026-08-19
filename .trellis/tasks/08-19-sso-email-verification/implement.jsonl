@@ -1,0 +1,7 @@
+{"file":".trellis/spec/backend/index.md","reason":"Load the H backend spec routing and project boundaries."}
+{"file":".trellis/spec/backend/database-guidelines.md","reason":"Implement entities, transactions, migrations, uniqueness, and cache consistency safely."}
+{"file":".trellis/spec/backend/error-handling.md","reason":"Define validated DTO boundaries and stable non-leaking business errors."}
+{"file":".trellis/spec/backend/logging-guidelines.md","reason":"Keep OTP, proofs, passwords, tokens, and email data out of logs."}
+{"file":".trellis/spec/backend/oauth-identity-guidelines.md","reason":"Preserve OIDC claims and external identity compatibility."}
+{"file":".trellis/spec/backend/quality-guidelines.md","reason":"Follow backend architecture and verification commands."}
+{"file":".trellis/tasks/08-19-sso-email-verification/research/dependency-contract.md","reason":"Reuse existing email challenge and Safe House frontend conventions."}

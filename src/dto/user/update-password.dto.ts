@@ -1,8 +1,12 @@
-import { IsString } from 'class-validator';
+import { IsOptional, IsString, IsUUID } from 'class-validator';
 export class UpdatePasswordDto {
+  @IsOptional()
   @IsString()
-  oldVal: string;
+  oldVal?: string;
 
   @IsString()
   newVal: string;
+
+  @IsUUID()
+  verificationProof: string;
 }

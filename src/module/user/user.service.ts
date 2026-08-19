@@ -7,12 +7,13 @@ import {
   UpdateUserDto,
   LoginUserDto,
   UpdatePasswordDto,
+  ChangeEmailDto,
 } from '@/dto';
-import { User, UserExportData } from '@/entity';
+import { EmailVerificationPurpose, User, UserExportData } from '@/entity';
 
 import { isNil } from 'lodash';
 import { InjectRepository } from '@nestjs/typeorm';
-import { type Repository, Like } from 'typeorm';
+import { DataSource, type Repository, Like } from 'typeorm';
 import { paginate } from 'nestjs-typeorm-paginate';
 import { UserJwtPayload } from '@reus-able/types';
 import {
@@ -22,6 +23,8 @@ import {
   RedisService,
 } from '@reus-able/nestjs';
 import { AuthPermissionService } from '../system/permission.service';
+import { EmailVerificationService } from './email-verification.service';
+import { normalizeEmail } from '@/utils';
 
 @Injectable()
 export class UserService {
@@ -37,6 +40,8 @@ export class UserService {
   constructor(
     private configService: ConfigService,
     private permissionService: AuthPermissionService,
+    private dataSource: DataSource,
+    private emailVerification: EmailVerificationService,
   ) {}
 
   private log(text: string) {
@@ -48,28 +53,39 @@ export class UserService {
   }
 
   async create(param: CreateUserDto) {
-    if (!isNil(await this.userRepo.findOneBy({ email: param.email }))) {
-      this.warn(`用户(email: ${param.email})已存在`);
-      throw new BusinessException('邮箱已被注册');
-    }
-
-    const user = new User();
-    user.email = param.email;
-    user.nickname = param.nickname;
-    user.password = bcrypt.hashSync(
-      param.password,
-      +this.configService.get('PWD_SALT_ROUND', 10),
-    );
-
     try {
-      await this.userRepo.save(user);
-    } catch (e) {
-      throw new BusinessException(e.message);
+      const user = await this.dataSource.transaction(async (manager) => {
+        const repo = manager.getRepository(User);
+        const email = normalizeEmail(param.email);
+        if (await repo.findOneBy({ email }))
+          throw new BusinessException('邮箱已被注册');
+        await this.emailVerification.consume(
+          manager,
+          param.verificationProof,
+          EmailVerificationPurpose.REGISTER,
+          null,
+          email,
+        );
+        return repo.save(
+          repo.create({
+            email,
+            nickname: param.nickname,
+            password: bcrypt.hashSync(
+              param.password,
+              +this.configService.get('PWD_SALT_ROUND', 10),
+            ),
+            emailVerifiedAt: new Date(),
+            emailVerificationSource: 'email_otp',
+          }),
+        );
+      });
+      this.log(`创建用户#${user.id}成功`);
+      await this.cache.jsonSet(`user-${user.id}`, user.getData());
+      return user.getData();
+    } catch (error) {
+      if (error instanceof BusinessException) throw error;
+      throw new BusinessException('注册失败，请稍后重试');
     }
-
-    this.log(`创建用户 ${JSON.stringify(user.getData())} 成功`);
-    await this.cache.jsonSet(`user-${user.id}`, user.getData());
-    return user.getData();
   }
 
   async findAll(page = 1, limit = 500, search = '') {
@@ -92,7 +108,11 @@ export class UserService {
 
   async findOne(id: number) {
     const cached = await this.cache.jsonGet<UserExportData>(`user-${id}`);
-    if (cached) {
+    if (
+      cached &&
+      typeof cached.emailVerified === 'boolean' &&
+      typeof cached.hasPassword === 'boolean'
+    ) {
       return cached;
     }
     const user = await this.userRepo.findOneBy({ id });
@@ -108,17 +128,18 @@ export class UserService {
   }
 
   async login(param: LoginUserDto) {
+    const email = normalizeEmail(param.email);
     const user = await this.userRepo.findOne({
-      where: { email: param.email },
+      where: { email },
       relations: ['roles'],
     });
     if (isNil(user)) {
-      this.warn(`不存在的用户${param.email}尝试登录`);
+      this.warn('不存在的邮箱账号尝试登录');
       throw new BusinessException('用户不存在');
     }
 
     if (!user.checkPassword(param.password)) {
-      this.warn(`用户${param.email}登录时密码错误`);
+      this.warn(`用户#${user.id}登录时密码错误`);
       throw new BusinessException('密码错误');
     }
 
@@ -155,7 +176,7 @@ export class UserService {
       },
     );
 
-    this.log(`用户${user.email}登录成功`);
+    this.log(`用户#${user.id}登录成功`);
     return {
       token: `Bearer ${token}`,
       refresh: `Bearer ${refresh}`,
@@ -163,12 +184,14 @@ export class UserService {
     };
   }
 
-  refresh(user: UserJwtPayload) {
+  async refresh(user: UserJwtPayload) {
+    const current = await this.userRepo.findOneBy({ id: user.id });
+    if (!current) throw new BusinessException('用户不存在');
     const token = jwt.sign(
       {
-        email: user.email,
-        role: user.role,
-        id: user.id,
+        email: current.email,
+        role: current.role,
+        id: current.id,
         refresh: false,
         roles: user.roles,
       },
@@ -185,7 +208,7 @@ export class UserService {
   }
 
   async update(id: number, userNewData: UpdateUserDto) {
-    const editableProperties = ['avatar', 'nickname', 'email'] as const;
+    const editableProperties = ['avatar', 'nickname'] as const;
     const editedProperties: string[] = [];
     const user = await this.userRepo.findOneBy({ id });
 
@@ -210,25 +233,63 @@ export class UserService {
   }
 
   async updatePassword(id: number, newData: UpdatePasswordDto) {
-    const user = await this.userRepo.findOneBy({ id });
-
-    if (isNil(user)) {
-      this.warn(`不存在的用户#${id}尝试修改密码`);
-      throw new BusinessException('用户不存在');
-    }
-
-    if (!user.checkPassword(newData.oldVal)) {
-      this.warn(`用户#${id}尝试使用错误的老密码修改密码`);
-      throw new BusinessException('原密码错误');
-    }
-
-    user.password = bcrypt.hashSync(
-      newData.newVal,
-      +this.configService.get('PWD_SALT_ROUND', 10),
-    );
-    await this.userRepo.save(user);
+    const user = await this.dataSource.transaction(async (manager) => {
+      const repo = manager.getRepository(User);
+      const locked = await repo.findOne({
+        where: { id },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!locked) throw new BusinessException('用户不存在');
+      if (
+        locked.password &&
+        (!newData.oldVal || !locked.checkPassword(newData.oldVal))
+      ) {
+        this.warn(`用户#${id}尝试使用错误的老密码修改密码`);
+        throw new BusinessException('原密码错误');
+      }
+      await this.emailVerification.consume(
+        manager,
+        newData.verificationProof,
+        EmailVerificationPurpose.CHANGE_PASSWORD,
+        id,
+        locked.email,
+      );
+      locked.password = bcrypt.hashSync(
+        newData.newVal,
+        +this.configService.get('PWD_SALT_ROUND', 10),
+      );
+      return repo.save(locked);
+    });
     this.log(`用户#${id}修改密码成功`);
+    await this.cache.jsonSet(`user-${id}`, user.getData());
+    return user.getData();
+  }
 
+  async changeEmail(id: number, input: ChangeEmailDto) {
+    const user = await this.dataSource.transaction(async (manager) => {
+      const repo = manager.getRepository(User);
+      const locked = await repo.findOne({
+        where: { id },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!locked) throw new BusinessException('用户不存在');
+      const email = normalizeEmail(input.email);
+      if (await repo.findOneBy({ email }))
+        throw new BusinessException('邮箱已被注册');
+      await this.emailVerification.consume(
+        manager,
+        input.verificationProof,
+        EmailVerificationPurpose.CHANGE_EMAIL,
+        id,
+        email,
+      );
+      locked.email = email;
+      locked.emailVerifiedAt = new Date();
+      locked.emailVerificationSource = 'email_otp';
+      return repo.save(locked);
+    });
+    await this.cache.jsonSet(`user-${id}`, user.getData());
+    this.log(`用户#${id}完成邮箱换绑`);
     return user.getData();
   }
 

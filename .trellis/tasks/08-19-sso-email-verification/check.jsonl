@@ -1,0 +1,6 @@
+{"file":".trellis/spec/backend/database-guidelines.md","reason":"Review atomic proof consumption, migrations, uniqueness races, and cache updates."}
+{"file":".trellis/spec/backend/error-handling.md","reason":"Verify stable errors do not disclose account or challenge state."}
+{"file":".trellis/spec/backend/logging-guidelines.md","reason":"Audit every path for sensitive-data leakage."}
+{"file":".trellis/spec/backend/oauth-identity-guidelines.md","reason":"Regression-check OIDC email_verified and external identity flows."}
+{"file":".trellis/spec/backend/quality-guidelines.md","reason":"Run the complete H backend quality checklist."}
+{"file":".trellis/tasks/08-19-sso-email-verification/research/dependency-contract.md","reason":"Check reuse of notification and frontend contracts."}

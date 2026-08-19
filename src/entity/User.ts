@@ -22,6 +22,8 @@ export interface UserExportData {
   avatar?: string;
   created_at: Date;
   updated_at: Date;
+  emailVerified: boolean;
+  hasPassword: boolean;
 }
 
 @Entity({
@@ -55,6 +57,12 @@ export class User {
   })
   password: string;
 
+  @Column({ name: 'email_verified_at', type: 'datetime', nullable: true })
+  emailVerifiedAt: Date | null;
+
+  @Column({ name: 'email_verification_source', length: 32, nullable: true })
+  emailVerificationSource: string | null;
+
   @Column({
     default: null,
   })
@@ -84,6 +92,8 @@ export class User {
       avatar: this.avatar,
       created_at: this.created_at,
       updated_at: this.updated_at,
+      emailVerified: Boolean(this.emailVerifiedAt),
+      hasPassword: Boolean(this.password),
     };
   }
 

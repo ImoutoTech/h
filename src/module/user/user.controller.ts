@@ -10,7 +10,12 @@ import {
   ParseIntPipe,
   DefaultValuePipe,
   HttpCode,
+  Req,
+  ParseUUIDPipe,
 } from '@nestjs/common';
+import type { FastifyRequest } from 'fastify';
+import * as jwt from 'jsonwebtoken';
+import { ConfigService } from '@nestjs/config';
 import { Md5 } from 'ts-md5';
 import { UserService } from './user.service';
 import {
@@ -18,16 +23,74 @@ import {
   UpdateUserDto,
   LoginUserDto,
   UpdatePasswordDto,
+  ChangeEmailDto,
+  CreateEmailVerificationChallengeDto,
+  VerifyEmailVerificationChallengeDto,
 } from '@/dto';
-import { AuthRoles, PermissionGuard, UserParams } from '@reus-able/nestjs';
+import {
+  AuthRoles,
+  BusinessException,
+  PermissionGuard,
+  UserParams,
+} from '@reus-able/nestjs';
 import { type UserJwtPayload } from '@reus-able/types';
+import { EmailVerificationService } from './email-verification.service';
+import { EmailVerificationPurpose } from '@/entity';
 
 @Controller({
   path: 'user',
   version: [VERSION_NEUTRAL, '1'],
 })
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly emailVerification: EmailVerificationService,
+    private readonly config: ConfigService,
+  ) {}
+
+  private authenticatedUser(request: FastifyRequest) {
+    const authorization = request.headers.authorization;
+    if (!authorization?.startsWith('Bearer '))
+      throw new BusinessException('请先登录');
+    try {
+      const user = jwt.verify(
+        authorization.slice(7),
+        this.config.get<string>('TOKEN_SECRET', ''),
+      ) as UserJwtPayload & { refresh?: boolean };
+      if (user.refresh) throw new Error('refresh token');
+      return user;
+    } catch {
+      throw new BusinessException('登录状态无效');
+    }
+  }
+
+  @Post('/email-verification/challenges')
+  @AuthRoles()
+  createEmailChallenge(
+    @Body() input: CreateEmailVerificationChallengeDto,
+    @Req() request: FastifyRequest,
+  ) {
+    const userId =
+      input.purpose === EmailVerificationPurpose.REGISTER
+        ? undefined
+        : this.authenticatedUser(request).id;
+    return this.emailVerification.create(input, userId, request.ip);
+  }
+
+  @Post('/email-verification/challenges/:id/verify')
+  @AuthRoles()
+  @HttpCode(200)
+  verifyEmailChallenge(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() input: VerifyEmailVerificationChallengeDto,
+    @Req() request: FastifyRequest,
+  ) {
+    const authorization = request.headers.authorization;
+    const userId = authorization
+      ? this.authenticatedUser(request).id
+      : undefined;
+    return this.emailVerification.verify(id, input.code, userId, request.ip);
+  }
 
   @Post('/register')
   @AuthRoles()
@@ -107,9 +170,18 @@ export class UserController {
 
     if (!md5) {
       newData.newVal = Md5.hashStr(updateData.newVal);
-      newData.oldVal = Md5.hashStr(updateData.oldVal);
+      if (updateData.oldVal) newData.oldVal = Md5.hashStr(updateData.oldVal);
     }
 
-    return this.userService.updatePassword(user.id, updateData);
+    return this.userService.updatePassword(user.id, newData);
+  }
+
+  @Put(':id/email')
+  @PermissionGuard('gnhNAwmj')
+  changeEmail(
+    @UserParams() user: UserJwtPayload,
+    @Body() input: ChangeEmailDto,
+  ) {
+    return this.userService.changeEmail(user.id, input);
   }
 }

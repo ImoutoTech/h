@@ -9,3 +9,5 @@ export function generateRandomString(length = 12) {
 
   return result;
 }
+
+export * from './email';
