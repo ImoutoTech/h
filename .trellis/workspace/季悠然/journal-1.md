@@ -174,3 +174,24 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 8: 优化邮箱验证 HTML 模板
+
+**Date**: 2026-08-20
+**Task**: 优化邮箱验证 HTML 模板
+**Branch**: `master`
+
+### Summary
+
+新增 Safe House 青绿色响应式邮箱验证码模板；通过安全的后续迁移保护管理员自定义，补充迁移、渲染与规范测试。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `47c9fa8` | (see git log) |
+
+### Status
+
+[OK] **Completed**
