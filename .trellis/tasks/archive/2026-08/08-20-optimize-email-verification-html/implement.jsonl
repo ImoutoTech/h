@@ -1,0 +1,2 @@
+{"file":".trellis/spec/backend/notification-guidelines.md","reason":"实现邮件模板 HTML 时遵循模板变量转义、sanitizer、安全标签与邮件 CSS 契约。"}
+{"file":".trellis/spec/backend/email-verification-guidelines.md","reason":"保持邮箱验证码投递边界、变量敏感性和验证流程不变。"}

@@ -1,0 +1,2 @@
+{"file":".trellis/spec/backend/notification-guidelines.md","reason":"复核 HTML 安全边界、CSS 保留与模板渲染测试覆盖。"}
+{"file":".trellis/spec/backend/quality-guidelines.md","reason":"执行项目规定的 lint、构建与测试质量门禁。"}
