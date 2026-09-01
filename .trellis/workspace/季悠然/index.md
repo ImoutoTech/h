@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 8
-- **Last Active**: 2026-08-20
+- **Total Sessions**: 9
+- **Last Active**: 2026-09-01
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~197 | Active |
+| `journal-1.md` | ~220 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 9 | 2026-09-01 | 丰富用户基本信息概览 | `09e8926`, `fc3be58`, `f67c363` | `master` |
 | 8 | 2026-08-20 | 优化邮箱验证 HTML 模板 | `47c9fa8` | `master` |
 | 7 | 2026-08-19 | SSO 邮箱认证 | `aaf4ca2`, `67e6254`, `43827be` | `master` |
 | 6 | 2026-08-17 | 修复 HTML 通知清洗运行时错误 | `023ba30` | `codex/unified-notification-service` |

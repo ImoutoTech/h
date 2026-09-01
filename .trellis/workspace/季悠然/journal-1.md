@@ -195,3 +195,26 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 9: 丰富用户基本信息概览
+
+**Date**: 2026-09-01
+**Task**: 丰富用户基本信息概览
+**Branch**: `master`
+
+### Summary
+
+完成用户概览活动事件、30 天子应用指标、账号安全与最近活动 UI；修复认证元数据和分页参数转换问题，并完成跨仓测试与验收。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `09e8926` | (see git log) |
+| `fc3be58` | (see git log) |
+| `f67c363` | (see git log) |
+
+### Status
+
+[OK] **Completed**
