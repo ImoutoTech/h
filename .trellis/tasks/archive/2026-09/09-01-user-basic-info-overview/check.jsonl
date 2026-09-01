@@ -1,0 +1,3 @@
+{"file":"docs/research/user-basic-info-metrics.md","reason":"Verify final behavior against the evidence-backed metric and data-gap matrix."}
+{"file":".trellis/spec/backend/quality-guidelines.md","reason":"Backend integration quality gate."}
+{"file":"/Users/reuszeng/Code/Projects/safe-house/.trellis/spec/frontend/quality-guidelines.md","reason":"Frontend integration, permission, accessibility, and responsive quality gate."}

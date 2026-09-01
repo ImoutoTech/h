@@ -1,0 +1,3 @@
+{"file":"docs/research/user-basic-info-metrics.md","reason":"Source audit for current data availability, missing OIDC metrics, UI recommendations, and visitNum semantics."}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"Parent task spans persisted events, aggregation APIs, transport types, composables, and UI display."}
+{"file":"/Users/reuszeng/Code/Projects/safe-house/.trellis/spec/frontend/index.md","reason":"Frontend guideline index for the cross-repository UI child."}

@@ -1,0 +1,29 @@
+{
+  "id": "user-basic-info-overview",
+  "name": "user-basic-info-overview",
+  "title": "丰富用户基本信息概览",
+  "description": "",
+  "status": "completed",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "季悠然",
+  "assignee": "季悠然",
+  "createdAt": "2026-09-01",
+  "completedAt": "2026-09-01",
+  "branch": null,
+  "base_branch": "master",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "09-01-user-basic-info-ui",
+    "09-01-user-overview-events-api"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}
