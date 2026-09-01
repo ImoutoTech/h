@@ -1,0 +1,5 @@
+{"file":"docs/research/user-basic-info-metrics.md","reason":"Evidence for current entities, missing event history, visitNum limitation, and proposed API boundary."}
+{"file":".trellis/spec/backend/oauth-identity-guidelines.md","reason":"OIDC consent, provider reload, token, Redis, migration, and protocol test contracts."}
+{"file":".trellis/spec/backend/logging-guidelines.md","reason":"Sensitive-data and safe logging boundaries for activity instrumentation."}
+{"file":".trellis/spec/backend/quality-guidelines.md","reason":"Nest/TypeScript implementation and verification requirements."}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"Event taxonomy must remain consistent through writer, database, reducers, API, and UI."}

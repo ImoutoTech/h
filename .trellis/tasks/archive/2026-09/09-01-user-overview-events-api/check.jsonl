@@ -1,0 +1,5 @@
+{"file":"docs/research/user-basic-info-metrics.md","reason":"Check every exposed metric against current-data and missing-data evidence."}
+{"file":".trellis/spec/backend/oauth-identity-guidelines.md","reason":"Review token exchange counting and consent changes against protocol contracts."}
+{"file":".trellis/spec/backend/error-handling.md","reason":"Ensure activity failures do not expose infrastructure errors or alter domain responses."}
+{"file":".trellis/spec/backend/logging-guidelines.md","reason":"Audit all new logs and projections for bearer/secret leakage."}
+{"file":".trellis/spec/backend/quality-guidelines.md","reason":"Run and interpret the complete backend verification matrix."}
