@@ -16,3 +16,4 @@ export * from './NotificationTemplateGrant';
 export * from './NotificationApiKey';
 export * from './Notification';
 export * from './NotificationDelivery';
+export * from './UserActivityEvent';

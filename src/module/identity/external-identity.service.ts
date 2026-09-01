@@ -14,6 +14,7 @@ import { ProviderConfigService } from './provider-config.service';
 import { nativeImport } from '../oauth/native-import';
 import { UserService } from '../user/user.service';
 import { OneTimeStateService } from './one-time-state.service';
+import { ActivityWriterService } from '../activity/activity-writer.service';
 
 interface ExternalProfile {
   providerUserId: string;
@@ -37,6 +38,7 @@ export class ExternalIdentityService {
     private readonly dataSource: DataSource,
     private readonly userService: UserService,
     private readonly oneTimeState: OneTimeStateService,
+    private readonly activity: ActivityWriterService,
   ) {}
 
   async list(userId: number) {
@@ -159,10 +161,25 @@ export class ExternalIdentityService {
         relations: ['roles'],
       });
       if (!user) throw new BusinessException('绑定用户不存在');
-      return {
+      const session = {
         outcome: result.outcome,
         ...this.userService.issueSession(user),
       };
+      await this.activity.record({
+        kind: 'account.login',
+        actorUserId: user.id,
+        method: provider,
+        outcome: 'success',
+      });
+      return session;
+    }
+    if (result.outcome === 'bound') {
+      await this.activity.record({
+        kind: 'identity.changed',
+        actorUserId: result.user.id,
+        provider,
+        action: 'identity_bound',
+      });
     }
     return result;
   }
@@ -320,11 +337,18 @@ export class ExternalIdentityService {
       where: { id: userId },
       relations: ['roles'],
     });
-    return { outcome: 'bound', ...this.userService.issueSession(user) };
+    const result = { outcome: 'bound', ...this.userService.issueSession(user) };
+    await this.activity.record({
+      kind: 'identity.changed',
+      actorUserId: userId,
+      provider: data.provider,
+      action: 'identity_bound',
+    });
+    return result;
   }
 
   async unbind(userId: number, identityId: number) {
-    return this.dataSource.transaction(async (manager) => {
+    const provider = await this.dataSource.transaction(async (manager) => {
       const repo = manager.getRepository(ExternalIdentity);
       const identity = await repo.findOne({
         where: { id: identityId, user: { id: userId } },
@@ -335,7 +359,14 @@ export class ExternalIdentityService {
       if (!identity.user.password && count <= 1)
         throw new BusinessException('不能解绑最后一种可用登录方式');
       await repo.remove(identity);
-      return true;
+      return identity.provider;
     });
+    await this.activity.record({
+      kind: 'identity.changed',
+      actorUserId: userId,
+      provider,
+      action: 'identity_unbound',
+    });
+    return true;
   }
 }

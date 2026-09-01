@@ -25,6 +25,7 @@ import {
 import { AuthPermissionService } from '../system/permission.service';
 import { EmailVerificationService } from './email-verification.service';
 import { normalizeEmail } from '@/utils';
+import { ActivityWriterService } from '../activity/activity-writer.service';
 
 @Injectable()
 export class UserService {
@@ -42,6 +43,7 @@ export class UserService {
     private permissionService: AuthPermissionService,
     private dataSource: DataSource,
     private emailVerification: EmailVerificationService,
+    private readonly activity: ActivityWriterService,
   ) {}
 
   private log(text: string) {
@@ -135,15 +137,33 @@ export class UserService {
     });
     if (isNil(user)) {
       this.warn('不存在的邮箱账号尝试登录');
+      await this.activity.record({
+        kind: 'account.login',
+        method: 'password',
+        outcome: 'failure',
+      });
       throw new BusinessException('用户不存在');
     }
 
     if (!user.checkPassword(param.password)) {
       this.warn(`用户#${user.id}登录时密码错误`);
+      await this.activity.record({
+        kind: 'account.login',
+        actorUserId: user.id,
+        method: 'password',
+        outcome: 'failure',
+      });
       throw new BusinessException('密码错误');
     }
 
-    return this.issueSession(user);
+    const session = this.issueSession(user);
+    await this.activity.record({
+      kind: 'account.login',
+      actorUserId: user.id,
+      method: 'password',
+      outcome: 'success',
+    });
+    return session;
   }
 
   issueSession(user: User) {
@@ -209,7 +229,7 @@ export class UserService {
 
   async update(id: number, userNewData: UpdateUserDto) {
     const editableProperties = ['avatar', 'nickname'] as const;
-    const editedProperties: string[] = [];
+    const editedProperties: Array<(typeof editableProperties)[number]> = [];
     const user = await this.userRepo.findOneBy({ id });
 
     if (isNil(user)) {
@@ -228,6 +248,15 @@ export class UserService {
     this.log(`用户#${user.id}修改了${editedProperties.join(',')}`);
 
     await this.cache.jsonSet(`user-${user.id}`, user.getData());
+
+    if (editedProperties.length) {
+      await this.activity.record({
+        kind: 'account.changed',
+        actorUserId: user.id,
+        action: 'profile_updated',
+        changedFields: editedProperties,
+      });
+    }
 
     return user.getData();
   }
@@ -262,6 +291,11 @@ export class UserService {
     });
     this.log(`用户#${id}修改密码成功`);
     await this.cache.jsonSet(`user-${id}`, user.getData());
+    await this.activity.record({
+      kind: 'account.changed',
+      actorUserId: id,
+      action: 'password_changed',
+    });
     return user.getData();
   }
 
@@ -290,6 +324,11 @@ export class UserService {
     });
     await this.cache.jsonSet(`user-${id}`, user.getData());
     this.log(`用户#${id}完成邮箱换绑`);
+    await this.activity.record({
+      kind: 'account.changed',
+      actorUserId: id,
+      action: 'email_changed',
+    });
     return user.getData();
   }
 

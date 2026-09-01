@@ -27,6 +27,7 @@ describe('ExternalIdentityService Google callback', () => {
         {},
         {},
         { consume: async () => transaction },
+        { record: async () => undefined },
       );
       service.logger = { warn() {} };
       service.callback(

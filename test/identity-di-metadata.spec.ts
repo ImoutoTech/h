@@ -22,6 +22,7 @@ describe('ExternalIdentityService Nest DI metadata', () => {
       'DataSource',
       'UserService',
       'OneTimeStateService',
+      'ActivityWriterService',
     ]);
   });
 });

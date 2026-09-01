@@ -17,6 +17,7 @@ import { isNil } from 'lodash';
 import { HLOGGER_TOKEN, HLogger, RedisService } from '@reus-able/nestjs';
 import { generateRandomString } from '@/utils';
 import { ClientSecretService } from '../oauth/client-secret.service';
+import { ActivityWriterService } from '../activity/activity-writer.service';
 
 @Injectable()
 export class SubAppService {
@@ -42,6 +43,7 @@ export class SubAppService {
     private configService: ConfigService,
     private readonly clientSecrets: ClientSecretService,
     private readonly dataSource: DataSource,
+    private readonly activity: ActivityWriterService,
   ) {}
 
   private log(text: string) {
@@ -86,6 +88,14 @@ export class SubAppService {
     await this.appRepo.save(app);
 
     await this.cache.jsonSet(`app-${app.id}`, app.getData());
+
+    await this.activity.record({
+      kind: 'subapp.changed',
+      actorUserId: owner,
+      appId: app.id,
+      appName: app.name,
+      action: 'created',
+    });
 
     return app.getData();
   }
@@ -202,6 +212,7 @@ export class SubAppService {
 
   async update(id: string, updateData: UpdateSubAppDto, owner: number) {
     const app = await this.getOneUserApp(owner, id);
+    const previousStatus = app.meta.status;
 
     const attrs = ['name', 'callback', 'description'] as const;
 
@@ -225,6 +236,29 @@ export class SubAppService {
     this.log(`用户#${owner}修改子应用#${id}信息`);
     await this.cache.jsonSet(`app-${app.id}`, app.getData());
 
+    if (attrs.some((key) => !isNil(updateData[key]))) {
+      await this.activity.record({
+        kind: 'subapp.changed',
+        actorUserId: owner,
+        appId: app.id,
+        appName: app.name,
+        action: 'updated',
+      });
+    }
+    if (
+      updateData.status !== undefined &&
+      updateData.status !== previousStatus
+    ) {
+      await this.activity.record({
+        kind: 'subapp.changed',
+        actorUserId: owner,
+        appId: app.id,
+        appName: app.name,
+        action: 'status_changed',
+        status: app.meta.status,
+      });
+    }
+
     return app.getData();
   }
 
@@ -235,6 +269,14 @@ export class SubAppService {
 
     this.log(`用户#${owner}删除了子应用#${id}`);
     await this.cache.del(`app-${id}`);
+
+    await this.activity.record({
+      kind: 'subapp.changed',
+      actorUserId: owner,
+      appId: id,
+      appName: app.name,
+      action: 'deleted',
+    });
 
     return true;
   }
@@ -264,6 +306,15 @@ export class SubAppService {
 
     this.log(`用户#${owner}为子应用#${id}创建了新的秘钥#${secret.id}`);
 
+    await this.activity.record({
+      kind: 'subapp.changed',
+      actorUserId: owner,
+      appId: app.id,
+      appName: app.name,
+      action: 'secret_created',
+      secretEnabled: secret.status,
+    });
+
     return {
       value: plaintext,
       enabled: secret.status,
@@ -287,7 +338,7 @@ export class SubAppService {
   }
 
   async setAppSecret(app: string, id: number, owner: number) {
-    const enabled = await this.dataSource.transaction(async (manager) => {
+    const result = await this.dataSource.transaction(async (manager) => {
       const repo = manager.getRepository(SubAppSecret);
       const secret = await repo.findOneOrFail({
         where: {
@@ -316,10 +367,19 @@ export class SubAppService {
       }
       secret.status = enabled;
       await repo.save(secret);
-      return enabled;
+      return { enabled, appName: secret.app.name };
     });
 
-    this.log(`用户#${owner}设置子应用#${app}的秘钥#${id}为${enabled}`);
+    this.log(`用户#${owner}设置子应用#${app}的秘钥#${id}为${result.enabled}`);
+
+    await this.activity.record({
+      kind: 'subapp.changed',
+      actorUserId: owner,
+      appId: app,
+      appName: result.appName,
+      action: 'secret_status_changed',
+      secretEnabled: result.enabled,
+    });
 
     return null;
   }
@@ -345,6 +405,14 @@ export class SubAppService {
     await this.scRepo.delete(secret);
 
     this.log(`用户#${owner}删除子应用#${app}的秘钥#${id}`);
+
+    await this.activity.record({
+      kind: 'subapp.changed',
+      actorUserId: owner,
+      appId: app,
+      appName: secret.app.name,
+      action: 'secret_deleted',
+    });
 
     return null;
   }

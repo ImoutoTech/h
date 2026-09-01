@@ -2,7 +2,12 @@ import { User, SubApp } from '@/entity';
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { BusinessException, RedisService } from '@reus-able/nestjs';
+import {
+  BusinessException,
+  HLOGGER_TOKEN,
+  HLogger,
+  RedisService,
+} from '@reus-able/nestjs';
 import type { Repository } from 'typeorm';
 import { nativeImport } from './native-import';
 import { createRedisAdapter } from './redis-adapter';
@@ -14,6 +19,7 @@ import { ServerResponse } from 'http';
 import { isProviderResumeContinuation } from './continuation-url';
 import { isSecureOidcIssuer, oidcCookieOptions } from './oidc-cookie-options';
 import { interactionPageUrl } from './interaction-page-url';
+import { ActivityWriterService } from '../activity/activity-writer.service';
 
 @Injectable()
 export class OAuthService {
@@ -26,6 +32,9 @@ export class OAuthService {
   @Inject(RedisService)
   private cache: RedisService;
 
+  @Inject(HLOGGER_TOKEN)
+  private logger: HLogger;
+
   private providers = new AtomicReloader<any>();
   private currentPublicJwk: Record<string, any>;
   private previousPublicJwk?: Record<string, any>;
@@ -33,6 +42,7 @@ export class OAuthService {
   constructor(
     private readonly config: ConfigService,
     private readonly clientSecrets: ClientSecretService,
+    private readonly activity: ActivityWriterService,
   ) {}
 
   async initialize() {
@@ -182,7 +192,30 @@ export class OAuthService {
     // oidc-provider is mounted behind the public TLS reverse proxy. Koa must
     // trust X-Forwarded-Proto so its cookie layer permits Secure cookies.
     provider.proxy = isSecureOidcIssuer(issuer);
+    provider.on('grant.success', (ctx: any) => {
+      void this.recordSuccessfulCodeExchange(ctx).catch(() =>
+        this.logger.warn(
+          'OIDC 登录成功事件采集失败，协议结果不受影响',
+          OAuthService.name,
+        ),
+      );
+    });
     return provider;
+  }
+
+  private async recordSuccessfulCodeExchange(ctx: any) {
+    if (ctx?.oidc?.params?.grant_type !== 'authorization_code') return;
+    const code = ctx?.oidc?.entities?.AuthorizationCode;
+    if (!code?.jti || !code?.accountId || !code?.clientId) return;
+    await this.activity.record({
+      kind: 'oidc.login',
+      actorUserId: Number(code.accountId),
+      appId: String(code.clientId),
+      scopes: String(code.scope || '')
+        .split(' ')
+        .filter(Boolean),
+      authorizationCodeJti: String(code.jti),
+    });
   }
 
   jwks() {
@@ -279,6 +312,16 @@ export class OAuthService {
     if (!isProviderResumeContinuation(continuationUrl, issuer)) {
       throw new BusinessException('授权继续地址无效');
     }
+    await this.activity.record({
+      kind: 'oidc.consent',
+      actorUserId: userId,
+      appId: String(details.params.client_id),
+      scopes: String(details.params.scope || '')
+        .split(' ')
+        .filter(Boolean),
+      outcome: approved ? 'approved' : 'denied',
+      dedupeSource: uid,
+    });
     return {
       continuationUrl,
       cookies: Array.isArray(setCookie)

@@ -6,11 +6,13 @@ import { ExternalIdentityService } from './external-identity.service';
 import { ProviderConfigService } from './provider-config.service';
 import { UserModule } from '../user/user.module';
 import { OneTimeStateService } from './one-time-state.service';
+import { ActivityModule } from '../activity/activity.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([ExternalIdentity, ProviderConfig, User]),
     UserModule,
+    ActivityModule,
   ],
   controllers: [IdentityController],
   providers: [

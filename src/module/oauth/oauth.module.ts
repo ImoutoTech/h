@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { SubApp, SubAppMeta, User, SubAppSecret } from '@/entity';
 import { ClientSecretService } from './client-secret.service';
+import { ActivityModule } from '../activity/activity.module';
 
 @Module({
   controllers: [OAuthController, OidcProtocolController],
@@ -13,6 +14,7 @@ import { ClientSecretService } from './client-secret.service';
   exports: [OAuthService, ClientSecretService],
   imports: [
     ConfigModule,
+    ActivityModule,
     TypeOrmModule.forFeature([SubApp, User, SubAppMeta, SubAppSecret]),
   ],
 })

@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { SubApp, SubAppMeta, User, SubAppSecret } from '@/entity';
 import { ConfigModule } from '@nestjs/config';
 import { OauthModule } from '../oauth/oauth.module';
+import { ActivityModule } from '../activity/activity.module';
 
 @Module({
   controllers: [SubAppController],
@@ -13,6 +14,7 @@ import { OauthModule } from '../oauth/oauth.module';
     ConfigModule,
     TypeOrmModule.forFeature([SubApp, User, SubAppMeta, SubAppSecret]),
     OauthModule,
+    ActivityModule,
   ],
 })
 export class SubappModule {}

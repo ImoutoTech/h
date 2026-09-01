@@ -26,6 +26,12 @@ The application uses TypeORM 0.3 with MySQL. Connection configuration is built f
 
 ## Schema Changes
 
-There is currently no migrations directory or migration command. `synchronize: true` in `src/app.module.ts` updates the schema at runtime. Do not invent a migration workflow in a feature change. Any production-oriented change away from synchronization must be handled as an explicit infrastructure task with rollout and rollback planning.
+Production schema changes use TypeORM migrations under
+`src/database/migrations/`. The application keeps `synchronize` disabled by
+default and always disables it in production. Use the repository's safe
+`migration:run` / `migration:revert` runner for writes and
+`migration:check-load` / `migration:show` for read-only validation. Plan an
+explicit up/down rollout for every feature schema change; never rely on
+runtime synchronization in production.
 
 Avoid raw SQL and unscoped bulk writes when repository APIs express the operation. Also avoid assuming TypeORM automatically loads relations.

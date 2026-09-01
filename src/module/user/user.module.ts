@@ -15,6 +15,7 @@ import { AuthPermissionService } from '../system/permission.service';
 import { EmailVerificationService } from './email-verification.service';
 import { EmailNotificationService } from './email-notification.service';
 import { NotificationModule } from '../notification/notification.module';
+import { ActivityModule } from '../activity/activity.module';
 
 @Module({
   controllers: [UserController],
@@ -27,6 +28,7 @@ import { NotificationModule } from '../notification/notification.module';
   imports: [
     ConfigModule,
     NotificationModule,
+    ActivityModule,
     TypeOrmModule.forFeature([
       User,
       Role,

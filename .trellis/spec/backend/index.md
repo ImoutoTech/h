@@ -12,5 +12,6 @@ Project-specific guidance for this single-package NestJS service.
 | [OAuth / OIDC Identity Center](./oauth-identity-guidelines.md) | Protocol, secret, callback, identity-linking, migration, and test contracts |
 | [Notification Module](./notification-guidelines.md) | Notification API, templates, encrypted queue, dispatcher, SMTP, retention, and admin contracts |
 | [Email Verification](./email-verification-guidelines.md) | OTP challenges, one-time proofs, account mutations, rate limits, and notification boundaries |
+| [User Activity and Overview](./user-activity-guidelines.md) | Structured account activity, OIDC metric semantics, overview permissions, and retention |
 
 These documents describe the repository as it exists. The generic NestJS text in `README.md` is starter content and is not a source of project-specific conventions.

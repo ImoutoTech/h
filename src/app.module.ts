@@ -12,6 +12,7 @@ import { OauthModule } from './module/oauth/oauth.module';
 import { SystemModule } from './module/system/system.module';
 import { IdentityModule } from './module/identity/identity.module';
 import { NotificationModule } from './module/notification/notification.module';
+import { ActivityModule } from './module/activity/activity.module';
 
 import {
   LoggerModule,
@@ -50,6 +51,7 @@ import {
     SystemModule,
     IdentityModule,
     NotificationModule,
+    ActivityModule,
   ],
   controllers: [AppController],
   providers: [

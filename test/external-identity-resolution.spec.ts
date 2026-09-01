@@ -42,6 +42,7 @@ describe('ExternalIdentityService identity resolution', () => {
           { transaction: transaction || tracked(async (work) => work({})) },
           { issueSession: issueSession || tracked(() => ({ token: 'token', refresh: 'refresh', user: {} })) },
           { consume: consume || tracked(async () => ({ provider: 'github' })) },
+          { record: tracked(async () => undefined) },
         );
         service.logger = { warn() {} };
         return service;

@@ -16,6 +16,7 @@ describe('IdentityModule dependency graph', () => {
       const { OneTimeStateService } = require('./src/module/identity/one-time-state.service');
       const { UserModule } = require('./src/module/user/user.module');
       const { UserService } = require('./src/module/user/user.service');
+      const { ActivityWriterService } = require('./src/module/activity/activity-writer.service');
       (async () => {
         let state = JSON.stringify({ provider: 'github' });
         const redisService = Object.create(RedisService.prototype);
@@ -31,6 +32,7 @@ describe('IdentityModule dependency graph', () => {
             { provide: getRepositoryToken(User), useValue: {} },
             { provide: DataSource, useValue: {} },
             { provide: UserService, useValue: {} },
+            { provide: ActivityWriterService, useValue: { record: async () => undefined } },
             { provide: RedisService, useValue: redisService },
             { provide: ConfigService, useValue: {} },
             { provide: HLOGGER_TOKEN, useValue: {} },
