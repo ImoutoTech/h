@@ -1,0 +1,5 @@
+{"file":"docs/research/user-basic-info-metrics.md","reason":"Verify the UI never relabels legacy visits or invents unavailable metrics."}
+{"file":"/Users/reuszeng/Code/Projects/safe-house/.trellis/spec/frontend/component-guidelines.md","reason":"Review feature component boundaries, semantic HTML, Origin UI use, and mobile layout."}
+{"file":"/Users/reuszeng/Code/Projects/safe-house/.trellis/spec/frontend/hook-guidelines.md","reason":"Review independent loading/error/pagination composable behavior."}
+{"file":"/Users/reuszeng/Code/Projects/safe-house/.trellis/spec/frontend/type-safety.md","reason":"Review complete overview/activity API types and null semantics."}
+{"file":"/Users/reuszeng/Code/Projects/safe-house/.trellis/spec/frontend/quality-guidelines.md","reason":"Run frontend quality, permissions, accessibility, and responsive checks."}

@@ -1,0 +1,5 @@
+{"file":"docs/research/user-basic-info-metrics.md","reason":"Metric availability, display recommendations, null-vs-zero, and visitNum constraints."}
+{"file":"/Users/reuszeng/Code/Projects/safe-house/.trellis/spec/frontend/component-guidelines.md","reason":"Vue SFC, source-owned UI, styling, responsive, and accessibility conventions."}
+{"file":"/Users/reuszeng/Code/Projects/safe-house/.trellis/spec/frontend/hook-guidelines.md","reason":"Alova request/composable ownership and state handling."}
+{"file":"/Users/reuszeng/Code/Projects/safe-house/.trellis/spec/frontend/type-safety.md","reason":"Typed API, transport, and component boundaries."}
+{"file":"/Users/reuszeng/Code/Projects/safe-house/.trellis/spec/frontend/oauth-ui-guidelines.md","reason":"OIDC UI/session boundaries and callback safety context."}
